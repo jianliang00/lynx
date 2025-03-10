@@ -44,11 +44,13 @@
   V(has_element)                    \
   V(get_element)                    \
   V(delete_element)                 \
+  V(is_map)                         \
   V(get_property_names)             \
   V(set_named_property)             \
   V(has_named_property)             \
   V(get_named_property)             \
   V(delete_named_property)          \
+  V(iterate_value)                  \
   V(is_arraybuffer)                 \
   V(get_arraybuffer_info)           \
   V(call_function)                  \
@@ -57,6 +59,7 @@
   V(get_instance_data)              \
   V(equals)                         \
   V(create_reference)               \
+  V(move_reference)                 \
   V(delete_reference)               \
   V(get_reference_value)            \
   V(open_handle_scope)              \
@@ -64,7 +67,10 @@
   V(get_length)                     \
   V(deep_copy_value)                \
   V(has_string_ref)                 \
-  V(get_string_ref)
+  V(get_string_ref)                 \
+  V(to_string_utf8)                 \
+  V(print)                          \
+  V(is_refcounted_object)
 
 struct lynx_api_env__ {
   lynx_api_state state;
@@ -105,11 +111,9 @@ struct lynx_api_env__ {
                                                    size_t byte_length,
                                                    void** data,
                                                    lynx_value* result);
-  lynx_api_status (*lynx_value_create_function)(lynx_api_env env,
-                                                const char* utf8_name,
-                                                size_t length,
-                                                lynx_value_callback callback,
-                                                void* data, lynx_value* result);
+  lynx_api_status (*lynx_value_create_function)(
+      lynx_api_env env, const char* utf8_name, size_t length,
+      lynx_value_function_callback callback, void* data, lynx_value* result);
 
   // getter
   lynx_api_status (*lynx_value_get_bool)(lynx_api_env env, lynx_value value,
@@ -152,6 +156,8 @@ struct lynx_api_env__ {
                                                uint32_t index, bool* result);
 
   // map
+  lynx_api_status (*lynx_value_is_map)(lynx_api_env env, lynx_value value,
+                                       bool* result);
   lynx_api_status (*lynx_value_get_property_names)(lynx_api_env env,
                                                    const lynx_value object,
                                                    lynx_value* result);
@@ -170,6 +176,9 @@ struct lynx_api_env__ {
   lynx_api_status (*lynx_value_delete_named_property)(lynx_api_env env,
                                                       lynx_value object,
                                                       const char* name);
+  lynx_api_status (*lynx_value_iterate_value)(
+      lynx_api_env env, lynx_value object,
+      lynx_value_iterator_callback callback, void* pfunc, void* raw_data);
 
   // arraybuffer
   lynx_api_status (*lynx_value_is_arraybuffer)(lynx_api_env env,
@@ -206,6 +215,11 @@ struct lynx_api_env__ {
                                                  lynx_value_ref* result);
   lynx_api_status (*lynx_value_delete_reference)(lynx_api_env env,
                                                  lynx_value_ref ref);
+  // Move a reference rather than recreate reference when value is moved.
+  lynx_api_status (*lynx_value_move_reference)(lynx_api_env env,
+                                               lynx_value src_val,
+                                               lynx_value_ref src_ref,
+                                               lynx_value_ref* result);
   lynx_api_status (*lynx_value_get_reference_value)(lynx_api_env env,
                                                     lynx_value_ref ref,
                                                     lynx_value* result);
@@ -236,6 +250,16 @@ struct lynx_api_env__ {
   // Get a string object raw pointer.
   lynx_api_status (*lynx_value_get_string_ref)(lynx_api_env env,
                                                lynx_value value, void** result);
+
+  lynx_api_status (*lynx_value_to_string_utf8)(lynx_api_env env,
+                                               lynx_value value, void* result);
+  lynx_api_status (*lynx_value_print)(lynx_api_env env, lynx_value value,
+                                      void* stream,
+                                      lynx_value_print_callback callback);
+  // Some extension backends support storing a RefCounted object.
+  lynx_api_status (*lynx_value_is_refcounted_object)(lynx_api_env env,
+                                                     lynx_value value,
+                                                     bool* result);
 };
 
 #endif  // BASE_INCLUDE_VALUE_LYNX_VALUE_API_H_
