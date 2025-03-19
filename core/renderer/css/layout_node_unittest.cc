@@ -188,5 +188,52 @@ TEST_F(LayoutNodeTests, RemoveCommonWithinVirtual) {
   EXPECT_EQ(child0->slnode(), child2->slnode()->Previous());
 }
 
+#define TEST_DECLARE_WANTED_PROPERTY(name, type) \
+  EXPECT_EQ(LayoutNode::ConsumptionTest(kPropertyID##name), type);
+
+struct ThreadArgs {
+  std::atomic<bool>* flag;
+  const int* wanted_prop;
+};
+
+TEST_F(LayoutNodeTests, ConcurrentAccess) {
+  constexpr int kThreadCount = 16;
+  constexpr int kLoopTimes = 10000;
+  std::vector<std::thread> threads;
+  std::atomic<bool> start_flag{false};
+
+  static const auto& kWantedProperty = []() -> const int(&)[kPropertyEnd] {
+    static int arr[kPropertyEnd];
+    std::fill(std::begin(arr), std::end(arr), ConsumptionStatus::SKIP);
+
+#define DECLARE_WANTED_PROPERTY(name, type) arr[kPropertyID##name] = type;
+    FOREACH_LAYOUT_PROPERTY(DECLARE_WANTED_PROPERTY)
+#undef DECLARE_WANTED_PROPERTY
+
+    return arr;
+  }();
+
+  auto test_task = [](ThreadArgs args) {
+    while (!(*args.flag))
+      ;
+    for (int i = 0; i < kLoopTimes; ++i) {
+      FOREACH_LAYOUT_PROPERTY(TEST_DECLARE_WANTED_PROPERTY);
+    }
+  };
+
+  for (int i = 0; i < kThreadCount; ++i) {
+    threads.emplace_back(test_task, ThreadArgs{&start_flag, kWantedProperty});
+  }
+
+  start_flag = true;  // 统一触发线程执行
+  for (auto& t : threads) t.join();
+}
+
+TEST_F(LayoutNodeTests, BasicFunction) {
+  FOREACH_LAYOUT_PROPERTY(TEST_DECLARE_WANTED_PROPERTY);
+}
+
+#undef TEST_DECLARE_WANTED_PROPERTY
+
 }  // namespace tasm
 }  // namespace lynx
