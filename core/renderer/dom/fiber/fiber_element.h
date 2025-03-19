@@ -628,6 +628,8 @@ class FiberElement : public Element, public SelectorItem {
 
   void HandleDelayTask(base::MoveOnlyClosure<void> operation) override;
 
+  void HandleBeforeFlushActionsTask(base::MoveOnlyClosure<void> operation);
+
   void HandleKeyframePropsChange(bool need_animation_props);
 
   void VerifyKeyframePropsChangedHandling();
@@ -1027,6 +1029,10 @@ class FiberElement : public Element, public SelectorItem {
   lepus::Value config_{lepus::Dictionary::Create()};
 
   std::list<base::closure> parallel_reduce_tasks_ = {};
+
+  // Need extra list to record tasks that need to be invoked before flush
+  // actions
+  std::list<base::closure> parallel_before_flush_action_tasks_ = {};
 
   bool has_font_size_{false};
 

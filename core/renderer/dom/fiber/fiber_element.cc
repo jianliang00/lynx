@@ -847,6 +847,15 @@ void FiberElement::HandleDelayTask(base::MoveOnlyClosure<void> operation) {
   }
 }
 
+void FiberElement::HandleBeforeFlushActionsTask(
+    base::MoveOnlyClosure<void> operation) {
+  if (this->parallel_flush_) {
+    parallel_before_flush_action_tasks_.emplace_back(std::move(operation));
+  } else {
+    operation();
+  }
+}
+
 ParallelFlushReturn FiberElement::PrepareForCreateOrUpdate() {
   TRACE_EVENT(LYNX_TRACE_CATEGORY, "FiberElement::PrepareForCreateOrUpdate",
               [this](lynx::perfetto::EventContext ctx) {
@@ -1432,6 +1441,10 @@ void FiberElement::FlushSelf() {
               [this](lynx::perfetto::EventContext ctx) {
                 UpdateTraceDebugInfo(ctx.event());
               });
+  for (const auto &task : parallel_before_flush_action_tasks_) {
+    task();
+  }
+  parallel_before_flush_action_tasks_.clear();
 
   if ((dirty_ & ~kDirtyTree) != 0) {
     // create or update Platform Op
@@ -2786,7 +2799,10 @@ void FiberElement::DoFullCSSResolving() {
       // invalidate self.
       MarkStyleDirty(false);
     }
-    RecursivelyMarkChildrenCSSVariableDirty(css_var_table);
+    HandleBeforeFlushActionsTask(
+        [this, css_var_table_clone = lepus::Value::Clone(css_var_table)]() {
+          RecursivelyMarkChildrenCSSVariableDirty(css_var_table_clone);
+        });
   }
 }
 

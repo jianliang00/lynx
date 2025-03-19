@@ -5040,6 +5040,158 @@ TEST_P(FiberElementTest, UpdateCSSVariables_CSS_NG_1) {
   EXPECT_TRUE(node_4_background_color_value.UInt32() == 0xff008000);
 }
 
+TEST_P(FiberElementTest, UpdateMultipleCSSVariables) {
+  // construct css fragment
+  StyleMap indexAttributes;
+  CSSParserConfigs parser_configs;
+
+  CSSParserTokenMap indexTokenMap;
+
+  // class .one
+  {
+    auto tokens = std::make_shared<CSSParseToken>(parser_configs);
+    tokens->style_variables_.insert_or_assign("--main-bg-color", "yellow");
+    tokens->style_variables_.insert_or_assign("--color-2", "red");
+    tokens->style_variables_.insert_or_assign("--color-4", "green");
+    tokens->style_variables_.insert_or_assign("--color-6", "blue");
+    tokens->style_variables_.insert_or_assign("--color-8", "yellow");
+    tokens->style_variables_.insert_or_assign("--color-10", "pink");
+    tokens->style_variables_.insert_or_assign("--color-12", "black");
+    tokens->style_variables_.insert_or_assign("--color-14", "white");
+    tokens->style_variables_.insert_or_assign("--color-16", "red");
+    tokens->style_variables_.insert_or_assign("--color-18", "green");
+    tokens->style_variables_.insert_or_assign("--color-20", "blue");
+    tokens->style_variables_.insert_or_assign("--color-22", "yellow");
+    tokens->style_variables_.insert_or_assign("--color-24", "pink");
+    std::string key = ".one";
+    auto& sheets = tokens->sheets();
+    auto shared_css_sheet = std::make_shared<CSSSheet>(key);
+    sheets.emplace_back(shared_css_sheet);
+    indexTokenMap.insert(std::make_pair(key, tokens));
+  }
+
+  // class .two
+  {
+    auto tokens = std::make_shared<CSSParseToken>(parser_configs);
+    tokens->style_variables_.insert_or_assign("--main-height", "100px");
+    tokens->style_variables_.insert_or_assign("--color-2", "red");
+    tokens->style_variables_.insert_or_assign("--color-4", "green");
+    tokens->style_variables_.insert_or_assign("--color-6", "blue");
+    tokens->style_variables_.insert_or_assign("--color-8", "yellow");
+    tokens->style_variables_.insert_or_assign("--color-10", "pink");
+    tokens->style_variables_.insert_or_assign("--color-12", "black");
+    tokens->style_variables_.insert_or_assign("--color-14", "white");
+    tokens->style_variables_.insert_or_assign("--color-16", "red");
+    tokens->style_variables_.insert_or_assign("--color-18", "green");
+    tokens->style_variables_.insert_or_assign("--color-20", "blue");
+    tokens->style_variables_.insert_or_assign("--color-22", "yellow");
+    tokens->style_variables_.insert_or_assign("--color-24", "pink");
+    std::string key = ".one";
+    auto& sheets = tokens->sheets();
+    auto shared_css_sheet = std::make_shared<CSSSheet>(key);
+    sheets.emplace_back(shared_css_sheet);
+    indexTokenMap.insert(std::make_pair(key, tokens));
+  }
+
+  // class .three
+  {
+    auto tokens = std::make_shared<CSSParseToken>(parser_configs);
+    tokens->raw_attributes_[CSSPropertyID::kPropertyIDBackgroundColor] =
+        CSSValue(lepus::Value("{{--main-bg-color}}"), CSSValuePattern::STRING,
+                 CSSValueType::VARIABLE);
+    tokens->raw_attributes_[CSSPropertyID::kPropertyIDHeight] =
+        CSSValue(lepus::Value("{{--main-height}}"), CSSValuePattern::STRING,
+                 CSSValueType::VARIABLE);
+    std::string key = ".three";
+    auto& sheets = tokens->sheets();
+    auto shared_css_sheet = std::make_shared<CSSSheet>(key);
+    sheets.emplace_back(shared_css_sheet);
+    indexTokenMap.insert(std::make_pair(key, tokens));
+  }
+
+  const std::vector<int32_t> dependent_ids;
+  CSSKeyframesTokenMap keyframes;
+  CSSFontFaceRuleMap font_faces;
+  auto indexFragment = std::make_shared<SharedCSSFragment>(
+      1, dependent_ids, indexTokenMap, keyframes, font_faces);
+
+  // page
+  auto page = manager->CreateFiberPage("page", 0);
+  auto style_sheet =
+      std::make_shared<CSSFragmentDecorator>(indexFragment.get());
+  page->style_sheet_ = style_sheet;
+
+  // parent
+  auto parent = manager->CreateFiberView();
+  parent->parent_component_element_ = page.get();
+  page->InsertNode(parent);
+
+  // child 1-0
+  auto child_1_0 = manager->CreateFiberView();
+  child_1_0->parent_component_element_ = page.get();
+  parent->InsertNode(child_1_0);
+
+  // child 1-1
+  auto child_1_1 = manager->CreateFiberView();
+  child_1_1->parent_component_element_ = page.get();
+  child_1_0->InsertNode(child_1_1);
+
+  // child 2-0
+  auto child_2_0 = manager->CreateFiberView();
+  child_2_0->parent_component_element_ = page.get();
+  parent->InsertNode(child_2_0);
+
+  // child 2-1
+  auto child_2_1 = manager->CreateFiberView();
+  child_2_1->parent_component_element_ = page.get();
+  child_2_0->InsertNode(child_2_1);
+
+  // child 3-0
+  auto child_3_0 = manager->CreateFiberView();
+  child_3_0->parent_component_element_ = page.get();
+  parent->InsertNode(child_3_0);
+
+  // child 3-1
+  auto child_3_1 = manager->CreateFiberView();
+  child_3_1->parent_component_element_ = page.get();
+  child_3_0->InsertNode(child_3_1);
+
+  // child 4-0
+  auto child_4_0 = manager->CreateFiberView();
+  child_4_0->parent_component_element_ = page.get();
+  parent->InsertNode(child_4_0);
+
+  // child 3-1
+  auto child_4_1 = manager->CreateFiberView();
+  child_4_1->parent_component_element_ = page.get();
+  child_4_0->InsertNode(child_4_1);
+
+  page->FlushActionsAsRoot();
+
+  parent->SetClass("one");
+  child_1_0->SetClasses({"two", "three"});
+  child_1_1->SetClasses({"two", "three"});
+  child_2_0->SetClasses({"two", "three"});
+  child_2_1->SetClasses({"two", "three"});
+  child_3_0->SetClasses({"two", "three"});
+  child_3_1->SetClasses({"two", "three"});
+  child_4_0->SetClasses({"two", "three"});
+  child_4_1->SetClasses({"two", "three"});
+
+  page->FlushActionsAsRoot();
+  auto painting_context =
+      static_cast<FiberMockPaintingContext*>(page->painting_context()->impl());
+  painting_context->Flush();
+
+  auto* painting_node_4 =
+      painting_context->node_map_.at(child_4_1->impl_id()).get();
+  std::string background_color_key = "background-color";
+
+  auto node_4_background_color_value =
+      painting_node_4->props_.at(background_color_key);
+  EXPECT_TRUE(node_4_background_color_value.UInt32() == 0xffffff00);
+}
+
 // CSSVariable Demo Structure:
 //
 //                      [view1 class="one" id="root]
