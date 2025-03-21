@@ -29,4 +29,4 @@ class JReadableCompactArrayBuffer {
 }  // namespace base
 }  // namespace lynx
 
-#endif  //   CORE_RENDERER_TASM_REACT_ANDROID_MAPBUFFER_READABLE_COMPACT_ARRAY_BUFFER_H_
+#endif  // CORE_RENDERER_TASM_REACT_ANDROID_MAPBUFFER_READABLE_COMPACT_ARRAY_BUFFER_H_

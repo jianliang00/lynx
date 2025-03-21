@@ -36,4 +36,4 @@ class JReadableMapBuffer {
 }  // namespace base
 }  // namespace lynx
 
-#endif  //   CORE_RENDERER_TASM_REACT_ANDROID_MAPBUFFER_READABLE_MAP_BUFFER_H_
+#endif  // CORE_RENDERER_TASM_REACT_ANDROID_MAPBUFFER_READABLE_MAP_BUFFER_H_

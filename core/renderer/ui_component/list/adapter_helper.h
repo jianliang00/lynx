@@ -163,4 +163,4 @@ class AdapterHelper {
 }  // namespace tasm
 }  // namespace lynx
 
-#endif  //  CORE_RENDERER_UI_COMPONENT_LIST_ADAPTER_HELPER_H_
+#endif  // CORE_RENDERER_UI_COMPONENT_LIST_ADAPTER_HELPER_H_

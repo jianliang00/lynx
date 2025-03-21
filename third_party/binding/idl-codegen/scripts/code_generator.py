@@ -217,13 +217,15 @@ class CodeGeneratorBase(object):
 
     def normalize_this_header_guard_path(self, header_path):
         header_path = normalize_path(header_path)
+        project_path = os.path.abspath(os.path.join(MODULE_PATH, "../../../../../"))
+        header_guard_path = os.path.relpath(os.path.abspath(header_path), project_path)
         match = re.search('(core/runtime/.*)$', header_path)
         if not match:
           match = re.search('(jsbridge/.*)$', header_path)
           if not match:
             match = re.search('(third_party/.*)$', header_path)
         assert match, 'Unkown style of path to output: ' + header_path
-        return match.group(1)
+        return header_guard_path
 
     def normalize_this_header_path(self, header_path):
         header_path = normalize_path(header_path)
