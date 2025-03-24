@@ -657,7 +657,8 @@ public class TextShadowNode extends BaseTextShadowNode implements CustomMeasureF
     if (getTextAttributes().hasInlineViewSpan() || mTruncationShadowNode != null) {
       // For inline view.
       viewTruncated = new HashSet();
-      getNativeNodeTruncatedMap(mRenderer.getTextLayout().getText(), viewTruncated);
+      getNativeNodeTruncatedMap(mRenderer.getTextLayout().getText(), viewTruncated,
+          mSpannableString.length() - mEllipsisCount);
       if (mTruncationShadowNode != null && mEllipsisCount == 0) {
         // Find truncated view in truncation node.
         getTruncatedNativeNodeInTruncationShadowNode(mTruncationShadowNode, viewTruncated);

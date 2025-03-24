@@ -317,6 +317,21 @@ NSAttributedStringKey const LynxVerticalAlignKey = @"LynxVerticalAlignKey";
   }
 }
 
+- (void)alignHiddenNativeLayoutNode:(NSSet*)alignedNodeSignSet alignContext:(AlignContext*)ctx {
+  for (LynxShadowNode* child in self.children) {
+    if ([child isKindOfClass:LynxNativeLayoutNode.class]) {
+      if (![alignedNodeSignSet containsObject:@(child.sign)]) {
+        AlignParam* alignParam = [AlignParam new];
+        [alignParam SetAlignOffsetWithLeft:0.f Top:0.f];
+        [(LynxNativeLayoutNode*)child alignWithAlignParam:alignParam AlignContext:ctx];
+      }
+    } else if ([child isKindOfClass:LynxBaseTextShadowNode.class]) {
+      [(LynxBaseTextShadowNode*)child alignHiddenNativeLayoutNode:alignedNodeSignSet
+                                                     alignContext:ctx];
+    }
+  }
+}
+
 - (BOOL)hasCustomLayout {
   return YES;
 }

@@ -622,8 +622,9 @@
     }
     glyphIndex = NSMaxRange(actualGlyphRange);
   }
-  CGRect lastLineRect = [_layoutManager lineFragmentRectForGlyphAtIndex:lastLineGlyphRange.location
-                                                         effectiveRange:NULL];
+  CGRect lastLineRect =
+      [_layoutManager lineFragmentUsedRectForGlyphAtIndex:lastLineGlyphRange.location
+                                           effectiveRange:NULL];
   [glyphLocationArray addObject:@(lastLineRect.origin.x)];
   [glyphLocationArray addObject:@(lastLineRect.origin.x + lastLineRect.size.width)];
   [glyphLocationArray sortUsingSelector:@selector(compare:)];

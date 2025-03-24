@@ -557,18 +557,19 @@ public class BaseTextShadowNode extends ShadowNode {
   }
 
   // Find truncated inline view in text
-  protected void getNativeNodeTruncatedMap(CharSequence text, Set viewTruncated) {
+  protected void getNativeNodeTruncatedMap(
+      CharSequence text, Set viewTruncated, int visibleLength) {
     for (int i = 0; i < getChildCount(); ++i) {
       ShadowNode child = getChildAt(i);
       if (child instanceof NativeLayoutNodeRef) {
         NativeLayoutNodeRef layoutNode = ((NativeLayoutNodeRef) child);
-        if (layoutNode.getSpanStart() >= text.length()
+        if (layoutNode.getSpanStart() >= text.length() || layoutNode.getSpanStart() >= visibleLength
             || text.charAt(layoutNode.getSpanStart()) != INLINE_BLOCK_PLACEHOLDER.charAt(0)) {
           viewTruncated.add(layoutNode.getSignature());
         }
       } else if (child instanceof BaseTextShadowNode
           && !(child instanceof InlineTruncationShadowNode)) {
-        ((BaseTextShadowNode) child).getNativeNodeTruncatedMap(text, viewTruncated);
+        ((BaseTextShadowNode) child).getNativeNodeTruncatedMap(text, viewTruncated, visibleLength);
       }
     }
   }
@@ -600,7 +601,11 @@ public class BaseTextShadowNode extends ShadowNode {
       ShadowNode child = getChildAt(i);
       if (child instanceof NativeLayoutNodeRef) {
         NativeLayoutNodeRef layoutNode = ((NativeLayoutNodeRef) child);
+        AlignParam nParam = new AlignParam();
         if (layoutNode.getSpanStart() >= layout.getText().length()) {
+          // Even if the inline view is hidden, the align function needs to be called to avoid
+          // incorrect subtree positions within the inline view.
+          layoutNode.alignNativeNode(ctx, nParam);
           continue;
         }
 
@@ -609,7 +614,6 @@ public class BaseTextShadowNode extends ShadowNode {
         NativeLayoutNodeSpan layoutNodeSpan =
             nativeNodeSpans.length == 1 ? nativeNodeSpans[0] : null;
 
-        AlignParam nParam = new AlignParam();
         int line = layout.getLineForOffset(layoutNode.getSpanStart());
         float leftOffset =
             layout.getPrimaryHorizontal(layoutNode.getSpanStart()) + textTranslateOffset.x;
