@@ -174,24 +174,25 @@ TEST_F(TimedTaskTest, StopSelfTaskInSetTimeout) {
 }
 
 TEST_F(TimedTaskTest, StopOtherTaskInSetInterval) {
+  int32_t delay_more = DELAY * 10;
   int32_t expect = 0;
-
   for (int32_t i = 0; i < LOOP; ++i) {
-    thread_.GetTaskRunner()->PostTask(
-        [this]() { manager_->SetTimeout([this]() { ++result_; }, DELAY); });
+    thread_.GetTaskRunner()->PostTask([this, delay_more]() {
+      manager_->SetTimeout([this]() { ++result_; }, delay_more);
+    });
   }
 
-  thread_.GetTaskRunner()->PostTask([this]() mutable {
+  thread_.GetTaskRunner()->PostTask([this, delay_more]() mutable {
     manager_->SetInterval(
         [this]() {
           for (int32_t i = 1; i <= LOOP; ++i) {
             manager_->StopTask(i);
           }
         },
-        DELAY / 100);
+        delay_more / 100);
   });
-
-  usleep(DELAY * LOOP * 1000);
+  // Wait twice as long to ensure the validity of the unittest.
+  WaitResult(delay_more * 2);
   ASSERT_EQ(result_, expect);
 }
 
