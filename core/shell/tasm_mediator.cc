@@ -110,9 +110,8 @@ void TasmMediator::OnPageConfigDecoded(
   // default enableAirStrictMode in timing_handler is false,
   // avoid using post task to send duplicate false value
   if (config->GetEnableLynxAir()) {
-    timing_actor_->Act([enable_air = config->GetEnableLynxAir()](
-                           auto& timing_handler) mutable {
-      timing_handler->SetEnableAirStrictMode(enable_air);
+    timing_actor_->Act([](auto& timing_handler) mutable {
+      timing_handler->SetEnableAirStrictMode(true);
     });
   }
 }
