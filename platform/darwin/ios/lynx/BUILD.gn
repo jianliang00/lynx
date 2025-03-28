@@ -267,6 +267,8 @@ subspec_target("lynx") {
     "ui/UIScrollView+LynxFadingEdge.m",
     "ui/UIScrollView+LynxGesture.m",
     "ui/UIView+Lynx.m",
+    "ui/frame/LynxFrameView.mm",
+    "ui/frame/LynxUIFrame.mm",
     "ui/image/LynxBlurImageProcessor.m",
     "ui/image/LynxFatImageProcessor.m",
     "ui/image/LynxImageBlurUtils.m",

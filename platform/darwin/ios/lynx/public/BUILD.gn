@@ -123,6 +123,8 @@ public_shared_sources = [
   "ui/UIScrollView+LynxFadingEdge.h",
   "ui/UIScrollView+LynxGesture.h",
   "ui/UIView+Lynx.h",
+  "ui/frame/LynxFrameView.h",
+  "ui/frame/LynxUIFrame.h",
   "ui/list/LynxListAppearEventEmitter.h",
   "ui/list/LynxListDebug.h",
   "ui/list/LynxListScrollEventEmitter.h",
