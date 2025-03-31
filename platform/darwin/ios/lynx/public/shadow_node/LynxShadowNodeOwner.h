@@ -19,7 +19,7 @@ typedef NS_ENUM(NSInteger, LynxShadowNodeType) {
 
 @class LynxComponentRegistry;
 
-@interface LynxShadowNodeOwner : NSObject <LayoutThreadMonitor>
+@interface LynxShadowNodeOwner : NSObject
 
 @property(atomic, readonly, nullable) LynxLayoutTick* layoutTick;
 @property(nonatomic, weak, readonly) LynxUIContext* uiContext;

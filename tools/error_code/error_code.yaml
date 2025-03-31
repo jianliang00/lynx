@@ -319,14 +319,6 @@ sections:
             low-code: 1
             description: 'ShadowNode is accessed after destroyed'
             fix-suggestion: 'This is an internal error of Lynx, which usually occurs when multiple threads access ShadowNode at the same time.'
-          - name: WrongThread
-            low-code: 2
-            description: 'ShadowNode is trying to call layout-related method on the wrong thread.'
-            fix-suggestion: 'Check whether ShadowNode is accessed in non-Layout thread.'
-          - name: BehaviorMightChanged
-            low-code: 3
-            description: 'ShadowNode can no longer access the layout-related method on the wrong thread.'
-            fix-suggestion: 'ShadowNode is trying to call layout-related method on the wrong thread, and it is forbidden now.'
 
   - name: NativeModules
     description: 'Error occurred while calling NativeModules'

@@ -8,8 +8,6 @@ import android.util.SparseArray;
 import com.lynx.react.bridge.ReadableArray;
 import com.lynx.react.bridge.ReadableMap;
 import com.lynx.react.bridge.mapbuffer.ReadableMapBuffer;
-import com.lynx.tasm.LynxError;
-import com.lynx.tasm.LynxSubErrorCode;
 import com.lynx.tasm.behavior.shadow.LayoutTick;
 import com.lynx.tasm.behavior.shadow.NativeLayoutNodeRef;
 import com.lynx.tasm.behavior.shadow.ShadowNode;
@@ -21,14 +19,13 @@ import com.lynx.tasm.event.EventsListener;
  * And will turn shadow node into lynx ui indirectly through ui operation which
  * is the shadow node owner's operation.
  */
-public class ShadowNodeOwner
-    extends LayoutContext implements LayoutNodeManager.LayoutThreadMonitor {
+public class ShadowNodeOwner extends LayoutContext {
   private LynxContext mLynxContext;
   private final LayoutTick mLayoutTick;
   private final BehaviorRegistry mBehaviorRegistry;
   private final ShadowNodeRegistry mShadowNodeRegistry;
-  protected LayoutNodeManager mLayoutNodeManager;
 
+  protected LayoutNodeManager mLayoutNodeManager;
   public ShadowNodeOwner(
       LynxContext context, BehaviorRegistry behaviorRegistry, LayoutTick layoutTick) {
     mLynxContext = context;
@@ -36,7 +33,6 @@ public class ShadowNodeOwner
     mBehaviorRegistry = behaviorRegistry;
     mLayoutTick = layoutTick;
     mLayoutNodeManager = new LayoutNodeManager();
-    mLayoutNodeManager.setLayoutThreadMonitor(this);
     createNativeLayoutContext(this);
   }
 
@@ -56,8 +52,6 @@ public class ShadowNodeOwner
   @Override
   public int createNode(int signature, String tagName, ReadableMap props, ReadableMapBuffer styles,
       ReadableArray eventListener, boolean allowInline) {
-    mLayoutNodeManager.initLayoutHandler();
-
     Behavior viewManager = mBehaviorRegistry.get(tagName);
     ShadowNode cssNode = viewManager.createShadowNode();
     int shadowNodeType = 0;
@@ -208,45 +202,5 @@ public class ShadowNodeOwner
 
   public ShadowNode getShadowNode(int signature) {
     return mShadowNodeRegistry.getNode(signature);
-  }
-
-  @Override
-  public void destroy() {
-    super.destroy();
-    mLayoutNodeManager.detachNativePtr();
-  }
-
-  @Override
-  public void reportThreadError(int id, String methodName) {
-    ShadowNode node = mShadowNodeRegistry.getNode(id);
-    String tagName = "";
-    if (node != null) {
-      tagName = node.getTagName();
-    }
-    if (mLynxContext != null) {
-      LynxError error = new LynxError(LynxSubErrorCode.E_LAYOUT_PLATFORM_WRONG_THREAD,
-          "Layout-related method is called in wrong thread. Tag:" + tagName
-              + " Method name: " + methodName);
-      error.addCustomInfo("tag", tagName);
-      error.addCustomInfo("method", methodName);
-      mLynxContext.handleLynxError(error);
-    }
-  }
-
-  @Override
-  public void reportBehaviorMightChanged(int id, String methodName) {
-    ShadowNode node = mShadowNodeRegistry.getNode(id);
-    String tagName = "";
-    if (node != null) {
-      tagName = node.getTagName();
-    }
-    if (mLynxContext != null) {
-      LynxError error = new LynxError(LynxSubErrorCode.E_LAYOUT_PLATFORM_BEHAVIOR_MIGHT_CHANGED,
-          "Layout-related method is not allow to be called in wrong thread now. Tag:" + tagName
-              + " Method name: " + methodName);
-      error.addCustomInfo("tag", tagName);
-      error.addCustomInfo("method", methodName);
-      mLynxContext.handleLynxError(error);
-    }
   }
 }

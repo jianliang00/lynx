@@ -11,11 +11,9 @@
 #import <Lynx/LynxPropsProcessor.h>
 #import <Lynx/LynxService.h>
 #import <Lynx/LynxShadowNodeOwner.h>
-#import <Lynx/LynxSubErrorCode.h>
 #import <Lynx/LynxThreadSafeDictionary.h>
 #import <Lynx/LynxTraceEvent.h>
 #import <Lynx/LynxTraceEventWrapper.h>
-#import <Lynx/LynxUIContext+Internal.h>
 
 @implementation LynxShadowNodeOwner {
   __weak LynxUIOwner* _uiOwner;
@@ -59,8 +57,7 @@ LYNX_NOT_IMPLEMENTED(-(instancetype)init)
 }
 
 - (void)initLayoutNodeManager:(void*)layoutNodeManagerPtr {
-  _layoutNodeManager = [[LynxLayoutNodeManager alloc] initWithNativePtr:layoutNodeManagerPtr
-                                              layoutThreadErrorCallback:self];
+  _layoutNodeManager = [[LynxLayoutNodeManager alloc] initWithNativePtr:layoutNodeManagerPtr];
 }
 
 - (NSInteger)createNodeWithSign:(NSInteger)sign
@@ -87,7 +84,6 @@ LYNX_NOT_IMPLEMENTED(-(instancetype)init)
     }
     [node setUIOperation:_uiOwner];
     [node setDelegate:_delegate];
-    [_layoutNodeManager initLayoutRunLoop];
     [node setLayoutNodeManager:_layoutNodeManager];
     [_nodeHolder setObject:node forKey:[NSNumber numberWithInteger:sign]];
     // update props for shadow node
@@ -211,7 +207,6 @@ LYNX_NOT_IMPLEMENTED(-(instancetype)init)
     [node destroy];
   }
   [_nodeHolder removeAllObjects];
-  [_layoutNodeManager detachNativePtr];
 }
 
 - (void)destroySelf {
@@ -236,36 +231,6 @@ LYNX_NOT_IMPLEMENTED(-(instancetype)init)
 
 - (float)rootHeight {
   return _rootHeight;
-}
-
-- (void)reportThreadErrorWithSign:(NSInteger)sign methodName:(NSString*)name {
-  if (self.uiContext != nil) {
-    LynxShadowNode* node = _nodeHolder[[NSNumber numberWithInteger:sign]];
-    NSString* message =
-        [NSString stringWithFormat:
-                      @"Layout-related method is called in wrong thread. Tag: %@. Method name: %@",
-                      node.tagName, name];
-    LynxError* error = [LynxError lynxErrorWithCode:ECLynxLayoutPlatformWrongThread
-                                            message:message];
-    [error addCustomInfo:node.tagName forKey:@"tag"];
-    [error addCustomInfo:name forKey:@"methodName"];
-    [self.uiContext reportLynxError:error];
-  }
-}
-
-- (void)reportBehaviorMightChangedWithSing:(NSInteger)sign methodName:(NSString*)name {
-  if (self.uiContext != nil) {
-    LynxShadowNode* node = _nodeHolder[[NSNumber numberWithInteger:sign]];
-    NSString* message =
-        [NSString stringWithFormat:@"Layout-related method is not allow to be called in wrong "
-                                   @"thread now. Tag: %@. Method name: %@",
-                                   node.tagName, name];
-    LynxError* error = [LynxError lynxErrorWithCode:ECLynxLayoutPlatformBehaviorMightChanged
-                                            message:message];
-    [error addCustomInfo:node.tagName forKey:@"tag"];
-    [error addCustomInfo:name forKey:@"methodName"];
-    [self.uiContext reportLynxError:error];
-  }
 }
 
 @end
