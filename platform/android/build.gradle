@@ -79,7 +79,7 @@ ext.getFlavorNamesAndBuildTypes = { Project project ->
         buildTypes << buildType.name
     }
     def runTasks = gradle.startParameter.taskNames.toString().toLowerCase()
-    if (runTasks.contains("generateAllGnCmakeTargets") || runTasks.contains("clean")) {
+    if (runTasks.contains("generateAllGnCmakeTargets".toLowerCase()) || runTasks.contains("clean")) {
         return [flavorNames, buildTypes]
     }
     // To reduce the generation of cmake scripts, the following types that will
