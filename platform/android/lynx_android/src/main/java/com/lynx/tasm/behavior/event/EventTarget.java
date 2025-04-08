@@ -9,6 +9,7 @@ import android.view.MotionEvent;
 import com.lynx.tasm.event.EventsListener;
 import com.lynx.tasm.event.LynxEventDetail;
 import com.lynx.tasm.gesture.detector.GestureDetector;
+import java.util.HashMap;
 import java.util.Map;
 
 public interface EventTarget extends EventTargetBase {
@@ -73,4 +74,27 @@ public interface EventTarget extends EventTargetBase {
   boolean dispatchEvent(LynxEventDetail event);
 
   boolean eventThrough();
+
+  EventTarget getParentLynxPageUI();
+
+  void setParentLynxPageUI(EventTarget parentLynxPageUI);
+
+  HashMap<String, EventTarget> getChildrenLynxPageUI();
+
+  void setChildrenLynxPageUI(HashMap<String, EventTarget> childrenLynxPageUI);
+
+  EventTarget getRootLynxPageUI();
+  void setEventID(long eventID);
+
+  void startEventCapture(long eventID);
+
+  void onEventCapture(boolean isCapture, long eventID);
+
+  void startEventBubble(long eventID);
+
+  void onEventBubble(boolean isCapture, long eventID);
+
+  void startEventFire(boolean isStop, long eventID);
+
+  void onEventFire(boolean isStop, long eventID);
 }

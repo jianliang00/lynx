@@ -34,6 +34,7 @@ import com.lynx.tasm.base.LLog;
 import com.lynx.tasm.behavior.event.EventTarget;
 import com.lynx.tasm.behavior.event.EventTargetBase;
 import com.lynx.tasm.behavior.ui.LynxBaseUI;
+import com.lynx.tasm.behavior.ui.UIBody;
 import com.lynx.tasm.behavior.ui.UIGroup;
 import com.lynx.tasm.behavior.ui.utils.LynxUIHelper;
 import com.lynx.tasm.event.LynxEventDetail;
@@ -452,7 +453,7 @@ public class TouchEventDispatcher {
     return res;
   }
 
-  private void fireClick(MotionEvent e) {
+  public void fireClick(MotionEvent e) {
     // For the click event, it only support single finger.
     if (mActiveClickList.isEmpty() || mActiveClickList.getLast() == null) {
       return;
@@ -464,9 +465,20 @@ public class TouchEventDispatcher {
         && slideTargetSign == -1 && propsTargetSign == -1) {
       dispatchEvent(mActiveClickList.getLast(), EVENT_CLICK, e);
     }
+
+    if (mActiveUI != null && mActiveUI.getChildrenLynxPageUI() != null) {
+      UIBody childLynxPageUI = (UIBody) mActiveUI.getChildrenLynxPageUI().get(
+          String.valueOf(System.identityHashCode(mActiveUI)));
+      if (childLynxPageUI != null && childLynxPageUI.getLynxContext() != null
+          && childLynxPageUI.getLynxContext().getTouchEventDispatcher() != null) {
+        e.setLocation(
+            mFirstLynxTouchEvent.getViewPoint().getX(), mFirstLynxTouchEvent.getViewPoint().getY());
+        childLynxPageUI.getLynxContext().getTouchEventDispatcher().fireClick(e);
+      }
+    }
   }
 
-  private void fireTap(MotionEvent e) {
+  public void fireTap(MotionEvent e) {
     // For the tap event, it only support single finger.
     int slideTargetSign = canRespondTapOrClick(mActiveUI);
     int propsTargetSign = canRespondTapOrClickWhenUISlideWithProps(mActiveUI);
@@ -487,6 +499,37 @@ public class TouchEventDispatcher {
       LLog.i(TAG,
           "tap failed:" + mGestureRecognized + " " + mTouchMoved + " " + slideTargetSign + " "
               + propsTargetSign);
+    }
+
+    if (mActiveUI != null && mActiveUI.getChildrenLynxPageUI() != null) {
+      UIBody childLynxPageUI = (UIBody) mActiveUI.getChildrenLynxPageUI().get(
+          String.valueOf(System.identityHashCode(mActiveUI)));
+      if (childLynxPageUI != null && childLynxPageUI.getLynxContext() != null
+          && childLynxPageUI.getLynxContext().getTouchEventDispatcher() != null) {
+        e.setLocation(
+            mFirstLynxTouchEvent.getViewPoint().getX(), mFirstLynxTouchEvent.getViewPoint().getY());
+        childLynxPageUI.getLynxContext().getTouchEventDispatcher().fireTap(e);
+      }
+    }
+  }
+
+  public void fireLongpress(MotionEvent e) {
+    int slideTargetSign = canRespondTapOrClick(mActiveUI);
+    int propsTargetSign = canRespondTapOrClickWhenUISlideWithProps(mActiveUI);
+    if ((!mEnableMultiTouch || !mHasMultiTouch) && mActiveUI != null && slideTargetSign == -1
+        && propsTargetSign == -1) {
+      dispatchEvent(mActiveUI, EVENT_LONG_PRESS, e);
+    }
+
+    if (mActiveUI != null && mActiveUI.getChildrenLynxPageUI() != null) {
+      UIBody childLynxPageUI = (UIBody) mActiveUI.getChildrenLynxPageUI().get(
+          String.valueOf(System.identityHashCode(mActiveUI)));
+      if (childLynxPageUI != null && childLynxPageUI.getLynxContext() != null
+          && childLynxPageUI.getLynxContext().getTouchEventDispatcher() != null) {
+        e.setLocation(
+            mFirstLynxTouchEvent.getViewPoint().getX(), mFirstLynxTouchEvent.getViewPoint().getY());
+        childLynxPageUI.getLynxContext().getTouchEventDispatcher().fireLongpress(e);
+      }
     }
   }
 
@@ -601,6 +644,7 @@ public class TouchEventDispatcher {
     LynxTouchEvent event = new LynxTouchEvent(eventName, map);
     event.setMotionEvent(ev);
     event.setActiveTargetMap(mActiveTargetMap);
+    event.setTarget(mActiveUI);
     event.setTimestamp(mTimestamp);
     if (mGestureArenaManager != null) {
       mGestureArenaManager.dispatchBubbleTouchEvent(eventName, mFirstLynxTouchEvent);
@@ -748,56 +792,206 @@ public class TouchEventDispatcher {
     return true;
   }
 
+  public boolean handleFirstTouchDown(MotionEvent ev, UIGroup rootUi) {
+    mActiveUI = findUI(ev, 0, rootUi);
+    if (mActiveUI != null && mActiveUI.eventThrough()) {
+      return false;
+    }
+    initTouchEnv(ev);
+    initClickEnv();
+    mActiveUIMap.put(ev.getPointerId(0), new EventTargetDetail(mActiveUI, ev.getX(0), ev.getY(0)));
+    mActiveTargetMap.put(mActiveUI.getSign(), mActiveUI);
+
+    // set the active ui to gesture arena
+    if (mGestureArenaManager != null) {
+      mGestureArenaManager.setActiveUIToArenaAtDownEvent(mActiveUI);
+    }
+    int longPressDuration = ViewConfiguration.getLongPressTimeout();
+    if (mUIOwner.getContext().getLongPressDuration() >= 0) {
+      longPressDuration = mUIOwner.getContext().getLongPressDuration();
+    }
+    mDetector.setLongPressTimeout(longPressDuration);
+
+    if (mEnableMultiTouch) {
+      JavaOnlyMap map = new JavaOnlyMap();
+      addMap(map, ev, 0);
+      dispatchEvent(EVENT_TOUCH_START, ev, map);
+    } else {
+      dispatchEvent(mActiveUI, EVENT_TOUCH_START, ev);
+    }
+
+    // TODO(hexionghui): For the :active logic, it should only support single finger. But on the
+    // Android side, touching two fingers at the same time will trigger onTouchEvent twice,
+    // causing the :active on the Android side to also take effect when two fingers touch it at
+    // the same time.
+    onActionDown(ev);
+
+    if (mActiveUI != null && mActiveUI.getChildrenLynxPageUI() != null) {
+      UIBody childLynxPageUI = (UIBody) mActiveUI.getChildrenLynxPageUI().get(
+          String.valueOf(System.identityHashCode(mActiveUI)));
+      if (childLynxPageUI != null && childLynxPageUI.getLynxContext() != null
+          && childLynxPageUI.getLynxContext().getTouchEventDispatcher() != null) {
+        ev.setLocation(
+            mFirstLynxTouchEvent.getViewPoint().getX(), mFirstLynxTouchEvent.getViewPoint().getY());
+        childLynxPageUI.getLynxContext().getTouchEventDispatcher().handleFirstTouchDown(
+            ev, childLynxPageUI);
+      }
+    }
+    return true;
+  }
+
+  public void handleOtherTouchDown(MotionEvent ev, UIGroup rootUi) {
+    mHasMultiTouch = true;
+    // mActiveUIMap should always be updated rather than controlled by mEnableMultiTouch to
+    // prevent NPE errors in onTouchMove.
+    int index = ev.getActionIndex();
+    EventTarget active_target = findUI(ev, index, rootUi);
+    mActiveUIMap.put(ev.getPointerId(index),
+        new EventTargetDetail(active_target, ev.getX(index), ev.getY(index)));
+    mActiveTargetMap.put(active_target.getSign(), active_target);
+    if (mEnableMultiTouch) {
+      JavaOnlyMap map = new JavaOnlyMap();
+      addMap(map, ev, index);
+      dispatchEvent(EVENT_TOUCH_START, ev, map);
+    }
+
+    if (mActiveUI != null && mActiveUI.getChildrenLynxPageUI() != null) {
+      UIBody childLynxPageUI = (UIBody) mActiveUI.getChildrenLynxPageUI().get(
+          String.valueOf(System.identityHashCode(mActiveUI)));
+      if (childLynxPageUI != null && childLynxPageUI.getLynxContext() != null
+          && childLynxPageUI.getLynxContext().getTouchEventDispatcher() != null) {
+        ev.setLocation(
+            mFirstLynxTouchEvent.getViewPoint().getX(), mFirstLynxTouchEvent.getViewPoint().getY());
+        childLynxPageUI.getLynxContext().getTouchEventDispatcher().handleOtherTouchDown(
+            ev, childLynxPageUI);
+      }
+    }
+  }
+
+  public void handleTouchMove(MotionEvent ev) {
+    if (shouldTriggerMove(ev)) {
+      mTouchMoving = true;
+      if (mEnableMultiTouch) {
+        JavaOnlyMap map = new JavaOnlyMap();
+        for (int index = 0; index < ev.getPointerCount(); ++index) {
+          if (onTouchMove(ev, index)) {
+            addMap(map, ev, index);
+          }
+        }
+        dispatchEvent(EVENT_TOUCH_MOVE, ev, map);
+      } else {
+        if (onTouchMove(ev, 0)) {
+          dispatchEvent(mActiveUI, EVENT_TOUCH_MOVE, ev);
+        }
+      }
+    }
+
+    if (mActiveUI != null && mActiveUI.getChildrenLynxPageUI() != null) {
+      UIBody childLynxPageUI = (UIBody) mActiveUI.getChildrenLynxPageUI().get(
+          String.valueOf(System.identityHashCode(mActiveUI)));
+      if (childLynxPageUI != null && childLynxPageUI.getLynxContext() != null
+          && childLynxPageUI.getLynxContext().getTouchEventDispatcher() != null) {
+        ev.setLocation(
+            mFirstLynxTouchEvent.getViewPoint().getX(), mFirstLynxTouchEvent.getViewPoint().getY());
+        childLynxPageUI.getLynxContext().getTouchEventDispatcher().handleTouchMove(ev);
+      }
+    }
+  }
+
+  public void handleOtherTouchUp(MotionEvent ev) {
+    int index = ev.getActionIndex();
+    if (mEnableMultiTouch) {
+      if (ev.getPointerId(index) == 0) {
+        onActionUpOrCancel(ev);
+      }
+      JavaOnlyMap map = new JavaOnlyMap();
+      addMap(map, ev, index);
+      dispatchEvent(EVENT_TOUCH_END, ev, map);
+    }
+    mActiveUIMap.remove(ev.getPointerId(index));
+
+    if (mActiveUI != null && mActiveUI.getChildrenLynxPageUI() != null) {
+      UIBody childLynxPageUI = (UIBody) mActiveUI.getChildrenLynxPageUI().get(
+          String.valueOf(System.identityHashCode(mActiveUI)));
+      if (childLynxPageUI != null && childLynxPageUI.getLynxContext() != null
+          && childLynxPageUI.getLynxContext().getTouchEventDispatcher() != null) {
+        ev.setLocation(
+            mFirstLynxTouchEvent.getViewPoint().getX(), mFirstLynxTouchEvent.getViewPoint().getY());
+        childLynxPageUI.getLynxContext().getTouchEventDispatcher().handleOtherTouchUp(ev);
+      }
+    }
+  }
+
+  public void handleFirstTouchUp(MotionEvent ev) {
+    if (mActiveUI != null && !mActiveUI.ignoreFocus() && !mGestureRecognized
+        && canRespondTapOrClick(mActiveUI) == -1
+        && canRespondTapOrClickWhenUISlideWithProps(mActiveUI) == -1) {
+      EventTarget prevActiveUI = mFocusedUI;
+      mFocusedUI = mActiveUI;
+      if (mActiveUI != prevActiveUI) {
+        if (mActiveUI != null && mActiveUI.isFocusable()) {
+          mActiveUI.onFocusChanged(true, prevActiveUI != null && prevActiveUI.isFocusable());
+        }
+        if (prevActiveUI != null && prevActiveUI.isFocusable()) {
+          prevActiveUI.onFocusChanged(false, mActiveUI != null && mActiveUI.isFocusable());
+        }
+      }
+    }
+
+    if (mEnableMultiTouch) {
+      JavaOnlyMap map = new JavaOnlyMap();
+      addMap(map, ev, 0);
+      dispatchEvent(EVENT_TOUCH_END, ev, map);
+    } else {
+      dispatchEvent(mActiveUI, EVENT_TOUCH_END, ev);
+    }
+
+    if (mActiveUI != null && mActiveUI.getChildrenLynxPageUI() != null) {
+      UIBody childLynxPageUI = (UIBody) mActiveUI.getChildrenLynxPageUI().get(
+          String.valueOf(System.identityHashCode(mActiveUI)));
+      if (childLynxPageUI != null && childLynxPageUI.getLynxContext() != null
+          && childLynxPageUI.getLynxContext().getTouchEventDispatcher() != null) {
+        ev.setLocation(
+            mFirstLynxTouchEvent.getViewPoint().getX(), mFirstLynxTouchEvent.getViewPoint().getY());
+        childLynxPageUI.getLynxContext().getTouchEventDispatcher().handleFirstTouchUp(ev);
+      }
+    }
+  }
+
+  public void handleTouchCancel(MotionEvent ev) {
+    if (mEnableMultiTouch) {
+      JavaOnlyMap map = new JavaOnlyMap();
+      for (EventTargetDetail detail : mActiveUIMap.values()) {
+        addMap(map, ev, 0);
+      }
+      dispatchEvent(EVENT_TOUCH_CANCEL, ev, map);
+    } else {
+      dispatchEvent(mActiveUI, EVENT_TOUCH_CANCEL, ev);
+    }
+
+    onActionUpOrCancel(ev);
+    resetEnv();
+
+    if (mActiveUI != null && mActiveUI.getChildrenLynxPageUI() != null) {
+      UIBody childLynxPageUI = (UIBody) mActiveUI.getChildrenLynxPageUI().get(
+          String.valueOf(System.identityHashCode(mActiveUI)));
+      if (childLynxPageUI != null && childLynxPageUI.getLynxContext() != null
+          && childLynxPageUI.getLynxContext().getTouchEventDispatcher() != null) {
+        ev.setLocation(
+            mFirstLynxTouchEvent.getViewPoint().getX(), mFirstLynxTouchEvent.getViewPoint().getY());
+        childLynxPageUI.getLynxContext().getTouchEventDispatcher().handleTouchCancel(ev);
+      }
+    }
+  }
+
   public boolean onTouchEvent(MotionEvent ev, UIGroup rootUi) {
     mTimestamp = System.currentTimeMillis();
     if (ev.getActionMasked() == MotionEvent.ACTION_DOWN) {
-      mActiveUI = findUI(ev, 0, rootUi);
-      if (mActiveUI != null && mActiveUI.eventThrough()) {
+      if (!handleFirstTouchDown(ev, rootUi)) {
         return false;
       }
-      initTouchEnv(ev);
-      initClickEnv();
-      mActiveUIMap.put(
-          ev.getPointerId(0), new EventTargetDetail(mActiveUI, ev.getX(0), ev.getY(0)));
-      mActiveTargetMap.put(mActiveUI.getSign(), mActiveUI);
-
-      // set the active ui to gesture arena
-      if (mGestureArenaManager != null) {
-        mGestureArenaManager.setActiveUIToArenaAtDownEvent(mActiveUI);
-      }
-      int longPressDuration = ViewConfiguration.getLongPressTimeout();
-      if (mUIOwner.getContext().getLongPressDuration() >= 0) {
-        longPressDuration = mUIOwner.getContext().getLongPressDuration();
-      }
-      mDetector.setLongPressTimeout(longPressDuration);
-
-      if (mEnableMultiTouch) {
-        JavaOnlyMap map = new JavaOnlyMap();
-        addMap(map, ev, 0);
-        dispatchEvent(EVENT_TOUCH_START, ev, map);
-      } else {
-        dispatchEvent(mActiveUI, EVENT_TOUCH_START, ev);
-      }
-
-      // TODO(hexionghui): For the :active logic, it should only support single finger. But on the
-      // Android side, touching two fingers at the same time will trigger onTouchEvent twice,
-      // causing the :active on the Android side to also take effect when two fingers touch it at
-      // the same time.
-      onActionDown(ev);
     } else if (ev.getActionMasked() == MotionEvent.ACTION_POINTER_DOWN) {
-      mHasMultiTouch = true;
-      // mActiveUIMap should always be updated rather than controlled by mEnableMultiTouch to
-      // prevent NPE errors in onTouchMove.
-      int index = ev.getActionIndex();
-      EventTarget active_target = findUI(ev, index, rootUi);
-      mActiveUIMap.put(ev.getPointerId(index),
-          new EventTargetDetail(active_target, ev.getX(index), ev.getY(index)));
-      mActiveTargetMap.put(active_target.getSign(), active_target);
-      if (mEnableMultiTouch) {
-        JavaOnlyMap map = new JavaOnlyMap();
-        addMap(map, ev, index);
-        dispatchEvent(EVENT_TOUCH_START, ev, map);
-      }
+      handleOtherTouchDown(ev, rootUi);
     } else {
       if (mActiveUI != null && !mActiveUIMap.isEmpty()) {
         if (mActiveUI.eventThrough()) {
@@ -805,61 +999,13 @@ public class TouchEventDispatcher {
         }
         switch (ev.getActionMasked()) {
           case MotionEvent.ACTION_MOVE:
-            if (shouldTriggerMove(ev)) {
-              mTouchMoving = true;
-              if (mEnableMultiTouch) {
-                JavaOnlyMap map = new JavaOnlyMap();
-                for (int index = 0; index < ev.getPointerCount(); ++index) {
-                  if (onTouchMove(ev, index)) {
-                    addMap(map, ev, index);
-                  }
-                }
-                dispatchEvent(EVENT_TOUCH_MOVE, ev, map);
-              } else {
-                if (onTouchMove(ev, 0)) {
-                  dispatchEvent(mActiveUI, EVENT_TOUCH_MOVE, ev);
-                }
-              }
-            }
+            handleTouchMove(ev);
             break;
-
           case MotionEvent.ACTION_POINTER_UP:
-            int index = ev.getActionIndex();
-            if (mEnableMultiTouch) {
-              if (ev.getPointerId(index) == 0) {
-                onActionUpOrCancel(ev);
-              }
-              JavaOnlyMap map = new JavaOnlyMap();
-              addMap(map, ev, index);
-              dispatchEvent(EVENT_TOUCH_END, ev, map);
-            }
-            mActiveUIMap.remove(ev.getPointerId(index));
+            handleOtherTouchUp(ev);
             break;
           case MotionEvent.ACTION_UP:
-            if (mActiveUI != null && !mActiveUI.ignoreFocus() && !mGestureRecognized
-                && canRespondTapOrClick(mActiveUI) == -1
-                && canRespondTapOrClickWhenUISlideWithProps(mActiveUI) == -1) {
-              EventTarget prevActiveUI = mFocusedUI;
-              mFocusedUI = mActiveUI;
-              if (mActiveUI != prevActiveUI) {
-                if (mActiveUI != null && mActiveUI.isFocusable()) {
-                  mActiveUI.onFocusChanged(
-                      true, prevActiveUI != null && prevActiveUI.isFocusable());
-                }
-                if (prevActiveUI != null && prevActiveUI.isFocusable()) {
-                  prevActiveUI.onFocusChanged(false, mActiveUI != null && mActiveUI.isFocusable());
-                }
-              }
-            }
-
-            if (mEnableMultiTouch) {
-              JavaOnlyMap map = new JavaOnlyMap();
-              addMap(map, ev, 0);
-              dispatchEvent(EVENT_TOUCH_END, ev, map);
-            } else {
-              dispatchEvent(mActiveUI, EVENT_TOUCH_END, ev);
-            }
-
+            handleFirstTouchUp(ev);
             // TODO(hexionghui): Fix the problem: In single-finger mode, only when the last finger
             // is lifted, :active will be disabled.
             onActionUpOrCancel(ev);
@@ -870,18 +1016,7 @@ public class TouchEventDispatcher {
             resetEnv();
             break;
           case MotionEvent.ACTION_CANCEL:
-            if (mEnableMultiTouch) {
-              JavaOnlyMap map = new JavaOnlyMap();
-              for (EventTargetDetail detail : mActiveUIMap.values()) {
-                addMap(map, ev, 0);
-              }
-              dispatchEvent(EVENT_TOUCH_CANCEL, ev, map);
-            } else {
-              dispatchEvent(mActiveUI, EVENT_TOUCH_CANCEL, ev);
-            }
-
-            onActionUpOrCancel(ev);
-            resetEnv();
+            handleTouchCancel(ev);
             break;
           default:
             break;
@@ -1004,11 +1139,7 @@ public class TouchEventDispatcher {
   private class Listener extends GestureRecognizer.SimpleOnGestureListener {
     @Override
     public void onLongPress(MotionEvent e) {
-      if ((!mEnableMultiTouch || !mHasMultiTouch) && mActiveUI != null
-          && canRespondTapOrClick(mActiveUI) == -1
-          && canRespondTapOrClickWhenUISlideWithProps(mActiveUI) == -1) {
-        dispatchEvent(mActiveUI, EVENT_LONG_PRESS, e);
-      }
+      fireLongpress(e);
       super.onLongPress(e);
     }
   }

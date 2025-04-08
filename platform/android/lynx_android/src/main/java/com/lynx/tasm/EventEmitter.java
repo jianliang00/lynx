@@ -87,4 +87,10 @@ public abstract class EventEmitter {
   // subsequent verification confirms that API removal does not cause a build break, then delete the
   // API.
   public void sendInternalEvent(LynxInternalEvent event) {}
+
+  public void startEventGenerate(LynxEvent event) {}
+  public void setEventID(long eventID) {}
+  public void startEventCapture(long eventID) {}
+  public void startEventBubble(long eventID) {}
+  public void startEventFire(boolean isStop, long eventID) {}
 }

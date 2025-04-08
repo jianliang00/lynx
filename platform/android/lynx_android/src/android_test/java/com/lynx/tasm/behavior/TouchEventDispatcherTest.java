@@ -29,6 +29,7 @@ import com.lynx.tasm.gesture.detector.GestureDetector;
 import com.lynx.testing.base.TestingUtils;
 import java.lang.reflect.Field;
 import java.util.ArrayList;
+import java.util.HashMap;
 import java.util.LinkedList;
 import java.util.Map;
 import org.junit.After;
@@ -193,6 +194,48 @@ public class TouchEventDispatcherTest {
     public ReadableMap getDataset() {
       return null;
     }
+
+    @Override
+    public EventTarget getParentLynxPageUI() {
+      return null;
+    }
+
+    @Override
+    public void setParentLynxPageUI(EventTarget parentLynxPageUI) {}
+
+    @Override
+    public HashMap<String, EventTarget> getChildrenLynxPageUI() {
+      return null;
+    }
+
+    @Override
+    public void setChildrenLynxPageUI(HashMap<String, EventTarget> childrenLynxPageUI) {}
+
+    @Override
+    public EventTarget getRootLynxPageUI() {
+      return null;
+    }
+
+    @Override
+    public void setEventID(long eventID) {}
+
+    @Override
+    public void startEventCapture(long eventID) {}
+
+    @Override
+    public void onEventCapture(boolean isCapture, long eventID) {}
+
+    @Override
+    public void startEventBubble(long eventID) {}
+
+    @Override
+    public void onEventBubble(boolean isCapture, long eventID) {}
+
+    @Override
+    public void startEventFire(boolean isStop, long eventID) {}
+
+    @Override
+    public void onEventFire(boolean isStop, long eventID) {}
   }
 
   @Before

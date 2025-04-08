@@ -1046,6 +1046,10 @@ public class LynxView extends UIBodyView {
         return super.dispatchTouchEvent(ev);
       }
 
+      if (isChildLynxPageUI()) {
+        return super.dispatchTouchEvent(ev);
+      }
+
       int action = ev.getAction();
       if (action == MotionEvent.ACTION_DOWN) {
         if (LynxEnv.inst().isHighlightTouchEnabled()) {
@@ -1059,7 +1063,9 @@ public class LynxView extends UIBodyView {
       boolean consumed = false;
       if (mCanDispatchTouchEvent) {
         // Dispatch event to sub ui
+        float originX = ev.getX(), originY = ev.getY();
         consumed = mLynxTemplateRender.dispatchTouchEvent(ev);
+        ev.setLocation(originX, originY);
         // If consumed && mLynxTemplateRender.blockNativeEvent(ev), call
         // getParent().requestDisallowInterceptTouchEvent(true) to consume event;
         if (consumed && mLynxTemplateRender.blockNativeEvent(ev) && getParent() != null) {
@@ -1123,6 +1129,10 @@ public class LynxView extends UIBodyView {
     try {
       LLog.i("Lynx", "LynxView onInterceptTouchEvent, this: " + hashCode());
 
+      if (isChildLynxPageUI()) {
+        return super.onInterceptTouchEvent(ev);
+      }
+
       if (mLynxTemplateRender != null && mCanDispatchTouchEvent) {
         mLynxTemplateRender.onInterceptTouchEvent(ev);
       }
@@ -1144,6 +1154,10 @@ public class LynxView extends UIBodyView {
   public boolean onTouchEvent(MotionEvent ev) {
     try {
       LLog.i("Lynx", "LynxView onTouchEvent, this: " + hashCode());
+      if (isChildLynxPageUI()) {
+        return super.onTouchEvent(ev);
+      }
+
       if (mLynxTemplateRender != null) {
         if (mCanDispatchTouchEvent) {
           mLynxTemplateRender.onTouchEvent(ev);
@@ -1693,5 +1707,12 @@ public class LynxView extends UIBodyView {
    */
   public void setEnableUserCodeCache(boolean enableUserCodeCache, String url) {
     setEnableUserBytecode(enableUserCodeCache, url);
+  }
+
+  @Override
+  public void setAttachLynxPageUICallback(attachLynxPageUICallback callback) {
+    if (mLynxTemplateRender != null) {
+      mLynxTemplateRender.setAttachLynxPageUICallback(callback);
+    }
   }
 }

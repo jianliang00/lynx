@@ -9,6 +9,7 @@ import android.os.Looper;
 import com.lynx.tasm.base.LLog;
 import com.lynx.tasm.behavior.LynxContext;
 import com.lynx.tasm.behavior.LynxIntersectionObserverManager;
+import com.lynx.tasm.behavior.event.EventTarget;
 import com.lynx.tasm.common.LepusBuffer;
 import com.lynx.tasm.core.LynxEngineProxy;
 import com.lynx.tasm.event.LynxCustomEvent;
@@ -21,6 +22,7 @@ import java.util.ArrayList;
 
 public class LynxEventEmitter extends EventEmitter {
   private static final String TAG = "EventEmitter";
+  private long mEventID = 0;
 
   // TODO(songshourui.null): LynxEngineProxyWrapper is used to be replaced by test-related classes
   // during testing. Currently, LynxEngineProxy is a final class and cannot be mocked during
@@ -63,6 +65,30 @@ public class LynxEventEmitter extends EventEmitter {
         mEngineProxy.onPseudoStatusChanged(id, preStatus, currentStatus);
       }
     }
+
+    void startEventGenerate(LynxEvent event) {
+      if (mEngineProxy != null) {
+        mEngineProxy.startEventGenerate(event);
+      }
+    }
+
+    void startEventCapture(long eventID) {
+      if (mEngineProxy != null) {
+        mEngineProxy.startEventCapture(eventID);
+      }
+    }
+
+    void startEventBubble(long eventID) {
+      if (mEngineProxy != null) {
+        mEngineProxy.startEventBubble(eventID);
+      }
+    }
+
+    void startEventFire(boolean isStop, long eventID) {
+      if (mEngineProxy != null) {
+        mEngineProxy.startEventFire(isStop, eventID);
+      }
+    }
   };
 
   private boolean mInPreLoad = false;
@@ -93,8 +119,25 @@ public class LynxEventEmitter extends EventEmitter {
       if (mTrack != null && "tap".equals(name)) {
         mTrack.onTap();
       }
-
-      mEngineProxy.sendTouchEvent(event);
+      EventTarget target = (EventTarget) event.getTarget();
+      if (target != null
+          && (target.getParentLynxPageUI() != null || target.getChildrenLynxPageUI() != null)) {
+        if (target.getParentLynxPageUI() == null) {
+          mEventID = (mEventID + 1) % (Long.MAX_VALUE - 1);
+        }
+        event.setEventID(mEventID);
+        target.setEventID(mEventID);
+        LLog.i("LynxEventEmitter",
+            "TouchEventHandler " + event.getName() + " " + event.getEventID() + " " + this);
+        startEventGenerate(event);
+        if (target.getChildrenLynxPageUI() == null
+            || target.getChildrenLynxPageUI().get(String.valueOf(System.identityHashCode(target)))
+                == null) {
+          target.getRootLynxPageUI().startEventCapture(mEventID);
+        }
+      } else {
+        mEngineProxy.sendTouchEvent(event);
+      }
     } else {
       LLog.e(TAG,
           "sendTouchEvent event: " + name + " failed since mEngineProxy is null or in preload.");
@@ -120,8 +163,25 @@ public class LynxEventEmitter extends EventEmitter {
       if (onLynxEvent(event)) {
         return;
       }
-
-      mEngineProxy.sendMultiTouchEvent(event);
+      EventTarget target = (EventTarget) event.getTarget();
+      if (target != null
+          && (target.getParentLynxPageUI() != null || target.getChildrenLynxPageUI() != null)) {
+        if (target.getParentLynxPageUI() == null) {
+          mEventID = (mEventID + 1) % (Long.MAX_VALUE - 1);
+        }
+        event.setEventID(mEventID);
+        target.setEventID(mEventID);
+        LLog.i("LynxEventEmitter",
+            "TouchEventHandler " + event.getName() + " " + event.getEventID() + " " + this);
+        startEventGenerate(event);
+        if (target.getChildrenLynxPageUI() == null
+            || target.getChildrenLynxPageUI().get(String.valueOf(System.identityHashCode(target)))
+                == null) {
+          target.getRootLynxPageUI().startEventCapture(mEventID);
+        }
+      } else {
+        mEngineProxy.sendMultiTouchEvent(event);
+      }
     } else {
       LLog.e(TAG,
           "sendMultiTouchEvent event: " + event.getName()
@@ -241,5 +301,38 @@ public class LynxEventEmitter extends EventEmitter {
   @Override
   public void registerEventReporter(LynxEventReporter reporter) {
     mEventReporter = new WeakReference<>(reporter);
+  }
+
+  @Override
+  public void startEventGenerate(LynxEvent event) {
+    if (mEngineProxy != null) {
+      mEngineProxy.startEventGenerate(event);
+    }
+  }
+
+  @Override
+  public void setEventID(long eventID) {
+    mEventID = eventID;
+  }
+
+  @Override
+  public void startEventCapture(long eventID) {
+    if (mEngineProxy != null) {
+      mEngineProxy.startEventCapture(eventID);
+    }
+  }
+
+  @Override
+  public void startEventBubble(long eventID) {
+    if (mEngineProxy != null) {
+      mEngineProxy.startEventBubble(eventID);
+    }
+  }
+
+  @Override
+  public void startEventFire(boolean isStop, long eventID) {
+    if (mEngineProxy != null) {
+      mEngineProxy.startEventFire(isStop, eventID);
+    }
   }
 }

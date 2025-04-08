@@ -12,11 +12,13 @@ import android.util.AttributeSet;
 import android.view.MotionEvent;
 import android.view.View;
 import android.widget.FrameLayout;
+import androidx.annotation.NonNull;
 import androidx.annotation.Nullable;
 import androidx.annotation.RestrictTo;
 import com.lynx.tasm.PageConfig;
 import com.lynx.tasm.base.TraceEvent;
 import com.lynx.tasm.behavior.LynxContext;
+import com.lynx.tasm.behavior.event.EventTarget;
 import com.lynx.tasm.behavior.ui.UIBody.UIBodyView;
 import com.lynx.tasm.behavior.ui.accessibility.LynxAccessibilityWrapper;
 import com.lynx.tasm.performance.TimingCollector;
@@ -27,6 +29,8 @@ import java.util.HashMap;
 
 public class UIBody extends UIGroup<UIBodyView> {
   @Nullable private UIBodyView mBodyView;
+  @Nullable private EventTarget mParentLynxPageUI;
+  @Nullable private HashMap<String, EventTarget> mChildrenLynxPageUI;
 
   private LynxAccessibilityWrapper mA11yWrapper;
 
@@ -121,6 +125,26 @@ public class UIBody extends UIGroup<UIBodyView> {
     return mA11yWrapper;
   }
 
+  @Override
+  public EventTarget getParentLynxPageUI() {
+    return mParentLynxPageUI;
+  }
+
+  @Override
+  public void setParentLynxPageUI(EventTarget parentLynxPageUI) {
+    mParentLynxPageUI = parentLynxPageUI;
+  }
+
+  @Override
+  public HashMap<String, EventTarget> getChildrenLynxPageUI() {
+    return mChildrenLynxPageUI;
+  }
+
+  @Override
+  public void setChildrenLynxPageUI(HashMap<String, EventTarget> childrenLynxPageUI) {
+    mChildrenLynxPageUI = childrenLynxPageUI;
+  }
+
   public static class UIBodyView
       extends FrameLayout implements IDrawChildHook.IDrawChildHookBinding {
     private IDrawChildHook mDrawChildHook;
@@ -136,6 +160,12 @@ public class UIBody extends UIGroup<UIBodyView> {
     private int mInstanceId = LynxContext.INSTANCE_ID_DEFAULT;
 
     protected LynxAccessibilityWrapper mA11yWrapper;
+
+    private boolean mIsChildLynxPageUI;
+
+    public interface attachLynxPageUICallback {
+      void attachLynxPageUI(@NonNull WeakReference<Object> ui);
+    }
 
     public UIBodyView(Context context) {
       super(context);
@@ -314,5 +344,15 @@ public class UIBody extends UIGroup<UIBodyView> {
     public boolean isAccessibilityDisabled() {
       return false;
     }
+
+    public boolean isChildLynxPageUI() {
+      return mIsChildLynxPageUI;
+    }
+
+    public void setIsChildLynxPageUI(boolean isChildLynxPageUI) {
+      mIsChildLynxPageUI = isChildLynxPageUI;
+    }
+
+    public void setAttachLynxPageUICallback(attachLynxPageUICallback callback) {}
   }
 }

@@ -1352,6 +1352,8 @@ void TouchEventHandler::StartEventGenerate(TemplateAssembler *tasm,
   int64_t event_id = event_params.GetProperty(4).Number();
   const lepus::Value &event_detail = event_params.GetProperty(5);
 
+  LOGI("TouchEventHandler::StartEventGenerate " << tasm << " " << event_id)
+
   if (event_type == EventType::kTouch) {
     if (!event_detail.IsArrayOrJSArray()) {
       return;
@@ -1420,8 +1422,12 @@ void TouchEventHandler::StartEventGenerate(TemplateAssembler *tasm,
 
 void TouchEventHandler::HandleGlobalBindAndTriggerEvent(TemplateAssembler *tasm,
                                                         int64_t event_id) {
+  LOGI("TouchEventHandler::HandleGlobalBindAndTriggerEvent " << tasm << " "
+                                                             << event_id)
   const auto &item = event_queue_.find(event_id);
   if (item == event_queue_.end()) {
+    LOGI("TouchEventHandler::HandleGlobalBindAndTriggerEvent not find"
+         << tasm << " " << event_id)
     return;
   }
 
@@ -1480,8 +1486,11 @@ void TouchEventHandler::HandleGlobalBindAndTriggerEvent(TemplateAssembler *tasm,
 
 void TouchEventHandler::StartEventCapture(TemplateAssembler *tasm,
                                           int64_t event_id) {
+  LOGI("TouchEventHandler::StartEventCapture " << tasm << " " << event_id)
   const auto &item = event_queue_.find(event_id);
   if (item == event_queue_.end()) {
+    LOGI("TouchEventHandler::StartEventCapture not find" << tasm << " "
+                                                         << event_id)
     return;
   }
 
@@ -1548,8 +1557,11 @@ void TouchEventHandler::StartEventCapture(TemplateAssembler *tasm,
 
 void TouchEventHandler::StartEventBubble(TemplateAssembler *tasm,
                                          int64_t event_id) {
+  LOGI("TouchEventHandler::StartEventBubble " << tasm << " " << event_id)
   const auto &item = event_queue_.find(event_id);
   if (item == event_queue_.end()) {
+    LOGI("TouchEventHandler::StartEventBubble not find" << tasm << " "
+                                                        << event_id)
     return;
   }
 
@@ -1617,8 +1629,11 @@ void TouchEventHandler::StartEventBubble(TemplateAssembler *tasm,
 
 void TouchEventHandler::StartEventFire(TemplateAssembler *tasm, bool is_stop,
                                        int64_t event_id, bool is_propagation) {
+  LOGI("TouchEventHandler::StartEventFire " << tasm << " " << event_id)
   const auto &item = event_queue_.find(event_id);
   if (item == event_queue_.end()) {
+    LOGI("TouchEventHandler::StartEventFire not find" << tasm << " "
+                                                      << event_id)
     return;
   }
 

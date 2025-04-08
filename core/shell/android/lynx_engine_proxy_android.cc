@@ -100,6 +100,36 @@ static void OnPseudoStatusChanged(JNIEnv *env, jobject jcaller, jlong ptr,
                                       static_cast<int32_t>(current_status));
 }
 
+static void StartEventGenerate(JNIEnv *env, jobject jcaller, jlong ptr,
+                               jobject params, jint length) {
+  lynx::shell::LynxEngineProxyAndroid *engine_proxy =
+      reinterpret_cast<lynx::shell::LynxEngineProxyAndroid *>(ptr);
+  engine_proxy->StartEventGenerate(
+      PubLepusValue(ConvertJavaData(env, params, length)));
+}
+
+static void StartEventCapture(JNIEnv *env, jobject jcaller, jlong ptr,
+                              jlong id) {
+  lynx::shell::LynxEngineProxyAndroid *engine_proxy =
+      reinterpret_cast<lynx::shell::LynxEngineProxyAndroid *>(ptr);
+  engine_proxy->StartEventCapture(static_cast<int64_t>(id));
+}
+
+static void StartEventBubble(JNIEnv *env, jobject jcaller, jlong ptr,
+                             jlong id) {
+  lynx::shell::LynxEngineProxyAndroid *engine_proxy =
+      reinterpret_cast<lynx::shell::LynxEngineProxyAndroid *>(ptr);
+  engine_proxy->StartEventBubble(static_cast<int64_t>(id));
+}
+
+static void StartEventFire(JNIEnv *env, jobject jcaller, jlong ptr,
+                           jboolean is_stop, jlong id) {
+  lynx::shell::LynxEngineProxyAndroid *engine_proxy =
+      reinterpret_cast<lynx::shell::LynxEngineProxyAndroid *>(ptr);
+  engine_proxy->StartEventFire(static_cast<bool>(is_stop),
+                               static_cast<int64_t>(id));
+}
+
 jlong Create(JNIEnv *env, jobject jcaller, jlong ptr) {
   auto *shell = reinterpret_cast<lynx::shell::LynxShell *>(ptr);
   lynx::shell::LynxEngineProxyAndroid *engine_proxy =

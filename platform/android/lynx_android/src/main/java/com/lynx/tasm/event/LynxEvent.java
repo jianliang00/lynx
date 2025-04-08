@@ -5,6 +5,8 @@
 package com.lynx.tasm.event;
 
 import com.lynx.tasm.behavior.event.EventTargetBase;
+import java.lang.reflect.Array;
+import java.util.ArrayList;
 
 public class LynxEvent {
   public static enum LynxEventType {
@@ -20,6 +22,7 @@ public class LynxEvent {
   private LynxEventType mType = LynxEventType.kNone;
   private EventTargetBase mTarget = null;
   private long mTimestamp = 0;
+  private long mEventID = 0;
 
   public LynxEvent(int tag, String name, LynxEventType type) {
     mTag = tag;
@@ -54,5 +57,23 @@ public class LynxEvent {
 
   public long getTimestamp() {
     return mTimestamp;
+  }
+
+  public void setEventID(long eventID) {
+    mEventID = eventID;
+  }
+
+  public long getEventID() {
+    return mEventID;
+  }
+
+  public ArrayList<Object> getEventParams() {
+    ArrayList<Object> params = new ArrayList<>();
+    params.add(mName);
+    params.add(mType.ordinal());
+    params.add(mTag);
+    params.add(mTimestamp);
+    params.add(mEventID);
+    return params;
   }
 }

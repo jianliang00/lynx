@@ -8,6 +8,7 @@ import com.lynx.tasm.base.CalledByNative;
 import com.lynx.tasm.base.LLog;
 import com.lynx.tasm.common.LepusBuffer;
 import com.lynx.tasm.event.LynxCustomEvent;
+import com.lynx.tasm.event.LynxEvent;
 import com.lynx.tasm.event.LynxTouchEvent;
 import com.lynx.tasm.utils.UIThreadUtils;
 import java.lang.Runnable;
@@ -152,6 +153,61 @@ public final class LynxEngineProxy {
     });
   }
 
+  public void startEventGenerate(LynxEvent event) {
+    UIThreadUtils.runOnUiThreadImmediately(new Runnable() {
+      @Override
+      public void run() {
+        if (mNativePtr == 0) {
+          LLog.e(TAG, "startEventGenerate failed since mNativePtr is null");
+          return;
+        }
+
+        ByteBuffer buffer = LepusBuffer.INSTANCE.encodeMessage(event.getEventParams());
+        int length = buffer == null ? 0 : buffer.position();
+        nativeStartEventGenerate(mNativePtr, buffer, length);
+      }
+    });
+  }
+
+  public void startEventCapture(long eventID) {
+    UIThreadUtils.runOnUiThreadImmediately(new Runnable() {
+      @Override
+      public void run() {
+        if (mNativePtr == 0) {
+          LLog.e(TAG, "startEventCapture failed since mNativePtr is null");
+          return;
+        }
+        nativeStartEventCapture(mNativePtr, eventID);
+      }
+    });
+  }
+
+  public void startEventBubble(long eventID) {
+    UIThreadUtils.runOnUiThreadImmediately(new Runnable() {
+      @Override
+      public void run() {
+        if (mNativePtr == 0) {
+          LLog.e(TAG, "startEventBubble failed since mNativePtr is null");
+          return;
+        }
+        nativeStartEventBubble(mNativePtr, eventID);
+      }
+    });
+  }
+
+  public void startEventFire(boolean isStop, long eventID) {
+    UIThreadUtils.runOnUiThreadImmediately(new Runnable() {
+      @Override
+      public void run() {
+        if (mNativePtr == 0) {
+          LLog.e(TAG, "startEventFire failed since mNativePtr is null");
+          return;
+        }
+        nativeStartEventFire(mNativePtr, isStop, eventID);
+      }
+    });
+  }
+
   @CalledByNative
   private static void executeRunnable(Runnable runnable) {
     runnable.run();
@@ -177,6 +233,14 @@ public final class LynxEngineProxy {
 
   private native void nativeOnPseudoStatusChanged(
       long nativePtr, int id, int preStatus, int currentStatus);
+
+  private native void nativeStartEventGenerate(long nativePtr, ByteBuffer params, int length);
+
+  private native void nativeStartEventCapture(long nativePtr, long id);
+
+  private native void nativeStartEventBubble(long nativePtr, long id);
+
+  private native void nativeStartEventFire(long nativePtr, boolean isStop, long id);
 
   private native void nativeInvokeLepusApiCallback(
       long nativePtr, int callbackID, String entryName, Object data);

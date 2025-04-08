@@ -50,6 +50,7 @@ import com.lynx.tasm.behavior.ILynxUIRenderer;
 import com.lynx.tasm.behavior.ImageInterceptor;
 import com.lynx.tasm.behavior.LynxContext;
 import com.lynx.tasm.behavior.LynxIntersectionObserverManager;
+import com.lynx.tasm.behavior.event.EventTarget;
 import com.lynx.tasm.behavior.herotransition.HeroTransitionManager;
 import com.lynx.tasm.behavior.shadow.ChoreographerLayoutTick;
 import com.lynx.tasm.behavior.shadow.LayoutTick;
@@ -2618,13 +2619,34 @@ public class LynxTemplateRender implements ILynxEngine, ILynxErrorReceiver {
     }
 
     @Override
-    public void onEventCapture(long targetID, boolean isCatch, long eventID) {}
+    public void onEventCapture(long targetID, boolean isCatch, long eventID) {
+      if (mLynxContext != null && mLynxContext.getLynxUIOwner() != null) {
+        EventTarget target = mLynxContext.getLynxUIOwner().findLynxUIBySign((int) targetID);
+        if (target != null) {
+          target.onEventCapture(isCatch, eventID);
+        }
+      }
+    }
 
     @Override
-    public void onEventBubble(long targetID, boolean isCatch, long eventID) {}
+    public void onEventBubble(long targetID, boolean isCatch, long eventID) {
+      if (mLynxContext != null && mLynxContext.getLynxUIOwner() != null) {
+        EventTarget target = mLynxContext.getLynxUIOwner().findLynxUIBySign((int) targetID);
+        if (target != null) {
+          target.onEventBubble(isCatch, eventID);
+        }
+      }
+    }
 
     @Override
-    public void onEventFire(long targetID, boolean isStop, long eventID) {}
+    public void onEventFire(long targetID, boolean isStop, long eventID) {
+      if (mLynxContext != null && mLynxContext.getLynxUIOwner() != null) {
+        EventTarget target = mLynxContext.getLynxUIOwner().findLynxUIBySign((int) targetID);
+        if (target != null) {
+          target.onEventFire(isStop, eventID);
+        }
+      }
+    }
   }
 
   @Nullable
@@ -3300,6 +3322,12 @@ public class LynxTemplateRender implements ILynxEngine, ILynxErrorReceiver {
     ByteBuffer buffer = LepusBuffer.INSTANCE.encodeMessage(configMap);
     if (buffer != null) {
       nativeUpdateConfig(mNativePtr, mNativeLifecycle, buffer, buffer.position());
+    }
+  }
+
+  public void setAttachLynxPageUICallback(UIBody.UIBodyView.attachLynxPageUICallback callback) {
+    if (mLynxContext != null && mLynxContext.getLynxUIOwner() != null) {
+      mLynxContext.getLynxUIOwner().setAttachLynxPageUICallback(callback);
     }
   }
 

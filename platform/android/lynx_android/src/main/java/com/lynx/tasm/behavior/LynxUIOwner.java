@@ -115,6 +115,8 @@ public class LynxUIOwner {
   private HashMap<String, Boolean> mCreateNodeConfigHasReportedMark;
   private final boolean mEnableStableTranslateZSorting;
 
+  private UIBodyView.attachLynxPageUICallback mAttachLynxPageUICallback;
+
   public LynxUIOwner(
       LynxContext context, BehaviorRegistry behaviorRegistry, @Nullable UIBodyView body) {
     TraceEvent.beginSection("LynxUIOwner initialized");
@@ -692,6 +694,9 @@ public class LynxUIOwner {
     if (mRootSign < 0 && tagName.equals(LynxConstants.ROOT_TAG_NAME)) {
       ui = mUIBody;
       mRootSign = sign;
+      if (ui != null && mAttachLynxPageUICallback != null) {
+        mAttachLynxPageUICallback.attachLynxPageUI(new WeakReference<>(ui));
+      }
     } else {
       ui = createUI(tagName, flatten);
       ui.setEvents(eventsListenerMap);
@@ -1853,5 +1858,9 @@ public class LynxUIOwner {
   private PageConfig getPageConfig() {
     NativeFacade nativeFacade = (mNativeFacade != null) ? mNativeFacade.get() : null;
     return (nativeFacade != null) ? nativeFacade.getPageConfig() : null;
+  }
+
+  public void setAttachLynxPageUICallback(UIBodyView.attachLynxPageUICallback callback) {
+    mAttachLynxPageUICallback = callback;
   }
 }

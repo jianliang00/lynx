@@ -9,6 +9,7 @@ import android.view.MotionEvent;
 import androidx.annotation.NonNull;
 import com.lynx.react.bridge.JavaOnlyMap;
 import com.lynx.tasm.behavior.event.EventTargetBase;
+import java.util.ArrayList;
 import java.util.Arrays;
 import java.util.HashMap;
 import java.util.Map;
@@ -166,5 +167,24 @@ public class LynxTouchEvent extends LynxEvent {
 
   public HashMap<Integer, EventTargetBase> getActiveTargetMap() {
     return mActiveTargetMap;
+  }
+
+  @Override
+  public ArrayList<Object> getEventParams() {
+    ArrayList<Object> params = super.getEventParams();
+    ArrayList<Object> detail = new ArrayList<>();
+    detail.add(mIsMultiTouch);
+    if (mIsMultiTouch) {
+      detail.add(mUITouchMap);
+    } else {
+      detail.add(mClientPoint.x);
+      detail.add(mClientPoint.y);
+      detail.add(mPagePoint.x);
+      detail.add(mPagePoint.y);
+      detail.add(mViewPoint.x);
+      detail.add(mViewPoint.y);
+    }
+    params.add(detail);
+    return params;
   }
 }

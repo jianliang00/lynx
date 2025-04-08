@@ -246,4 +246,46 @@ public class EventTargetSpan extends ClickableSpan implements EventTarget {
     }
     return false;
   }
+
+  @Override
+  public EventTarget getParentLynxPageUI() {
+    return null;
+  }
+
+  @Override
+  public void setParentLynxPageUI(EventTarget parentLynxPageUI) {}
+
+  @Override
+  public HashMap<String, EventTarget> getChildrenLynxPageUI() {
+    return null;
+  }
+
+  @Override
+  public void setChildrenLynxPageUI(HashMap<String, EventTarget> childrenLynxPageUI) {}
+
+  @Override
+  public EventTarget getRootLynxPageUI() {
+    return null;
+  }
+
+  @Override
+  public void setEventID(long eventID) {}
+
+  @Override
+  public void startEventCapture(long eventID) {}
+
+  @Override
+  public void onEventCapture(boolean isCapture, long eventID) {}
+
+  @Override
+  public void startEventBubble(long eventID) {}
+
+  @Override
+  public void onEventBubble(boolean isCapture, long eventID) {}
+
+  @Override
+  public void startEventFire(boolean isStop, long eventID) {}
+
+  @Override
+  public void onEventFire(boolean isStop, long eventID) {}
 }

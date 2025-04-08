@@ -3060,6 +3060,135 @@ public abstract class LynxBaseUI
     return false;
   }
 
+  @Override
+  public EventTarget getParentLynxPageUI() {
+    if (mContext == null || mContext.getUIBody() == null) {
+      return null;
+    }
+    return mContext.getUIBody().getParentLynxPageUI();
+  }
+
+  @Override
+  public void setParentLynxPageUI(EventTarget parentLynxPageUI) {
+    if (mContext == null || mContext.getUIBody() == null) {
+      return;
+    }
+    mContext.getUIBody().setParentLynxPageUI(parentLynxPageUI);
+  }
+
+  @Override
+  public HashMap<String, EventTarget> getChildrenLynxPageUI() {
+    if (mContext == null || mContext.getUIBody() == null) {
+      return null;
+    }
+    return mContext.getUIBody().getChildrenLynxPageUI();
+  }
+
+  @Override
+  public void setChildrenLynxPageUI(HashMap<String, EventTarget> childrenLynxPageUI) {
+    if (mContext == null || mContext.getUIBody() == null) {
+      return;
+    }
+    mContext.getUIBody().setChildrenLynxPageUI(childrenLynxPageUI);
+  }
+
+  @Override
+  public EventTarget getRootLynxPageUI() {
+    EventTarget currentLynxPageUI = this;
+    while (currentLynxPageUI != null && currentLynxPageUI.getParentLynxPageUI() != null) {
+      currentLynxPageUI = currentLynxPageUI.getParentLynxPageUI();
+    }
+    return currentLynxPageUI;
+  }
+
+  @Override
+  public void setEventID(long eventID) {
+    if (getChildrenLynxPageUI() == null) {
+      return;
+    }
+    LynxBaseUI childLynxPageUI =
+        (LynxBaseUI) getChildrenLynxPageUI().get(String.valueOf(System.identityHashCode(this)));
+    if (childLynxPageUI != null) {
+      if (childLynxPageUI.getLynxContext() != null
+          && childLynxPageUI.getLynxContext().getEventEmitter() != null) {
+        childLynxPageUI.getLynxContext().getEventEmitter().setEventID(eventID);
+      }
+    }
+  }
+
+  @Override
+  public void startEventCapture(long eventID) {
+    if (mContext == null || mContext.getEventEmitter() == null) {
+      return;
+    }
+    mContext.getEventEmitter().startEventCapture(eventID);
+  }
+
+  @Override
+  public void onEventCapture(boolean isCatch, long eventID) {
+    if (isCatch) {
+      if (getRootLynxPageUI() != null) {
+        getRootLynxPageUI().startEventFire(false, eventID);
+      }
+    } else {
+      LynxBaseUI childLynxPageUI = getChildrenLynxPageUI() != null
+          ? (LynxBaseUI) getChildrenLynxPageUI().get(String.valueOf(System.identityHashCode(this)))
+          : null;
+      if (childLynxPageUI != null) {
+        if (childLynxPageUI.getLynxContext() != null
+            && childLynxPageUI.getLynxContext().getEventEmitter() != null) {
+          childLynxPageUI.getLynxContext().getEventEmitter().startEventCapture(eventID);
+        }
+      } else {
+        startEventBubble(eventID);
+      }
+    }
+  }
+
+  @Override
+  public void startEventBubble(long eventID) {
+    if (mContext == null || mContext.getEventEmitter() == null) {
+      return;
+    }
+    mContext.getEventEmitter().startEventBubble(eventID);
+  }
+
+  @Override
+  public void onEventBubble(boolean isCatch, long eventID) {
+    if (isCatch) {
+      if (getRootLynxPageUI() != null) {
+        getRootLynxPageUI().startEventFire(false, eventID);
+      }
+    } else {
+      if (getParentLynxPageUI() != null) {
+        getParentLynxPageUI().startEventBubble(eventID);
+      } else {
+        startEventFire(false, eventID);
+      }
+    }
+  }
+
+  @Override
+  public void startEventFire(boolean isStop, long eventID) {
+    if (mContext == null || mContext.getEventEmitter() == null) {
+      return;
+    }
+    mContext.getEventEmitter().startEventFire(isStop, eventID);
+  }
+
+  @Override
+  public void onEventFire(boolean isStop, long eventID) {
+    LynxBaseUI childLynxPageUI = getChildrenLynxPageUI() != null
+        ? (LynxBaseUI) getChildrenLynxPageUI().get(String.valueOf(System.identityHashCode(this)))
+        : null;
+    if (childLynxPageUI != null) {
+      if (childLynxPageUI.getLynxContext() != null
+          && childLynxPageUI.getLynxContext().getEventEmitter() != null) {
+        childLynxPageUI.getLynxContext().getEventEmitter().startEventFire(isStop, eventID);
+      }
+    }
+  }
+
   // default return false. Return true if this LynxUI is scroll container, like scroll-view, swiper,
   // list and so on.
   public boolean isScrollContainer() {
