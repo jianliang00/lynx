@@ -86,6 +86,9 @@ export default class SettingsPage extends Component<
               <view
                 className="option-item"
                 bindtap={() => this.props.setTheme(theme)}
+                accessibility-element={true}
+                accessibility-label={`Set Theme ${theme}`}
+                accessibility-traits="button"
               >
                 <image src={this.icon(theme)} className="option-icon" />
                 <text className={withTheme('text')}>{theme}</text>
@@ -113,8 +116,13 @@ export default class SettingsPage extends Component<
         <view
           className={withTheme('devtool')}
           bindtap={this.openDevtoolSwitchPage}
+          accessibility-element={true}
+          accessibility-label="Lynx DevTool Switches"
+          accessibility-traits="button"
         >
-          <text className={withTheme('text')}>Lynx DevTool Switches</text>
+          <text className={withTheme('text')} accessibility-element={false}>
+            Lynx DevTool Switches
+          </text>
           <view style="margin: auto 5% auto auto; justify-content: center">
             <image src={this.icon('Forward')} className="forward-icon" />
           </view>

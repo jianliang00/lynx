@@ -18,7 +18,13 @@ export function Switch(props: Props) {
         <text className="label_text">{props.title}</text>
         <text className="desc_text">{props.description}</text>
       </view>
-      <view className="switch_wrap" bindtap={props.onChange}>
+      <view
+        className="switch_wrap"
+        bindtap={props.onChange}
+        accessibility-element={true}
+        accessibility-label={`Switch ${props.on ? 'On' : 'Off'}`}
+        accessibility-traits="button"
+      >
         <image
           className="switch"
           mode="aspectFit"

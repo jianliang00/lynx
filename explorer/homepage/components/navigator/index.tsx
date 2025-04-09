@@ -66,13 +66,25 @@ export default class Navigator extends Component<NavigatorProps, unknown> {
   render() {
     return (
       <view clip-radius="true" className={this.props.withTheme('navigator')}>
-        <view className="button" bindtap={this.props.openHomePage}>
+        <view
+          className="button"
+          bindtap={this.props.openHomePage}
+          accessibility-element={true}
+          accessibility-label="Show Home Page"
+          accessibility-traits="button"
+        >
           <image
             src={this.icon('home', this.props.showHomePage)}
             className="icon"
           />
         </view>
-        <view className="button" bindtap={this.props.openSettingsPage}>
+        <view
+          className="button"
+          bindtap={this.props.openSettingsPage}
+          accessibility-element={true}
+          accessibility-label="Show Settings Page"
+          accessibility-traits="button"
+        >
           <image
             src={this.icon('settings', this.props.showSettingsPage)}
             className="icon"

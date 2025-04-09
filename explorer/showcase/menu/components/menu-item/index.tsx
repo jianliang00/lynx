@@ -38,14 +38,23 @@ export function MenuItem(props: ItemProps) {
   };
 
   return (
-    <view className={withTheme('box')} bindtap={onClick.bind(this, this.props)}>
+    <view
+      className={withTheme('box')}
+      bindtap={onClick.bind(this, this.props)}
+      accessibility-element={true}
+      accessibility-label={`{Open ${props.title} Show Cases}`}
+      accessibility-traits="button"
+    >
       {(() => {
         if (props.icon && props.icon[theme] != undefined) {
           return <image src={props.icon[theme]} className="icon" />;
         }
         return (
           <view className={withTheme('circle')}>
-            <text className={withTheme('placeholder-text')}>
+            <text
+              className={withTheme('placeholder-text')}
+              accessibility-element={false}
+            >
               {props.title[0]}
             </text>
           </view>

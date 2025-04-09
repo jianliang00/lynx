@@ -20,7 +20,13 @@ export function Radio(props: Props) {
         <text className="label_text">{props.title}</text>
         <text className="desc_text">{props.description}</text>
         {props.values.map((label, index) => (
-          <view className="radio_wrap" bindtap={() => props.onChange(index)}>
+          <view
+            className="radio_wrap"
+            bindtap={() => props.onChange(index)}
+            accessibility-element={true}
+            accessibility-label={`Choose ${label}`}
+            accessibility-traits="button"
+          >
             <text className="sub_label_text">{label}</text>
             <image
               className="radio"

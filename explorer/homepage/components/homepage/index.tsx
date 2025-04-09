@@ -111,6 +111,9 @@ export default class HomePage extends Component<HomePageProps> {
                   src={this.icon('Scan')}
                   className="scan-icon"
                   bindtap={this.openScan}
+                  accessibility-element={true}
+                  accessibility-label="Open Scan"
+                  accessibility-traits="button"
                 />
               );
             })()}
@@ -128,16 +131,30 @@ export default class HomePage extends Component<HomePageProps> {
           <view
             className={withTheme('connect-button')}
             bindtap={this.openSchema}
+            accessibility-element={true}
+            accessibility-label="Open Schema"
+            accessibility-traits="button"
           >
-            <text style="line-height: 22px; color: #ffffff; font-size: 16px">
+            <text
+              style="line-height: 22px; color: #ffffff; font-size: 16px"
+              accessibility-element={false}
+            >
               Go
             </text>
           </view>
         </view>
 
-        <view className={withTheme('showcase')} bindtap={this.openShowcasePage}>
+        <view
+          className={withTheme('showcase')}
+          bindtap={this.openShowcasePage}
+          accessibility-element={true}
+          accessibility-label="Open Show Cases"
+          accessibility-traits="button"
+        >
           <image src={ShowcaseIcon} className="showcase-icon" />
-          <text className={withTheme('text')}>Showcase</text>
+          <text className={withTheme('text')} accessibility-element={false}>
+            Showcase
+          </text>
           <view style="margin: auto 5% auto auto; justify-content: center">
             <image src={this.icon('Forward')} className="forward-icon" />
           </view>
