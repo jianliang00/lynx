@@ -10,7 +10,7 @@ __all__ = ["BehaviorHeaderGenerator"]
 
 class BehaviorHeaderGenerator(FileGenerator):
     def __init__(self, relative_path, file_name):
-        super().__init__(relative_path + "Public/", file_name)
+        super().__init__(relative_path + "public/", file_name)
         self._register_child_generator(BehaviorCodeDeclGenerator())
 
     def _generate_file_header(self):
@@ -31,4 +31,3 @@ class BehaviorCodeDeclGenerator(DarwinBehaviorGenerator):
         self._append("\n")
 
 
-    
