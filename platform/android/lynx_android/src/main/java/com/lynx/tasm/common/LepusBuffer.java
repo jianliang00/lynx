@@ -10,6 +10,7 @@ import com.lynx.tasm.LynxError;
 import com.lynx.tasm.TemplateData;
 import com.lynx.tasm.base.LLog;
 import com.lynx.tasm.base.TraceEvent;
+import com.lynx.tasm.base.trace.TraceEventDef;
 import java.io.ByteArrayOutputStream;
 import java.nio.ByteBuffer;
 import java.nio.ByteOrder;
@@ -30,7 +31,6 @@ public class LepusBuffer implements MessageCodec {
   public static final LepusBuffer INSTANCE = new LepusBuffer();
 
   private static final String TAG = "LepusBuffer";
-  private static final String TRACE_ENCODE_MESSAGE = "LepusBuffer::EncodeMessage";
   private static final String TRACE_DECODE_MESSAGE = "LepusBuffer::DecodeMessage";
 
   @Deprecated
@@ -39,9 +39,9 @@ public class LepusBuffer implements MessageCodec {
   @Override
   @Nullable
   public ByteBuffer encodeMessage(@NonNull Object message) {
-    TraceEvent.beginSection(TRACE_ENCODE_MESSAGE);
+    TraceEvent.beginSection(TraceEventDef.LEPUS_BUFFER_ENCODE_MESSAGE);
     if (message == null) {
-      TraceEvent.endSection(TRACE_ENCODE_MESSAGE);
+      TraceEvent.endSection(TraceEventDef.LEPUS_BUFFER_ENCODE_MESSAGE);
       return null;
     }
     final ExposedByteArrayOutputStream stream = new ExposedByteArrayOutputStream();
@@ -51,21 +51,21 @@ public class LepusBuffer implements MessageCodec {
       LynxError error = new LynxError(e.toString(), LynxError.JAVA_ERROR);
       LynxEnv.inst().getLynxViewClient().onReceivedError(error);
       LLog.e(TAG, error.toString());
-      TraceEvent.endSection(TRACE_ENCODE_MESSAGE);
+      TraceEvent.endSection(TraceEventDef.LEPUS_BUFFER_ENCODE_MESSAGE);
       return null;
     }
     final ByteBuffer buffer = ByteBuffer.allocateDirect(stream.size());
     buffer.put(stream.buffer(), 0, stream.size());
-    TraceEvent.endSection(TRACE_ENCODE_MESSAGE);
+    TraceEvent.endSection(TraceEventDef.LEPUS_BUFFER_ENCODE_MESSAGE);
     return buffer;
   }
 
   @Override
   @Nullable
   public Object decodeMessage(@NonNull ByteBuffer message) {
-    TraceEvent.beginSection(TRACE_DECODE_MESSAGE);
+    TraceEvent.beginSection(TraceEventDef.LEPUS_BUFFER_DECODE_MESSAGE);
     if (message == null) {
-      TraceEvent.endSection(TRACE_DECODE_MESSAGE);
+      TraceEvent.endSection(TraceEventDef.LEPUS_BUFFER_DECODE_MESSAGE);
       return null;
     }
     try {
@@ -74,14 +74,14 @@ public class LepusBuffer implements MessageCodec {
       if (message.hasRemaining()) {
         throw new IllegalArgumentException("Message corrupted");
       }
-      TraceEvent.endSection(TRACE_DECODE_MESSAGE);
+      TraceEvent.endSection(TraceEventDef.LEPUS_BUFFER_DECODE_MESSAGE);
       return value;
     } catch (IllegalArgumentException e) {
       LynxError error = new LynxError(e.toString(), LynxError.JAVA_ERROR);
       if (LynxEnv.inst().getLynxViewClient() != null) {
         LynxEnv.inst().getLynxViewClient().onReceivedError(error);
       }
-      TraceEvent.endSection(TRACE_DECODE_MESSAGE);
+      TraceEvent.endSection(TraceEventDef.LEPUS_BUFFER_DECODE_MESSAGE);
       return null;
     }
   }

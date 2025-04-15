@@ -24,6 +24,7 @@ import com.lynx.tasm.TemplateData;
 import com.lynx.tasm.base.LLog;
 import com.lynx.tasm.base.PageReloadHelper;
 import com.lynx.tasm.base.TraceEvent;
+import com.lynx.tasm.base.trace.TraceEventDef;
 import com.lynx.tasm.behavior.LynxContext;
 import com.lynx.tasm.behavior.LynxUIOwner;
 import com.lynx.tasm.provider.LynxResourceCallback;
@@ -53,7 +54,7 @@ public class LynxDevtool {
   }
 
   private void init(LynxView view, LynxTemplateRender render, boolean debuggable, Context context) {
-    TraceEvent.beginSection("LynxDevtool initialized");
+    TraceEvent.beginSection(TraceEventDef.DEVTOOL_INIT);
     try {
       LLog.i(
           TAG, "Initialize LynxDevtool, lynxDebugEnabled:" + LynxEnv.inst().isLynxDebugEnabled());
@@ -105,7 +106,7 @@ public class LynxDevtool {
       mLogBox = null;
       mReloader = null;
     }
-    TraceEvent.endSection("LynxDevTool initialized");
+    TraceEvent.endSection(TraceEventDef.DEVTOOL_INIT);
   }
 
   public void attachContext(Context context) {

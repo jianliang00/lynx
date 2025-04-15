@@ -4,6 +4,7 @@
 package com.lynx.tasm;
 
 import com.lynx.tasm.base.TraceEvent;
+import com.lynx.tasm.base.trace.TraceEventDef;
 
 public class LynxEngineBuilder extends LynxViewBuilder {
   public LynxEngineBuilder() {
@@ -18,9 +19,9 @@ public class LynxEngineBuilder extends LynxViewBuilder {
    * @return LynxEngine
    */
   public ILynxEngine build() {
-    TraceEvent.beginSection("LynxEngineBuilder.build");
+    TraceEvent.beginSection(TraceEventDef.ENGINE_BUILDER_BUILD);
     ILynxEngine templateRender = new LynxTemplateRender(this);
-    TraceEvent.endSection("LynxEngineBuilder.build");
+    TraceEvent.endSection(TraceEventDef.ENGINE_BUILDER_BUILD);
     return templateRender;
   }
 }

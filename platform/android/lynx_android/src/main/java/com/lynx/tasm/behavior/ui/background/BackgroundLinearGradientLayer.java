@@ -14,6 +14,7 @@ import android.os.Build;
 import com.lynx.react.bridge.ReadableArray;
 import com.lynx.tasm.base.LLog;
 import com.lynx.tasm.base.TraceEvent;
+import com.lynx.tasm.base.trace.TraceEventDef;
 
 public class BackgroundLinearGradientLayer extends BackgroundGradientLayer {
   private double mAngle;
@@ -136,10 +137,9 @@ public class BackgroundLinearGradientLayer extends BackgroundGradientLayer {
         }
         // The version number should lower than 9.0
         if (Build.VERSION.SDK_INT < Build.VERSION_CODES.P && mEnableBitmapGradient) {
-          final String eventName = "createBitmapShader";
-          TraceEvent.beginSection(eventName);
+          TraceEvent.beginSection(TraceEventDef.CREATE_BITMAP_SHADER);
           createBitmapShader(start, end, mColors, mPositions, (float) mAngle);
-          TraceEvent.endSection(eventName);
+          TraceEvent.endSection(TraceEventDef.CREATE_BITMAP_SHADER);
         } else {
           mShader = new LinearGradient(
               start.x, start.y, end.x, end.y, mColors, mPositions, Shader.TileMode.CLAMP);

@@ -212,7 +212,7 @@ public class UIBody extends UIGroup<UIBodyView> {
         mDrawChildHook.afterDispatchDraw(canvas);
       }
       if (mHasMeaningfulLayout && !mHasMeaningfulPaint) {
-        TraceEvent.instant(TraceEvent.CATEGORY_VITALS, "FirstMeaningfulPaint");
+        TraceEvent.instant(TraceEvent.CATEGORY_VITALS, TraceEventDef.FIRST_MEANINGFUL_PAINT);
         mMeaningfulPaintTiming = System.currentTimeMillis();
         mHasMeaningfulPaint = true;
       }

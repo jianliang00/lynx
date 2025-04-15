@@ -18,6 +18,7 @@ import androidx.annotation.RequiresApi;
 import com.lynx.react.bridge.ReadableArray;
 import com.lynx.tasm.base.LLog;
 import com.lynx.tasm.base.TraceEvent;
+import com.lynx.tasm.base.trace.TraceEventDef;
 import com.lynx.tasm.behavior.LynxContext;
 import com.lynx.tasm.behavior.LynxProp;
 import com.lynx.tasm.behavior.PropsConstants;
@@ -264,15 +265,9 @@ public class LynxFlattenUI extends LynxBaseUI {
   }
 
   public void draw(Canvas canvas) {
-    String traceEvent = null;
-    if (TraceEvent.enableTrace()) {
-      traceEvent = getTagName() + ".flatten.draw";
-      TraceEvent.beginSection(traceEvent);
-    }
+    TraceEvent.beginSection(TraceEventDef.FLATTEN_UI_DRAW);
     if (mAlpha <= 0.0f) {
-      if (TraceEvent.enableTrace()) {
-        TraceEvent.endSection(traceEvent);
-      }
+      TraceEvent.endSection(TraceEventDef.FLATTEN_UI_DRAW);
       return;
     }
     final int left = getLeft();
@@ -293,9 +288,7 @@ public class LynxFlattenUI extends LynxBaseUI {
     onDraw(canvas);
     canvas.restoreToCount(count);
 
-    if (TraceEvent.enableTrace()) {
-      TraceEvent.endSection(traceEvent);
-    }
+    TraceEvent.endSection(TraceEventDef.FLATTEN_UI_DRAW);
   }
 
   @RequiresApi(api = Build.VERSION_CODES.Q)

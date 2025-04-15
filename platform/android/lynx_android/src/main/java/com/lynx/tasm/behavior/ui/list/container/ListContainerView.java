@@ -15,6 +15,7 @@ import androidx.annotation.NonNull;
 import com.lynx.tasm.ListNodeInfoFetcher;
 import com.lynx.tasm.base.LLog;
 import com.lynx.tasm.base.TraceEvent;
+import com.lynx.tasm.base.trace.TraceEventDef;
 import com.lynx.tasm.behavior.ui.IDrawChildHook;
 import com.lynx.tasm.gesture.arena.GestureArenaManager;
 
@@ -208,13 +209,12 @@ public class ListContainerView
   }
 
   void destroy() {
-    String sectionName = "ListContainerView.destroy";
-    TraceEvent.beginSection(sectionName);
+    TraceEvent.beginSection(TraceEventDef.LIST_CONTAINER_VIEW_DESTORY);
     mDrawChildHook = null;
     mUiListContainer = null;
     mCustomLinearLayout = null;
     setOnScrollStateChangeListener(null);
-    TraceEvent.endSection(sectionName);
+    TraceEvent.endSection(TraceEventDef.LIST_CONTAINER_VIEW_DESTORY);
   }
 
   LinearLayout getLinearLayout() {

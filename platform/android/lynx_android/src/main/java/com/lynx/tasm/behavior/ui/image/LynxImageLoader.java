@@ -9,6 +9,7 @@ import android.graphics.drawable.Drawable;
 import androidx.annotation.NonNull;
 import androidx.annotation.Nullable;
 import com.lynx.tasm.base.TraceEvent;
+import com.lynx.tasm.base.trace.TraceEventDef;
 import com.lynx.tasm.image.model.AnimationListener;
 import com.lynx.tasm.image.model.ImageLoadListener;
 import com.lynx.tasm.image.model.ImageRequestInfo;
@@ -32,14 +33,13 @@ class LynxImageLoader {
   public void fetchImage(@NonNull ImageRequestInfo imageRequestInfo,
       @NonNull ImageLoadListener loadListener, @Nullable AnimationListener animationListener,
       Context context) {
-    String section = "LynxImageServiceProxy.fetchImage";
-    TraceEvent.beginSection(section);
+    TraceEvent.beginSection(TraceEventDef.IMAGE_SERVICE_PROXY_FETCH_IMAGE);
     if (mEnableImageFetcher) {
       mImageFetcher.loadImage(imageRequestInfo, loadListener, animationListener, context);
     } else {
       mLynxImageService.fetchImage(imageRequestInfo, loadListener, animationListener, context);
     }
-    TraceEvent.endSection(section);
+    TraceEvent.endSection(TraceEventDef.IMAGE_SERVICE_PROXY_FETCH_IMAGE);
   }
 
   public boolean startAnimation(Drawable animatable) {

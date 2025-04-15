@@ -20,6 +20,7 @@ import com.lynx.tasm.LynxEnv;
 import com.lynx.tasm.base.CalledByNative;
 import com.lynx.tasm.base.LLog;
 import com.lynx.tasm.base.TraceEvent;
+import com.lynx.tasm.base.trace.TraceEventDef;
 import com.lynx.tasm.behavior.shadow.ShadowNodeType;
 import com.lynx.tasm.behavior.ui.LynxBaseUI;
 import com.lynx.tasm.behavior.ui.list.container.UIListContainer;
@@ -685,7 +686,7 @@ public final class PaintingContext {
   public void removeListItemNode(int listSign, int childSign) {
     String traceEvent = null;
     if (TraceEvent.enableTrace()) {
-      traceEvent = TAG + ".removeListItemNode_" + listSign + "_" + childSign;
+      traceEvent = TraceEventDef.PAINTING_CONTEXT_REMOVE_LIST_ITEM + listSign + "_" + childSign;
       TraceEvent.beginSection(traceEvent);
     }
     LynxBaseUI parent = mUIOwner.getNode(listSign);
@@ -702,7 +703,7 @@ public final class PaintingContext {
   public void insertListItemNode(int listSign, int childSign) {
     String traceEvent = null;
     if (TraceEvent.enableTrace()) {
-      traceEvent = TAG + ".insertListItemNode_" + listSign + "_" + childSign;
+      traceEvent = TraceEventDef.PAINTING_CONTEXT_INSERT_LIST_ITEM + listSign + "_" + childSign;
       TraceEvent.beginSection(traceEvent);
     }
     LynxBaseUI parent = mUIOwner.getNode(listSign);

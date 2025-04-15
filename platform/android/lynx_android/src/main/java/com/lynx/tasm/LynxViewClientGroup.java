@@ -8,6 +8,7 @@ import android.view.KeyEvent;
 import androidx.annotation.NonNull;
 import androidx.annotation.Nullable;
 import com.lynx.tasm.base.TraceEvent;
+import com.lynx.tasm.base.trace.TraceEventDef;
 import com.lynx.tasm.event.LynxEventDetail;
 import com.lynx.tasm.eventreport.LynxEventReporter;
 import java.util.HashMap;
@@ -18,17 +19,6 @@ import javax.xml.transform.Transformer;
 
 public class LynxViewClientGroup extends LynxViewClient {
   private CopyOnWriteArrayList<LynxViewClient> mClients = new CopyOnWriteArrayList<>();
-
-  private static final String TRACE_LYNXVIEW_AND_JSRUNTIME_DESTORY =
-      "Client.onLynxViewAndJSRuntimeDestroy";
-  private static final String TRACE_PIPER_INVOKED = "Client.onPiperInvoked";
-  private static final String TRACE_DESTORY = "Client.onDestory";
-  private static final String TRACE_TIMING_SETUP = "Client.onTimingSetup";
-  private static final String TRACE_TIMING_UPDATE = "Client.onTimingUpdate";
-  private static final String TRACE_SCROLL_STOP = "Client.onScrollStop";
-  private static final String TRACE_SCROLL_START = "Client.onScrollStart";
-  private static final String TRACE_FLING = "Client.onFling";
-  protected static final String TRACE_CLIENT_ON_FIRST_SCREEN = "Client.onFirstScreen";
   private int mInstanceId = LynxEventReporter.INSTANCE_ID_UNKNOWN;
   private boolean enableLifecycleTimeReport = false;
 
@@ -117,7 +107,7 @@ public class LynxViewClientGroup extends LynxViewClient {
   @Override
   public void onFirstScreen() {
     long startTime = -1;
-    TraceEvent.beginSection(TRACE_CLIENT_ON_FIRST_SCREEN);
+    TraceEvent.beginSection(TraceEventDef.CLIENT_ON_FIRST_SCREEN);
     if (enableLifecycleTimeReport) {
       startTime = System.nanoTime();
     }
@@ -127,7 +117,7 @@ public class LynxViewClientGroup extends LynxViewClient {
     if (startTime != -1) {
       recordLifecycleTimeWithStartTime("onFirstScreen", startTime);
     }
-    TraceEvent.endSection(TRACE_CLIENT_ON_FIRST_SCREEN);
+    TraceEvent.endSection(TraceEventDef.CLIENT_ON_FIRST_SCREEN);
   }
 
   @Override
@@ -329,7 +319,7 @@ public class LynxViewClientGroup extends LynxViewClient {
 
   @Override
   public void onDestroy() {
-    TraceEvent.beginSection(TRACE_DESTORY);
+    TraceEvent.beginSection(TraceEventDef.CLIENT_DESTORY);
     long startTime = -1;
     if (enableLifecycleTimeReport) {
       startTime = System.nanoTime();
@@ -340,7 +330,7 @@ public class LynxViewClientGroup extends LynxViewClient {
     if (startTime != -1) {
       recordLifecycleTimeWithStartTime("onDestroy", startTime);
     }
-    TraceEvent.endSection(TRACE_DESTORY);
+    TraceEvent.endSection(TraceEventDef.CLIENT_DESTORY);
   }
 
   @Override
@@ -414,7 +404,7 @@ public class LynxViewClientGroup extends LynxViewClient {
 
   @Override
   public void onPiperInvoked(Map<String, Object> info) {
-    TraceEvent.beginSection(TRACE_PIPER_INVOKED);
+    TraceEvent.beginSection(TraceEventDef.CLIENT_PIPER_INVOKED);
     long startTime = -1;
     if (enableLifecycleTimeReport) {
       startTime = System.nanoTime();
@@ -425,12 +415,12 @@ public class LynxViewClientGroup extends LynxViewClient {
     if (startTime != -1) {
       recordLifecycleTimeWithStartTime("onPiperInvoked", startTime);
     }
-    TraceEvent.endSection(TRACE_PIPER_INVOKED);
+    TraceEvent.endSection(TraceEventDef.CLIENT_PIPER_INVOKED);
   }
 
   @Override
   public void onLynxViewAndJSRuntimeDestroy() {
-    TraceEvent.beginSection(TRACE_LYNXVIEW_AND_JSRUNTIME_DESTORY);
+    TraceEvent.beginSection(TraceEventDef.CLIENT_LYNXVIEW_AND_JSRUNTIME_DESTORY);
     long startTime = -1;
     if (enableLifecycleTimeReport) {
       startTime = System.nanoTime();
@@ -441,12 +431,12 @@ public class LynxViewClientGroup extends LynxViewClient {
     if (startTime != -1) {
       recordLifecycleTimeWithStartTime("onLynxViewAndJSRuntimeDestroy", startTime);
     }
-    TraceEvent.endSection(TRACE_LYNXVIEW_AND_JSRUNTIME_DESTORY);
+    TraceEvent.endSection(TraceEventDef.CLIENT_LYNXVIEW_AND_JSRUNTIME_DESTORY);
   }
 
   @Override
   public void onScrollStart(ScrollInfo info) {
-    TraceEvent.beginSection(TRACE_SCROLL_START);
+    TraceEvent.beginSection(TraceEventDef.CLIENT_SCROLL_START);
     long startTime = -1;
     if (enableLifecycleTimeReport) {
       startTime = System.nanoTime();
@@ -457,12 +447,12 @@ public class LynxViewClientGroup extends LynxViewClient {
     if (startTime != -1) {
       recordLifecycleTimeWithStartTime("onScrollStart", startTime);
     }
-    TraceEvent.endSection(TRACE_SCROLL_START);
+    TraceEvent.endSection(TraceEventDef.CLIENT_SCROLL_START);
   }
 
   @Override
   public void onScrollStop(ScrollInfo info) {
-    TraceEvent.beginSection(TRACE_SCROLL_STOP);
+    TraceEvent.beginSection(TraceEventDef.CLIENT_SCROLL_STOP);
     long startTime = -1;
     if (enableLifecycleTimeReport) {
       startTime = System.nanoTime();
@@ -473,12 +463,12 @@ public class LynxViewClientGroup extends LynxViewClient {
     if (startTime != -1) {
       recordLifecycleTimeWithStartTime("onScrollStop", startTime);
     }
-    TraceEvent.endSection(TRACE_SCROLL_STOP);
+    TraceEvent.endSection(TraceEventDef.CLIENT_SCROLL_STOP);
   }
 
   @Override
   public void onFling(ScrollInfo info) {
-    TraceEvent.beginSection(TRACE_FLING);
+    TraceEvent.beginSection(TraceEventDef.CLIENT_FLING);
     long startTime = -1;
     if (enableLifecycleTimeReport) {
       startTime = System.nanoTime();
@@ -489,7 +479,7 @@ public class LynxViewClientGroup extends LynxViewClient {
     if (startTime != -1) {
       recordLifecycleTimeWithStartTime("onFling", startTime);
     }
-    TraceEvent.endSection(TRACE_FLING);
+    TraceEvent.endSection(TraceEventDef.CLIENT_FLING);
   }
 
   @Override
@@ -523,7 +513,7 @@ public class LynxViewClientGroup extends LynxViewClient {
   @Override
   public void onTimingUpdate(
       Map<String, Object> timingInfo, Map<String, Long> updateTiming, String flag) {
-    TraceEvent.beginSection(TRACE_TIMING_UPDATE);
+    TraceEvent.beginSection(TraceEventDef.CLIENT_TIMING_UPDATE);
     long startTime = -1;
     if (enableLifecycleTimeReport) {
       startTime = System.nanoTime();
@@ -534,12 +524,12 @@ public class LynxViewClientGroup extends LynxViewClient {
     if (startTime != -1) {
       recordLifecycleTimeWithStartTime("onTimingUpdate", startTime);
     }
-    TraceEvent.endSection(TRACE_TIMING_UPDATE);
+    TraceEvent.endSection(TraceEventDef.CLIENT_TIMING_UPDATE);
   }
 
   @Override
   public void onTimingSetup(Map<String, Object> timingInfo) {
-    TraceEvent.beginSection(TRACE_TIMING_SETUP);
+    TraceEvent.beginSection(TraceEventDef.CLIENT_TIMING_SETUP);
     long startTime = -1;
     if (enableLifecycleTimeReport) {
       startTime = System.nanoTime();
@@ -550,7 +540,7 @@ public class LynxViewClientGroup extends LynxViewClient {
     if (startTime != -1) {
       recordLifecycleTimeWithStartTime("onTimingSetup", startTime);
     }
-    TraceEvent.endSection(TRACE_TIMING_SETUP);
+    TraceEvent.endSection(TraceEventDef.CLIENT_TIMING_SETUP);
   }
 
   @Override

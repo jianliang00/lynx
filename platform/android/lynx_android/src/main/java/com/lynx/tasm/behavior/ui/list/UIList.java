@@ -38,6 +38,7 @@ import com.lynx.tasm.LynxSubErrorCode;
 import com.lynx.tasm.ThreadStrategyForRendering;
 import com.lynx.tasm.base.LLog;
 import com.lynx.tasm.base.TraceEvent;
+import com.lynx.tasm.base.trace.TraceEventDef;
 import com.lynx.tasm.behavior.LynxContext;
 import com.lynx.tasm.behavior.LynxProp;
 import com.lynx.tasm.behavior.LynxUIMethod;
@@ -739,17 +740,11 @@ public class UIList extends AbsLynxList<RecyclerView> implements GestureArenaMem
 
   @Override
   public void measure() {
-    String traceEvent = null;
-    if (TraceEvent.enableTrace()) {
-      traceEvent = TAG + ".measure";
-      TraceEvent.beginSection(traceEvent);
-    }
+    TraceEvent.beginSection(TraceEventDef.UI_LIST_MEASURE);
     boolean isLayoutRequested =
         mContainerView != null ? mContainerView.isLayoutRequested() : mView.isLayoutRequested();
     if (!isLayoutRequested) {
-      if (TraceEvent.enableTrace()) {
-        TraceEvent.endSection(traceEvent);
-      }
+      TraceEvent.endSection(TraceEventDef.UI_LIST_MEASURE);
       return;
     }
     measureChildren();
@@ -781,24 +776,17 @@ public class UIList extends AbsLynxList<RecyclerView> implements GestureArenaMem
     // set to the RecyclerView.
     mView.measure(widthSpec, heightSpec);
     mAdapter.mDiffResultConsumed = true;
-    if (TraceEvent.enableTrace()) {
-      TraceEvent.endSection(traceEvent);
-    }
+
+    TraceEvent.endSection(TraceEventDef.UI_LIST_MEASURE);
   }
 
   @Override
   public void layout() {
-    String traceEvent = null;
-    if (TraceEvent.enableTrace()) {
-      traceEvent = TAG + ".layout";
-      TraceEvent.beginSection(traceEvent);
-    }
+    TraceEvent.beginSection(TraceEventDef.UI_LIST_LAYOUT);
     boolean isLayoutRequested =
         mContainerView != null ? mContainerView.isLayoutRequested() : mView.isLayoutRequested();
     if (!isLayoutRequested) {
-      if (TraceEvent.enableTrace()) {
-        TraceEvent.endSection(traceEvent);
-      }
+      TraceEvent.endSection(TraceEventDef.UI_LIST_LAYOUT);
       return;
     }
     layoutChildren();
@@ -810,9 +798,7 @@ public class UIList extends AbsLynxList<RecyclerView> implements GestureArenaMem
     setClipChildrenInternal();
     ViewCompat.setClipBounds(mView, getBoundRectForOverflow());
     mAppearEventCourier.onListLayout();
-    if (TraceEvent.enableTrace()) {
-      TraceEvent.endSection(traceEvent);
-    }
+    TraceEvent.endSection(TraceEventDef.UI_LIST_LAYOUT);
   }
 
   private void setClipChildrenInternal() {

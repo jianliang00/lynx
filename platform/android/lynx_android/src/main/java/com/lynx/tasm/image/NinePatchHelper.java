@@ -11,6 +11,7 @@ import android.graphics.Paint;
 import android.graphics.Rect;
 import com.lynx.tasm.base.LLog;
 import com.lynx.tasm.base.TraceEvent;
+import com.lynx.tasm.base.trace.TraceEventDef;
 import com.lynx.tasm.utils.PixelUtils;
 
 // code moved from BaseRoundedCornerPostprocessor
@@ -84,7 +85,7 @@ public class NinePatchHelper {
 
   public static Matrix getMatrix(int availableWidth, int availableHeight, int sourceWidth,
       int sourceHeight, ScalingUtils.ScaleType scaleType) {
-    TraceEvent.beginSection("image.NinePatchHelper.getMatrix");
+    TraceEvent.beginSection(TraceEventDef.NINE_PATCH_HELPER_GET_MATRIX);
     Matrix m = new Matrix();
     float w = 1f * availableWidth / sourceWidth;
     float h = 1f * availableHeight / sourceHeight;
@@ -127,14 +128,14 @@ public class NinePatchHelper {
       m.setScale(sourceSizeScale, sourceSizeScale);
       m.postTranslate(coorX, coorY);
     }
-    TraceEvent.endSection("image.NinePatchHelper.getMatrix");
+    TraceEvent.endSection(TraceEventDef.NINE_PATCH_HELPER_GET_MATRIX);
     return m;
   }
 
   public static boolean drawNinePatch(int availableWidth, int availableHeight, int sourceWidth,
       int sourceHeight, ScalingUtils.ScaleType scaleType, String capInsets, String capInsetsScale,
       Canvas canvas, Bitmap bitmap) {
-    TraceEvent.beginSection("image.NinePatchHelper.drawNinePatch");
+    TraceEvent.beginSection(TraceEventDef.NINE_PATCH_HELPER_DRAW_NINE_PATH);
     boolean drawn = false;
     try {
       boolean useCapInsets = true;
@@ -157,14 +158,14 @@ public class NinePatchHelper {
     } catch (Throwable e) {
       LLog.w("BaseRoundedCornerPostprocessor", "process customDraw warn " + e.getMessage());
     }
-    TraceEvent.endSection("image.NinePatchHelper.drawNinePatch");
+    TraceEvent.endSection(TraceEventDef.NINE_PATCH_HELPER_DRAW_NINE_PATH);
     return drawn;
   }
 
   private static void drawWithCapInsets(int availableWidth, int availableHeight, int sourceWidth,
       int sourceHeight, ScalingUtils.ScaleType scaleType, float[] capInsets, float capInsetsScale,
       Canvas canvas, Bitmap bitmap) {
-    TraceEvent.beginSection("image.NinePatchHelper.drawWithCapInsets");
+    TraceEvent.beginSection(TraceEventDef.NINE_PATCH_HELPER_DRAW_WITH_CAP_INSETS);
     Rect src0 = new Rect(
         0, 0, (int) (capInsets[3] * capInsetsScale), (int) (capInsets[0] * capInsetsScale));
     Rect src1 = new Rect(
@@ -288,6 +289,6 @@ public class NinePatchHelper {
     canvas.drawBitmap(bitmap, src7, dest7, paint);
     canvas.drawBitmap(bitmap, src8, dest8, paint);
 
-    TraceEvent.endSection("image.NinePatchHelper.drawWithCapInsets");
+    TraceEvent.endSection(TraceEventDef.NINE_PATCH_HELPER_DRAW_WITH_CAP_INSETS);
   }
 }

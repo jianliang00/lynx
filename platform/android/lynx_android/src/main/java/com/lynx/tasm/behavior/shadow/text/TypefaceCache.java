@@ -10,6 +10,7 @@ import androidx.annotation.NonNull;
 import androidx.annotation.Nullable;
 import com.lynx.tasm.base.LLog;
 import com.lynx.tasm.base.TraceEvent;
+import com.lynx.tasm.base.trace.TraceEventDef;
 import com.lynx.tasm.behavior.LynxContext;
 import com.lynx.tasm.fontface.FontFaceManager;
 import com.lynx.tasm.utils.FontFaceParser;
@@ -163,12 +164,12 @@ public class TypefaceCache {
 
   public static void cacheTypefaceFromFile(
       @NonNull String fontFamilyName, int style, @NonNull String path) {
-    TraceEvent.beginSection("text.TypefaceCache.cacheTypefaceFromFile");
+    TraceEvent.beginSection(TraceEventDef.TYPEFACE_CACHE_CATCH_FROM_FILE);
     Typeface typeface = getTypefaceFromFile(fontFamilyName, style, path);
     if (typeface != null) {
       cacheTypeface(fontFamilyName, style, typeface);
     }
-    TraceEvent.endSection("text.TypefaceCache.cacheTypefaceFromFile");
+    TraceEvent.endSection(TraceEventDef.TYPEFACE_CACHE_CATCH_FROM_FILE);
   }
 
   public static Typeface getTypefaceFromFile(

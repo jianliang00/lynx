@@ -153,30 +153,6 @@ public class LynxTemplateRender implements ILynxEngine, ILynxErrorReceiver {
   private boolean mEnablePendingJsTask = false;
   private boolean mEnableGenericResourceFetcher = false;
 
-  private static final String TRACE_INIT = "TemplateRender.init";
-  private static final String TRACE_DISPATCH_ERROR = "TemplateRender.dispatchError";
-  private static final String TRACE_SET_GLOBAL_PROPS = "TemplateRender.setGlobalProps";
-  private static final String TRACE_INIT_WITH_CONTEXT = "TemplateRender.initWithContext";
-  private static final String TRACE_CREATE_TASM = "TemplateRender.createLynxEngine";
-  private static final String TRACE_PROCESS_RENDER = "TemplateRender.processRender";
-  private static final String TRACE_INIT_ATTACH_LYNX_VIEW = "TemplateRender.attachLynxView";
-  private static final String TRACE_CLIENT_REPORT_COMPONENT_INFO = "Client.onReportComponentInfo";
-  private static final String TRACE_CLIENT_ON_PAGE_START = "Client.onPageStart";
-  private static final String TRACE_CLIENT_ON_LOAD_SUCCESS = "Client.onLoadSuccess";
-  private static final String TRACE_CLIENT_ON_FIRST_SCREEN = "Client.onFirstScreen";
-  private static final String TRACE_CLIENT_ON_PAGE_UPDATE = "Client.onPageUpdate";
-  private static final String TRACE_CLIENT_ON_UPDATE_WITHOUT_CHANGE =
-      "Client.onUpdateDataWithoutChange";
-  private static final String TRACE_CLIENT_ON_TASM_FINISHED_BY_NATIVE =
-      "Client.onTASMFinishedByNative";
-  private static final String TRACE_CLIENT_ON_RUNTIME_READY = "Client.onRuntimeReady";
-  private static final String TRACE_CLIENT_ON_DATA_UPDATED = "Client.onDataUpdated";
-  private static final String TRACE_CLIENT_ON_REPORT_COMPONENT = "Client.onReportComponentInfo";
-  private static final String TRACE_CLIENT_ON_DYNAMIC_COMPONENT_PERF =
-      "Client.onDynamicComponentPerf";
-  private static final String TRACE_CLIENT_ON_MODULE_FUNCTION = "Client.onModuleMethodInvoked";
-  private static final String TRACE_CLIENT_ON_TEMPLATE_BUNDLE_READY =
-      "Client.onTemplateBundleReady";
   // Event lynx_open_page
   private static final String EVENT_NAME_LYNX_OPEN_PAGE = "lynxsdk_open_page";
 
@@ -280,7 +256,7 @@ public class LynxTemplateRender implements ILynxEngine, ILynxErrorReceiver {
   }
 
   private void init(@Nullable Context context, LynxView lynxView, LynxViewBuilder builder) {
-    TraceEvent.beginSection(TRACE_INIT);
+    TraceEvent.beginSection(TraceEventDef.TEMPLATE_RENDER_INIT);
     mRuntime = builder.lynxBackgroundRuntime;
     mTemplateProvider = builder.templateProvider;
     mEnableSyncFlush = builder.enableSyncFlush;
@@ -426,7 +402,7 @@ public class LynxTemplateRender implements ILynxEngine, ILynxErrorReceiver {
     setMsTiming(TimingHandler.CREATE_LYNX_START, mInitStart, null);
     setMsTiming(TimingHandler.CREATE_LYNX_END, mInitEnd, null);
     LLog.i(TAG, formatLynxMessage("create"));
-    TraceEvent.endSection(TRACE_INIT);
+    TraceEvent.endSection(TraceEventDef.TEMPLATE_RENDER_INIT);
   }
 
   public boolean enableAirStrictMode() {
@@ -651,7 +627,7 @@ public class LynxTemplateRender implements ILynxEngine, ILynxErrorReceiver {
     }
     mTimingCollector.init();
 
-    TraceEvent.beginSection(TRACE_CREATE_TASM);
+    TraceEvent.beginSection(TraceEventDef.TEMPLATE_RENDER_CREATE_TASM);
     // recreate
     LayoutTick layoutTick;
 
@@ -796,7 +772,7 @@ public class LynxTemplateRender implements ILynxEngine, ILynxErrorReceiver {
       nativeSetFontScale(mNativePtr, mNativeLifecycle, mFontScale);
     }
 
-    TraceEvent.endSection(TRACE_CREATE_TASM);
+    TraceEvent.endSection(TraceEventDef.TEMPLATE_RENDER_CREATE_TASM);
   }
 
   private void setUpExtensionModules() {
@@ -817,7 +793,7 @@ public class LynxTemplateRender implements ILynxEngine, ILynxErrorReceiver {
   }
 
   private void init(Context context) {
-    TraceEvent.beginSection(TRACE_INIT_WITH_CONTEXT);
+    TraceEvent.beginSection(TraceEventDef.TEMPLATE_RENDER_INIT_WITH_CONTEXT);
     reload = false;
     mHasPageStart = false;
     mHasDestroy = false;
@@ -848,7 +824,7 @@ public class LynxTemplateRender implements ILynxEngine, ILynxErrorReceiver {
       setEnableUIFlush(false);
     }
 
-    TraceEvent.endSection(TRACE_INIT_WITH_CONTEXT);
+    TraceEvent.endSection(TraceEventDef.TEMPLATE_RENDER_INIT_WITH_CONTEXT);
   }
 
   /**
@@ -948,12 +924,12 @@ public class LynxTemplateRender implements ILynxEngine, ILynxErrorReceiver {
 
   public void updateGlobalProps(TemplateData props) {
     LLog.d(TAG, "updateGlobalProps with url: " + getTemplateUrl());
-    TraceEvent.beginSection(TRACE_SET_GLOBAL_PROPS);
+    TraceEvent.beginSection(TraceEventDef.TEMPLATE_RENDER_SET_GLOBAL_PROPS);
     if (checkIfEnvPrepared() && (mNativePtr != 0) && props != null) {
       internalMergeGlobalPropsSafely(props);
       updateGlobalPropsInternal(globalProps);
     }
-    TraceEvent.endSection(TRACE_SET_GLOBAL_PROPS);
+    TraceEvent.endSection(TraceEventDef.TEMPLATE_RENDER_SET_GLOBAL_PROPS);
   }
 
   private void renderSSRUrlInternal(@NonNull String templateUrl, InnerSSRLoadedCallback callback) {
@@ -1841,9 +1817,9 @@ public class LynxTemplateRender implements ILynxEngine, ILynxErrorReceiver {
     }
     recycleUpdatedDataList();
     destroyNative();
-    TraceEvent.beginSection(TRACE_CLIENT_REPORT_COMPONENT_INFO);
+    TraceEvent.beginSection(TraceEventDef.CLIENT_REPORT_COMPONENT_INFO);
     mClient.onReportComponentInfo(new HashSet<>());
-    TraceEvent.endSection(TRACE_CLIENT_REPORT_COMPONENT_INFO);
+    TraceEvent.endSection(TraceEventDef.CLIENT_REPORT_COMPONENT_INFO);
     recycleGlobalPropsSafely();
     ILynxExtensionService extensionService =
         LynxServiceCenter.inst().getService(ILynxExtensionService.class);
@@ -1908,15 +1884,15 @@ public class LynxTemplateRender implements ILynxEngine, ILynxErrorReceiver {
     if (mLynxContext != null) {
       LynxEventReporter.onEvent(EVENT_NAME_LYNX_OPEN_PAGE, null, mLynxContext.getInstanceId());
     }
-    TraceEvent.instant(TraceEvent.CATEGORY_VITALS, "StartLoad");
+    TraceEvent.instant(TraceEvent.CATEGORY_VITALS, TraceEventDef.TEMPLATE_RENDER_START_LOAD);
 
-    TraceEvent.beginSection(TRACE_CLIENT_ON_PAGE_START);
+    TraceEvent.beginSection(TraceEventDef.CLIENT_ON_PAGE_START);
     mClient.onPageStart(url);
     LynxViewClientV2.LynxPipelineInfo pipelineInfo = new LynxViewClientV2.LynxPipelineInfo(url);
     pipelineInfo.addPipelineOrigin(
         LynxViewClientV2.LynxPipelineInfo.LynxPipelineOrigin.LYNX_FIRST_SCREEN);
     mClientV2.onPageStarted(mLynxView, pipelineInfo);
-    TraceEvent.endSection(TRACE_CLIENT_ON_PAGE_START);
+    TraceEvent.endSection(TraceEventDef.CLIENT_ON_PAGE_START);
   }
 
   private void dispatchLoadSuccess(int templateSize) {
@@ -1924,9 +1900,9 @@ public class LynxTemplateRender implements ILynxEngine, ILynxErrorReceiver {
     if (null == mClient) {
       return;
     }
-    TraceEvent.beginSection(TRACE_CLIENT_ON_LOAD_SUCCESS);
+    TraceEvent.beginSection(TraceEventDef.CLIENT_ON_PAGE_START);
     mClient.onLoadSuccess();
-    TraceEvent.endSection(TRACE_CLIENT_ON_LOAD_SUCCESS);
+    TraceEvent.endSection(TraceEventDef.CLIENT_ON_PAGE_START);
   }
 
   @Deprecated
@@ -1990,7 +1966,7 @@ public class LynxTemplateRender implements ILynxEngine, ILynxErrorReceiver {
 
   private void dispatchError(int type, LynxError lynxError) {
     // Compatible with old API
-    TraceEvent.beginSection(TRACE_DISPATCH_ERROR);
+    TraceEvent.beginSection(TraceEventDef.TEMPLATE_RENDER_DISPATCH_ERROR);
     int errorCode = lynxError.getErrorCode();
     if (errorCode == LynxErrorBehavior.EB_APP_BUNDLE_LOAD) {
       mClient.onLoadFailed(lynxError.getMsg());
@@ -2005,7 +1981,7 @@ public class LynxTemplateRender implements ILynxEngine, ILynxErrorReceiver {
     } else {
       mClient.onReceivedJavaError(lynxError);
     }
-    TraceEvent.endSection(TRACE_DISPATCH_ERROR);
+    TraceEvent.endSection(TraceEventDef.TEMPLATE_RENDER_DISPATCH_ERROR);
   }
 
   private class InnerSSRLoadedCallback implements AbsTemplateProvider.Callback {
@@ -2203,9 +2179,9 @@ public class LynxTemplateRender implements ILynxEngine, ILynxErrorReceiver {
           @Override
           public void run() {
             if (mClient != null) {
-              TraceEvent.beginSection(TRACE_CLIENT_ON_PAGE_UPDATE);
+              TraceEvent.beginSection(TraceEventDef.CLIENT_ON_PAGE_UPDATE);
               mClient.onPageUpdate();
-              TraceEvent.endSection(TRACE_CLIENT_ON_PAGE_UPDATE);
+              TraceEvent.endSection(TraceEventDef.CLIENT_ON_PAGE_UPDATE);
             }
           }
         });
@@ -2225,9 +2201,9 @@ public class LynxTemplateRender implements ILynxEngine, ILynxErrorReceiver {
           @Override
           public void run() {
             if (mClient != null) {
-              TraceEvent.beginSection(TRACE_CLIENT_ON_UPDATE_WITHOUT_CHANGE);
+              TraceEvent.beginSection(TraceEventDef.CLIENT_ON_UPDATE_WITHOUT_CHANGE);
               mClient.onUpdateDataWithoutChange();
-              TraceEvent.endSection(TRACE_CLIENT_ON_UPDATE_WITHOUT_CHANGE);
+              TraceEvent.endSection(TraceEventDef.CLIENT_ON_UPDATE_WITHOUT_CHANGE);
             }
           }
         });
@@ -2285,9 +2261,9 @@ public class LynxTemplateRender implements ILynxEngine, ILynxErrorReceiver {
     onTraceEventBegin(eventName);
     ILynxUIRenderer lynxUIRenderer = lynxUIRenderer();
     if (lynxUIRenderer != null) {
-      TraceEvent.beginSection(TRACE_CLIENT_ON_REPORT_COMPONENT);
+      TraceEvent.beginSection(TraceEventDef.CLIENT_ON_REPORT_COMPONENT);
       mClient.onReportComponentInfo(new HashSet<>());
-      TraceEvent.endSection(TRACE_CLIENT_ON_REPORT_COMPONENT);
+      TraceEvent.endSection(TraceEventDef.CLIENT_ON_REPORT_COMPONENT);
       lynxUIRenderer.onDetach();
     }
 
@@ -2388,7 +2364,7 @@ public class LynxTemplateRender implements ILynxEngine, ILynxErrorReceiver {
     if (TraceEvent.enableTrace()) {
       Map<String, String> traceProps = new HashMap<>();
       traceProps.put("curActivity", curActivity != null ? curActivity.toString() : "");
-      TraceEvent.beginSection(TRACE_INIT_ATTACH_LYNX_VIEW, traceProps);
+      TraceEvent.beginSection(TraceEventDef.TEMPLATE_RENDER_ATTACH_LYNX_VIEW, traceProps);
     }
 
     LLog.i(TAG, "LynxTemplateRender(" + this + ") is attached on lynxView:" + lynxView);
@@ -2414,7 +2390,7 @@ public class LynxTemplateRender implements ILynxEngine, ILynxErrorReceiver {
       mDevTool.attach(mLynxView);
     }
     if (TraceEvent.enableTrace()) {
-      TraceEvent.endSection(TRACE_INIT_ATTACH_LYNX_VIEW);
+      TraceEvent.endSection(TraceEventDef.TEMPLATE_RENDER_ATTACH_LYNX_VIEW);
     }
     return true;
   }
@@ -2450,18 +2426,18 @@ public class LynxTemplateRender implements ILynxEngine, ILynxErrorReceiver {
     @Override
     public void onRuntimeReady() {
       if (mClient != null) {
-        TraceEvent.beginSection(TRACE_CLIENT_ON_RUNTIME_READY);
+        TraceEvent.beginSection(TraceEventDef.CLIENT_ON_RUNTIME_READY);
         mClient.onRuntimeReady();
-        TraceEvent.endSection(TRACE_CLIENT_ON_RUNTIME_READY);
+        TraceEvent.endSection(TraceEventDef.CLIENT_ON_RUNTIME_READY);
       }
     }
 
     @Override
     public void onDataUpdated() {
       if (mClient != null) {
-        TraceEvent.beginSection(TRACE_CLIENT_ON_DATA_UPDATED);
+        TraceEvent.beginSection(TraceEventDef.CLIENT_ON_DATA_UPDATED);
         mClient.onDataUpdated();
-        TraceEvent.endSection(TRACE_CLIENT_ON_DATA_UPDATED);
+        TraceEvent.endSection(TraceEventDef.CLIENT_ON_DATA_UPDATED);
       }
     }
 
@@ -2478,9 +2454,9 @@ public class LynxTemplateRender implements ILynxEngine, ILynxErrorReceiver {
     @Override
     public void onDynamicComponentPerfReady(HashMap<String, Object> perf) {
       if (mClient != null) {
-        TraceEvent.beginSection(TRACE_CLIENT_ON_DYNAMIC_COMPONENT_PERF);
+        TraceEvent.beginSection(TraceEventDef.CLIENT_ON_DYNAMIC_COMPONENT_PERF);
         mClient.onDynamicComponentPerfReady(perf);
-        TraceEvent.endSection(TRACE_CLIENT_ON_DYNAMIC_COMPONENT_PERF);
+        TraceEvent.endSection(TraceEventDef.CLIENT_ON_DYNAMIC_COMPONENT_PERF);
       }
     }
 
@@ -2521,9 +2497,9 @@ public class LynxTemplateRender implements ILynxEngine, ILynxErrorReceiver {
     @Override
     public void onModuleFunctionInvoked(String module, String method, int error_code) {
       if (mClient != null) {
-        TraceEvent.beginSection(TRACE_CLIENT_ON_MODULE_FUNCTION);
+        TraceEvent.beginSection(TraceEventDef.CLIENT_ON_MODULE_FUNCTION);
         mClient.onModuleMethodInvoked(module, method, error_code);
-        TraceEvent.endSection(TRACE_CLIENT_ON_MODULE_FUNCTION);
+        TraceEvent.endSection(TraceEventDef.CLIENT_ON_MODULE_FUNCTION);
       }
     }
 
@@ -2574,18 +2550,18 @@ public class LynxTemplateRender implements ILynxEngine, ILynxErrorReceiver {
     @Override
     public void onUpdateDataWithoutChange() {
       if (mClient != null) {
-        TraceEvent.beginSection(TRACE_CLIENT_ON_UPDATE_WITHOUT_CHANGE);
+        TraceEvent.beginSection(TraceEventDef.CLIENT_ON_UPDATE_WITHOUT_CHANGE);
         mClient.onUpdateDataWithoutChange();
-        TraceEvent.endSection(TRACE_CLIENT_ON_UPDATE_WITHOUT_CHANGE);
+        TraceEvent.endSection(TraceEventDef.CLIENT_ON_UPDATE_WITHOUT_CHANGE);
       }
     }
 
     @Override
     public void onTemplateBundleReady(TemplateBundle bundle) {
       if (mClient != null) {
-        TraceEvent.beginSection(TRACE_CLIENT_ON_TEMPLATE_BUNDLE_READY);
+        TraceEvent.beginSection(TraceEventDef.CLIENT_ON_TEMPLATE_BUNDLE_READY);
         mClient.onTemplateBundleReady(bundle);
-        TraceEvent.endSection(TRACE_CLIENT_ON_TEMPLATE_BUNDLE_READY);
+        TraceEvent.endSection(TraceEventDef.CLIENT_ON_TEMPLATE_BUNDLE_READY);
       }
     }
 
@@ -2599,9 +2575,9 @@ public class LynxTemplateRender implements ILynxEngine, ILynxErrorReceiver {
     @Override
     public void onTASMFinishedByNative() {
       if (mClient != null) {
-        TraceEvent.beginSection(TRACE_CLIENT_ON_TASM_FINISHED_BY_NATIVE);
+        TraceEvent.beginSection(TraceEventDef.CLIENT_ON_TASM_FINISHED_BY_NATIVE);
         mClient.onTASMFinishedByNative();
-        TraceEvent.endSection(TRACE_CLIENT_ON_TASM_FINISHED_BY_NATIVE);
+        TraceEvent.endSection(TraceEventDef.CLIENT_ON_TASM_FINISHED_BY_NATIVE);
       }
     }
 
@@ -2737,12 +2713,12 @@ public class LynxTemplateRender implements ILynxEngine, ILynxErrorReceiver {
   }
 
   public void processRender() {
-    TraceEvent.beginSection(TRACE_PROCESS_RENDER);
+    TraceEvent.beginSection(TraceEventDef.TEMPLATE_RENDER_PROCESS_RENDER);
     if (mNativePtr != 0 && !mEnableUIFlush) {
       setEnableUIFlush(true);
       nativeProcessRender(mNativePtr, mNativeLifecycle);
     }
-    TraceEvent.endSection(TRACE_PROCESS_RENDER);
+    TraceEvent.endSection(TraceEventDef.TEMPLATE_RENDER_PROCESS_RENDER);
   }
 
   public void setEnableBytecode(boolean enableUserBytecode, String url) {
@@ -3077,10 +3053,10 @@ public class LynxTemplateRender implements ILynxEngine, ILynxErrorReceiver {
   private void initPiper(LynxModuleFactory moduleFactory, LynxResourceLoader resourceLoader,
       boolean useQuickJSEngine, boolean forceReloadJSCore, boolean enableUserBytecode,
       String bytecodeSourceUrl, boolean enablePendingJsTask, ILynxUIRenderer lynxUIRenderer) {
-    TraceEvent.beginSection("LynxTemplateRender.initPiper");
+    TraceEvent.beginSection(TraceEventDef.TEMPLATE_RENDER_INIT_PIPER);
     initPiperInternal(moduleFactory, resourceLoader, useQuickJSEngine, forceReloadJSCore,
         enableUserBytecode, bytecodeSourceUrl, enablePendingJsTask, lynxUIRenderer);
-    TraceEvent.endSection("LynxTemplateRender.initPiper");
+    TraceEvent.endSection(TraceEventDef.TEMPLATE_RENDER_INIT_PIPER);
   }
 
   private void initPiperInternal(LynxModuleFactory moduleFactory, LynxResourceLoader resourceLoader,

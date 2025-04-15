@@ -7,12 +7,12 @@ import android.util.Log;
 import androidx.annotation.NonNull;
 import androidx.annotation.Nullable;
 import com.lynx.tasm.base.TraceEvent;
+import com.lynx.tasm.base.trace.TraceEventDef;
 import java.util.ServiceLoader;
 import java.util.concurrent.ConcurrentHashMap;
 
 public class LynxServiceCenter extends LynxLazyInitializer {
   private static final String TAG = "LynxServiceCenter";
-  private static final String TRACE_INIT_MESSAGE = "LynxServiceCenter.doInitialize";
 
   private final ConcurrentHashMap<Class, IServiceProvider> mServiceMap = new ConcurrentHashMap<>();
 
@@ -36,7 +36,7 @@ public class LynxServiceCenter extends LynxLazyInitializer {
   @Override
   protected boolean doInitialize() {
     try {
-      TraceEvent.beginSection(TRACE_INIT_MESSAGE);
+      TraceEvent.beginSection(TraceEventDef.LYNX_SERVICE_CENTER_INIT);
       ServiceLoader<IServiceProvider> loader = ServiceLoader.load(IServiceProvider.class);
       for (IServiceProvider serviceProvider : loader) {
         // auto-registered service will not replace the existing ones which is registered manually
@@ -45,7 +45,7 @@ public class LynxServiceCenter extends LynxLazyInitializer {
     } catch (Throwable e) {
       Log.e(TAG, "failed to register services", e);
     } finally {
-      TraceEvent.endSection(TRACE_INIT_MESSAGE);
+      TraceEvent.endSection(TraceEventDef.LYNX_SERVICE_CENTER_INIT);
     }
     return true;
   }

@@ -30,6 +30,7 @@ import com.lynx.jsbridge.LynxModuleFactory;
 import com.lynx.react.bridge.JavaOnlyArray;
 import com.lynx.tasm.base.LLog;
 import com.lynx.tasm.base.TraceEvent;
+import com.lynx.tasm.base.trace.TraceEventDef;
 import com.lynx.tasm.behavior.ILynxUIRenderer;
 import com.lynx.tasm.behavior.ImageInterceptor;
 import com.lynx.tasm.behavior.KeyboardEvent;
@@ -982,7 +983,7 @@ public class LynxView extends UIBodyView {
 
   public void destroy() {
     LLog.i(TAG, "lynxview destroy " + this.toString());
-    TraceEvent.beginSection("DestroyLynxView");
+    TraceEvent.beginSection(TraceEventDef.DESTORY_LYNXVIEW);
     if (mKeyboardEvent.isStart()) {
       mKeyboardEvent.stop();
     }
@@ -998,7 +999,7 @@ public class LynxView extends UIBodyView {
       mA11yWrapper.onDestroy();
     }
 
-    TraceEvent.endSection("DestroyLynxView");
+    TraceEvent.endSection(TraceEventDef.DESTORY_LYNXVIEW);
   }
 
   // TODO: 2020/3/25  final

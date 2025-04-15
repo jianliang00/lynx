@@ -9,6 +9,7 @@ import androidx.annotation.Nullable;
 import androidx.annotation.RestrictTo;
 import com.lynx.jsbridge.LynxModule;
 import com.lynx.tasm.base.TraceEvent;
+import com.lynx.tasm.base.trace.TraceEventDef;
 import com.lynx.tasm.behavior.Behavior;
 import com.lynx.tasm.behavior.BehaviorRegistry;
 import com.lynx.tasm.behavior.ILynxUIRenderer;
@@ -492,10 +493,10 @@ public class LynxViewBuilder {
   };
 
   public LynxView build(@NonNull Context context) {
-    TraceEvent.beginSection("CreateLynxView");
+    TraceEvent.beginSection(TraceEventDef.LYNXVIEW_BUILDER_BUILD);
     LynxViewConfigProcessor.parseForLynxViewBuilder(lynxViewConfig, this);
     LynxView lynxView = new LynxView(context, this);
-    TraceEvent.endSection("CreateLynxView");
+    TraceEvent.endSection(TraceEventDef.LYNXVIEW_BUILDER_BUILD);
 
     return lynxView;
   }

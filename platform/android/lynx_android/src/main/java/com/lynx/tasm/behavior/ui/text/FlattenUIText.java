@@ -20,6 +20,7 @@ import com.lynx.react.bridge.Dynamic;
 import com.lynx.react.bridge.ReadableArray;
 import com.lynx.tasm.base.LLog;
 import com.lynx.tasm.base.TraceEvent;
+import com.lynx.tasm.base.trace.TraceEventDef;
 import com.lynx.tasm.behavior.LynxContext;
 import com.lynx.tasm.behavior.event.EventTarget;
 import com.lynx.tasm.behavior.shadow.text.TextHelper;
@@ -126,10 +127,10 @@ public class FlattenUIText extends LynxFlattenUI implements IUIText {
 
   @Override
   public void onDraw(final Canvas canvas) {
-    TraceEvent.beginSection("text.FlattenUIText.onDraw");
+    TraceEvent.beginSection(TraceEventDef.FLATTEN_UI_TEXT_DRAW);
     super.onDraw(canvas);
     if (mTextLayout == null) {
-      TraceEvent.endSection("text.FlattenUIText.onDraw");
+      TraceEvent.endSection(TraceEventDef.FLATTEN_UI_TEXT_DRAW);
       return;
     }
 
@@ -161,7 +162,7 @@ public class FlattenUIText extends LynxFlattenUI implements IUIText {
 
     canvas.restore();
     TextHelper.drawLine(canvas, mTextLayout);
-    TraceEvent.endSection("text.FlattenUIText.onDraw");
+    TraceEvent.endSection(TraceEventDef.FLATTEN_UI_TEXT_DRAW);
   }
 
   @Override

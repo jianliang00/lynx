@@ -10,6 +10,7 @@ import com.lynx.tasm.LynxEnv;
 import com.lynx.tasm.base.CalledByNative;
 import com.lynx.tasm.base.LLog;
 import com.lynx.tasm.base.TraceEvent;
+import com.lynx.tasm.base.trace.TraceEventDef;
 import com.lynx.tasm.common.LepusBuffer;
 import com.lynx.tasm.common.NullableConcurrentHashMap;
 import com.lynx.tasm.core.LynxThreadPool;
@@ -25,8 +26,6 @@ import org.json.JSONObject;
 
 public final class TemplateData {
   private static final String TAG = "LynxTemplateData";
-  private static final String TRACE_TEMPLATE_DATA_FROM_MAP = "TemplateData.FromMap";
-  private static final String TRACE_TEMPLATE_DATA_FROM_STRING = "TemplateData.FromString";
 
   /**
    * Record Template Data Update Actions;
@@ -100,9 +99,9 @@ public final class TemplateData {
    */
   @NonNull
   public static TemplateData fromMap(Map<String, Object> data) {
-    TraceEvent.beginSection(TRACE_TEMPLATE_DATA_FROM_MAP);
+    TraceEvent.beginSection(TraceEventDef.TEMPLATE_DATA_FROM_MAP);
     TemplateData result = new TemplateData(data);
-    TraceEvent.endSection(TRACE_TEMPLATE_DATA_FROM_MAP);
+    TraceEvent.endSection(TraceEventDef.TEMPLATE_DATA_FROM_MAP);
     return result;
   }
 
@@ -119,9 +118,9 @@ public final class TemplateData {
    */
   @NonNull
   public static TemplateData fromString(String json) {
-    TraceEvent.beginSection(TRACE_TEMPLATE_DATA_FROM_STRING);
+    TraceEvent.beginSection(TraceEventDef.TEMPLATE_DATA_FROM_STRING);
     TemplateData result = new TemplateData(json);
-    TraceEvent.endSection(TRACE_TEMPLATE_DATA_FROM_STRING);
+    TraceEvent.endSection(TraceEventDef.TEMPLATE_DATA_FROM_STRING);
     return result;
   }
 

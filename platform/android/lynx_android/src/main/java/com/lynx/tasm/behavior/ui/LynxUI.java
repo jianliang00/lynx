@@ -59,6 +59,7 @@ import com.lynx.tasm.animation.layout.LayoutAnimationManager;
 import com.lynx.tasm.animation.transition.TransitionAnimationManager;
 import com.lynx.tasm.base.LLog;
 import com.lynx.tasm.base.TraceEvent;
+import com.lynx.tasm.base.trace.TraceEventDef;
 import com.lynx.tasm.behavior.LynxContext;
 import com.lynx.tasm.behavior.LynxProp;
 import com.lynx.tasm.behavior.LynxUIMethod;
@@ -599,7 +600,7 @@ public abstract class LynxUI<T extends View> extends LynxBaseUI {
   public void measure() {
     String traceEvent = null;
     if (TraceEvent.enableTrace()) {
-      traceEvent = "LynxUI." + getTagName() + "measure";
+      traceEvent = TraceEventDef.LYNX_UI_MEASURE + getTagName();
       TraceEvent.beginSection(traceEvent);
     }
     setLayoutParamsInternal();
@@ -644,17 +645,11 @@ public abstract class LynxUI<T extends View> extends LynxBaseUI {
 
   public void handleLayout() {
     String layoutTrace = null;
-    String viewLayoutTrace = null;
     if (TraceEvent.enableTrace()) {
-      layoutTrace = "LynxUI." + getTagName() + ".layout";
-      viewLayoutTrace = layoutTrace + ".mView";
+      layoutTrace = TraceEventDef.LYNX_UI_MEASURE + getTagName();
       TraceEvent.beginSection(layoutTrace);
-      TraceEvent.beginSection(viewLayoutTrace);
     }
     mView.layout(getLeft(), getTop(), getLeft() + getWidth(), getTop() + getHeight());
-    if (TraceEvent.enableTrace()) {
-      TraceEvent.endSection(viewLayoutTrace);
-    }
 
     if (getParent() instanceof UIShadowProxy) {
       ((UIShadowProxy) getParent()).updateTransform();

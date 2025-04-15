@@ -10,6 +10,7 @@ import com.lynx.tasm.LynxError;
 import com.lynx.tasm.LynxSubErrorCode;
 import com.lynx.tasm.base.LLog;
 import com.lynx.tasm.base.TraceEvent;
+import com.lynx.tasm.base.trace.TraceEventDef;
 import com.lynx.tasm.component.DynamicComponentFetcher;
 import java.util.concurrent.atomic.AtomicBoolean;
 
@@ -26,11 +27,6 @@ public class LynxExternalResourceFetcherWrapper {
   }
 
   private final static String TAG = "LynxExternalResourceFetcherWrapper";
-
-  private static final String TRACE_FETCHER_WRAPPER_USE_LYNX_RESOURCE_SERVICE =
-      "Using LynxResourceServiceProvider";
-  private static final String TRACE_FETCHER_WRAPPER_USE_LAZY_BUNDLE_FETCHER =
-      "Using DynamicComponentFetcher";
 
   private AtomicBoolean mEnableLynxService = new AtomicBoolean(false);
   private LynxResourceServiceProvider mLynxServiceProvider = null;
@@ -52,7 +48,7 @@ public class LynxExternalResourceFetcherWrapper {
   public void fetchResourceWithHandler(String url, @NonNull LoadedHandler handler) {
     // firstly, try lynx resource service
     if (mEnableLynxService.get()) {
-      TraceEvent.beginSection(TRACE_FETCHER_WRAPPER_USE_LYNX_RESOURCE_SERVICE);
+      TraceEvent.beginSection(TraceEventDef.FETCHER_WRAPPER_USE_RESOURCE_SERVICE);
       // if lynx resource service provider exists, use it, otherwise, try other fetchers
       if (mLynxServiceProvider != null) {
         mLynxServiceProvider.request(new LynxResourceRequest(url),
@@ -74,14 +70,14 @@ public class LynxExternalResourceFetcherWrapper {
                 }
               }
             });
-        TraceEvent.endSection(TRACE_FETCHER_WRAPPER_USE_LYNX_RESOURCE_SERVICE);
+        TraceEvent.endSection(TraceEventDef.FETCHER_WRAPPER_USE_RESOURCE_SERVICE);
         return;
       } else {
         // try other fetchers
         LLog.w(TAG,
             "LynxResourceServiceProvider is null, switch to the fetchers registered in by host. ");
       }
-      TraceEvent.endSection(TRACE_FETCHER_WRAPPER_USE_LYNX_RESOURCE_SERVICE);
+      TraceEvent.endSection(TraceEventDef.FETCHER_WRAPPER_USE_RESOURCE_SERVICE);
     }
 
     // if failed to launch a lynx service request, try other fetchers
@@ -91,7 +87,7 @@ public class LynxExternalResourceFetcherWrapper {
   private void fetchResourceWithDynamicComponentFetcher(
       final String url, @NonNull LoadedHandler handler) {
     if (mDynamicComponentFetcher != null) {
-      TraceEvent.beginSection(TRACE_FETCHER_WRAPPER_USE_LAZY_BUNDLE_FETCHER);
+      TraceEvent.beginSection(TraceEventDef.FETCHER_WRAPPER_USE_LAZY_BUNDLE_FETCHER);
       mDynamicComponentFetcher.loadDynamicComponent(
           url, new DynamicComponentFetcher.LoadedHandler() {
             @Override
@@ -99,7 +95,7 @@ public class LynxExternalResourceFetcherWrapper {
               handler.onLoaded(data, error);
             }
           });
-      TraceEvent.endSection(TRACE_FETCHER_WRAPPER_USE_LAZY_BUNDLE_FETCHER);
+      TraceEvent.endSection(TraceEventDef.FETCHER_WRAPPER_USE_LAZY_BUNDLE_FETCHER);
       return;
     }
 

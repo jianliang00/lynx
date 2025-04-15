@@ -31,6 +31,7 @@ import com.lynx.tasm.animation.keyframe.KeyframeManager;
 import com.lynx.tasm.animation.transition.TransitionAnimationManager;
 import com.lynx.tasm.base.LLog;
 import com.lynx.tasm.base.TraceEvent;
+import com.lynx.tasm.base.trace.TraceEventDef;
 import com.lynx.tasm.behavior.shadow.ShadowNode;
 import com.lynx.tasm.behavior.shadow.ShadowNodeType;
 import com.lynx.tasm.behavior.ui.LynxBaseUI;
@@ -119,7 +120,7 @@ public class LynxUIOwner {
 
   public LynxUIOwner(
       LynxContext context, BehaviorRegistry behaviorRegistry, @Nullable UIBodyView body) {
-    TraceEvent.beginSection("LynxUIOwner initialized");
+    TraceEvent.beginSection(TraceEventDef.UI_OWNER_INIT);
     mContext = context;
     mBehaviorRegistry = behaviorRegistry;
     if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.N) {
@@ -190,7 +191,7 @@ public class LynxUIOwner {
     updateComponentIdToUiIdMapIfNeeded(tag, ui.getTagName(), props);
     String traceEvent = null;
     if (TraceEvent.enableTrace()) {
-      traceEvent = "UIOwner.updateProps." + ui.getTagName();
+      traceEvent = TraceEventDef.UI_OWNER_UPDATE_PROPS + ui.getTagName();
       TraceEvent.beginSection(traceEvent);
     }
 
@@ -304,7 +305,7 @@ public class LynxUIOwner {
     if (ui != null) {
       String traceEvent = null;
       if (TraceEvent.enableTrace()) {
-        traceEvent = "UIOwner.updateViewExtraData." + ui.getTagName();
+        traceEvent = TraceEventDef.UI_OWNER_UPDATE_EXTRA_DATA + ui.getTagName();
         TraceEvent.beginSection(traceEvent);
       }
       ui.updateExtraData(extraData);
@@ -352,7 +353,7 @@ public class LynxUIOwner {
     TransitionAnimationManager transitionAnimator = ui.getTransitionAnimator();
     String traceEvent = null;
     if (TraceEvent.enableTrace()) {
-      traceEvent = "UIOwner.updateLayout." + ui.getTagName();
+      traceEvent = TraceEventDef.UI_OWNER_UPDATE_LAYOUT + ui.getTagName();
       TraceEvent.beginSection(traceEvent);
     }
     if (transitionAnimator != null && transitionAnimator.containLayoutTransition()
@@ -462,7 +463,7 @@ public class LynxUIOwner {
       boolean flatten, int nodeIndex, @Nullable Map<Integer, GestureDetector> gestureDetectors) {
     String traceEvent = null;
     if (TraceEvent.enableTrace()) {
-      traceEvent = "UIOwner.createView." + tagName;
+      traceEvent = TraceEventDef.UI_OWNER_CREATE_VIEW + tagName;
       TraceEvent.beginSection(traceEvent);
     }
     UIThreadUtils.assertOnUiThread();
@@ -525,7 +526,7 @@ public class LynxUIOwner {
     try {
       String traceEvent = null;
       if (TraceEvent.enableTrace()) {
-        traceEvent = "UIOwner.createAsyncViewRunnable." + tagName;
+        traceEvent = TraceEventDef.UI_OWNER_CREATE_VIEW_ASYNC_RUNNABLE + tagName;
         TraceEvent.beginSection(traceEvent);
       }
       final LynxBaseUI[] ui = new LynxBaseUI[1];
@@ -541,7 +542,7 @@ public class LynxUIOwner {
         public void run() {
           String traceEvent = null;
           if (TraceEvent.enableTrace()) {
-            traceEvent = "UIOwner.AfterCreateAsyncViewRunnable." + tagName;
+            traceEvent = TraceEventDef.UI_OWNER_CREATE_VIEW_ASYNC_RUNNABLE_AFTER + tagName;
             TraceEvent.beginSection(traceEvent);
           }
           ui[0] = afterConsumeInitialProps(ui[0], proxy, styleMap);
@@ -590,7 +591,7 @@ public class LynxUIOwner {
       try {
         String traceEvent = null;
         if (TraceEvent.enableTrace()) {
-          traceEvent = "UIOwner.createViewAsync." + tagName;
+          traceEvent = TraceEventDef.UI_OWNER_CREATE_VIEW_ASYNC + tagName;
           TraceEvent.beginSection(traceEvent);
         }
         final LynxBaseUI[] ui = new LynxBaseUI[1];
@@ -605,7 +606,7 @@ public class LynxUIOwner {
           public void run() {
             String traceEvent = null;
             if (TraceEvent.enableTrace()) {
-              traceEvent = "UIOwner.AfterCreateViewAsync." + tagName;
+              traceEvent = TraceEventDef.UI_OWNER_CREATE_VIEW_ASYNC_AFTER + tagName;
               TraceEvent.beginSection(traceEvent);
             }
             ui[0] = afterConsumeInitialProps(ui[0], proxy, initialProps);
@@ -727,7 +728,7 @@ public class LynxUIOwner {
     List<LynxBaseUI> tempChildren = new ArrayList<>(oldUI.getChildren());
     String traceEvent = null;
     if (TraceEvent.enableTrace()) {
-      traceEvent = "UIOwner.updateFlatten." + oldUI.getTagName();
+      traceEvent = TraceEventDef.UI_OWNER_UPDATE_FLATTEN + oldUI.getTagName();
       TraceEvent.beginSection(traceEvent);
     }
     int index = 0;
@@ -909,7 +910,7 @@ public class LynxUIOwner {
       }
       String traceEvent = null;
       if (TraceEvent.enableTrace()) {
-        traceEvent = "UIOwner.remove." + parent.getTagName() + "." + child.getTagName();
+        traceEvent = TraceEventDef.UI_OWNER_REMOVE + parent.getTagName() + "." + child.getTagName();
         TraceEvent.beginSection(traceEvent);
       }
       removeFromDrawList(child);
@@ -998,12 +999,11 @@ public class LynxUIOwner {
   }
 
   public void destroy(int parentTag, int childTag) {
-    String traceEvent = "UIOwner.destroy";
-    TraceEvent.beginSection(traceEvent);
+    TraceEvent.beginSection(TraceEventDef.UI_OWNER_DESTORY);
     if (mUIHolder.size() > 0) {
       LynxBaseUI child = mUIHolder.get(childTag);
       if (child == null) {
-        TraceEvent.endSection(traceEvent);
+        TraceEvent.endSection(TraceEventDef.UI_OWNER_DESTORY);
         return;
       }
       mTranslateZParentHolder.remove(child);
@@ -1021,13 +1021,13 @@ public class LynxUIOwner {
       final LynxBaseUI parent =
           parentTag == -1 ? child.getParentBaseUI() : mUIHolder.get(parentTag);
       if (parent == null) {
-        TraceEvent.endSection(traceEvent);
+        TraceEvent.endSection(TraceEventDef.UI_OWNER_DESTORY);
         return;
       }
       parent.removeChild(child);
     }
     mCreateNodeAsyncTasks.clear();
-    TraceEvent.endSection(traceEvent);
+    TraceEvent.endSection(TraceEventDef.UI_OWNER_DESTORY);
   }
 
   public void reuseListNode(int tag, String itemKey) {
@@ -1110,7 +1110,7 @@ public class LynxUIOwner {
     if (ui != null) {
       String traceEvent = null;
       if (TraceEvent.enableTrace()) {
-        traceEvent = "UIOwner.layoutFinish." + ui.getTagName();
+        traceEvent = TraceEventDef.UI_OWNER_LAYOUT_FINISH + ui.getTagName();
         TraceEvent.beginSection(traceEvent);
       }
       ui.onLayoutFinish(operationId, mUIHolder.get(componentID));
@@ -1386,7 +1386,8 @@ public class LynxUIOwner {
     if (ui != null) {
       String traceEvent = null;
       if (TraceEvent.enableTrace()) {
-        traceEvent = ui.getTagName() + ".invokeUIMethodForSelectorQuery." + method;
+        traceEvent = TraceEventDef.UI_OWNER_INVOKE_UI_METHOD_FOR_SELECTOR_QUERY + ui.getTagName()
+            + "." + method;
         TraceEvent.beginSection(traceEvent);
       }
       LynxUIMethodsExecutor.invokeMethod(ui, method, params, callback);

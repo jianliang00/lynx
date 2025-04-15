@@ -25,6 +25,7 @@ import com.lynx.tasm.LynxError;
 import com.lynx.tasm.LynxSubErrorCode;
 import com.lynx.tasm.base.LLog;
 import com.lynx.tasm.base.TraceEvent;
+import com.lynx.tasm.base.trace.TraceEventDef;
 import com.lynx.tasm.behavior.LynxContext;
 import com.lynx.tasm.behavior.LynxUIMethodConstants;
 import com.lynx.tasm.behavior.PropsConstants;
@@ -483,8 +484,11 @@ public class LynxImageManager implements Drawable.Callback {
 
   // region UIMethod
   public void updatePropertiesInterval(StylesDiffMap props) {
-    String traceEvent = "updatePropertiesInterval";
-    beginTrace(traceEvent);
+    if (TraceEvent.enableTrace()) {
+      Map<String, String> params = new HashMap<>();
+      params.put("src", mSrc);
+      TraceEvent.beginSection(TraceEventDef.IMAGE_MANAGER_UPDATE_PROPS_INTERVAL, params);
+    }
     ReadableMapKeySetIterator iterator = props.mBackingMap.keySetIterator();
     while (iterator.hasNextKey()) {
       String name = iterator.nextKey();
@@ -561,7 +565,7 @@ public class LynxImageManager implements Drawable.Callback {
       }
     }
     updateRedirectCheckResult();
-    endTrace(traceEvent);
+    TraceEvent.endSection(TraceEventDef.IMAGE_MANAGER_UPDATE_PROPS_INTERVAL);
   }
 
   public void pauseAnimation(ReadableMap params, Callback callback) {
@@ -670,8 +674,11 @@ public class LynxImageManager implements Drawable.Callback {
   public void onPropsUpdated() {}
 
   private void updateImageSource() {
-    String traceEvent = "updateImageSource";
-    beginTrace(traceEvent);
+    if (TraceEvent.enableTrace()) {
+      Map<String, String> params = new HashMap<>();
+      params.put("src", mSrc);
+      TraceEvent.beginSection(TraceEventDef.IMAGE_MANAGER_UPDATE_IMAGE_SOURCE, params);
+    }
     int width = 0;
     int height = 0;
     boolean needRequest = true;
@@ -687,12 +694,15 @@ public class LynxImageManager implements Drawable.Callback {
     if (needRequest) {
       tryFetchImageFromService(width, height);
     }
-    endTrace(traceEvent);
+    TraceEvent.endSection(TraceEventDef.IMAGE_MANAGER_UPDATE_IMAGE_SOURCE);
   }
 
   private void updatePlaceholderSource() {
-    String traceEvent = "updatePlaceholderSource";
-    beginTrace(traceEvent);
+    if (TraceEvent.enableTrace()) {
+      Map<String, String> params = new HashMap<>();
+      params.put("src", mSrc);
+      TraceEvent.beginSection(TraceEventDef.IMAGE_MANAGER_UPDATE_PLACEHOLDER_SOURCE, params);
+    }
     int width = 0;
     int height = 0;
     boolean needRequest = true;
@@ -708,21 +718,7 @@ public class LynxImageManager implements Drawable.Callback {
     if (needRequest) {
       tryFetchPlaceholderFromService(width, height);
     }
-    endTrace(traceEvent);
-  }
-
-  private void beginTrace(String methodName) {
-    if (TraceEvent.enableTrace()) {
-      Map<String, String> params = new HashMap<>();
-      params.put("src", mSrc);
-      TraceEvent.beginSection(TAG + "." + methodName, params);
-    }
-  }
-
-  private void endTrace(String methodName) {
-    if (TraceEvent.enableTrace()) {
-      TraceEvent.endSection(TAG + "." + methodName);
-    }
+    TraceEvent.endSection(TraceEventDef.IMAGE_MANAGER_UPDATE_PLACEHOLDER_SOURCE);
   }
 
   public void onNodeReady() {

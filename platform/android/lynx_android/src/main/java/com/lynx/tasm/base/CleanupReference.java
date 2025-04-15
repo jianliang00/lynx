@@ -11,6 +11,7 @@ import android.annotation.SuppressLint;
 import android.os.Handler;
 import android.os.Looper;
 import android.os.Message;
+import com.lynx.tasm.base.trace.TraceEventDef;
 import java.lang.ref.PhantomReference;
 import java.lang.ref.ReferenceQueue;
 import java.util.HashSet;
@@ -58,9 +59,9 @@ public class CleanupReference extends PhantomReference<Object> {
               sCleanupMonitor.wait(500);
             }
             while ((ref = (CleanupReference) sReaperThreadPendingRefs.poll()) != null) {
-              TraceEvent.beginSection("CleanupReference.ReaperThread.runCleanupTask");
+              TraceEvent.beginSection(TraceEventDef.CLEAN_REF_RUN_CLEAN_TASK_REAPER_THREAD);
               ref.runCleanupTaskInternal(sReaperThreadRefs);
-              TraceEvent.endSection("CleanupReference.ReaperThread.runCleanupTask");
+              TraceEvent.endSection(TraceEventDef.CLEAN_REF_RUN_CLEAN_TASK_REAPER_THREAD);
             }
           }
         } catch (Exception e) {
@@ -94,7 +95,7 @@ public class CleanupReference extends PhantomReference<Object> {
       @Override
       public void handleMessage(Message msg) {
         try {
-          TraceEvent.beginSection("CleanupReference.LazyHolder.handleMessage");
+          TraceEvent.beginSection(TraceEventDef.CLEAN_REF_HANDLE_MESSAGE);
           CleanupReference ref = (CleanupReference) msg.obj;
           switch (msg.what) {
             case ADD_REF:
@@ -126,7 +127,7 @@ public class CleanupReference extends PhantomReference<Object> {
             sCleanupMonitor.notifyAll();
           }
         } finally {
-          TraceEvent.endSection("CleanupReference.LazyHolder.handleMessage");
+          TraceEvent.endSection(TraceEventDef.CLEAN_REF_HANDLE_MESSAGE);
         }
       }
     };
@@ -179,9 +180,9 @@ public class CleanupReference extends PhantomReference<Object> {
       // When cleanup on worker thread is set, cleanupNow on ui thread will be ignored, instead will
       // cleanup on worker thread when gc. Caller ensure not to call on ui thread.
       if (Looper.getMainLooper().getThread() != Thread.currentThread()) {
-        TraceEvent.beginSection("CleanupReference.InvokingThread.runCleanupTask");
+        TraceEvent.beginSection(TraceEventDef.CLEAN_REF_RUN_CLEAN_TASK_INVOKE_THREAD);
         runCleanupTaskInternal(sReaperThreadRefs);
-        TraceEvent.endSection("CleanupReference.InvokingThread.runCleanupTask");
+        TraceEvent.endSection(TraceEventDef.CLEAN_REF_RUN_CLEAN_TASK_INVOKE_THREAD);
       }
     } else {
       handleOnUiThread(REMOVE_REF);

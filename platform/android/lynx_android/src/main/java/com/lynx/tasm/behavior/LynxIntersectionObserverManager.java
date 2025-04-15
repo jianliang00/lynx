@@ -7,6 +7,7 @@ import com.lynx.react.bridge.JavaOnlyMap;
 import com.lynx.tasm.EventEmitter;
 import com.lynx.tasm.base.LLog;
 import com.lynx.tasm.base.TraceEvent;
+import com.lynx.tasm.base.trace.TraceEventDef;
 import com.lynx.tasm.behavior.ui.LynxBaseUI;
 import com.lynx.tasm.behavior.ui.UIBody;
 import com.lynx.tasm.core.JSProxy;
@@ -27,13 +28,13 @@ public class LynxIntersectionObserverManager
 
   public LynxIntersectionObserverManager(LynxContext context, JSProxy proxy) {
     super("Lynx.IntersectionObserver");
-    TraceEvent.beginSection("LynxIntersectionObserverManager initialized");
+    TraceEvent.beginSection(TraceEventDef.INTERSECTION_OBSERVER_MANAGER_INIT);
     mContext = new WeakReference<>(context);
     mRootBodyRef = new WeakReference<>(context.getUIBody());
     mJSProxy = new WeakReference<>(proxy);
     mObservers = new ArrayList<>();
     mEnableNewIntersectionObserver = false;
-    TraceEvent.endSection("LynxIntersectionObserverManager initialized");
+    TraceEvent.endSection(TraceEventDef.INTERSECTION_OBSERVER_MANAGER_INIT);
   }
 
   public LynxContext getContext() {

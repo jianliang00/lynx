@@ -18,6 +18,7 @@ import com.lynx.tasm.LynxError;
 import com.lynx.tasm.LynxSubErrorCode;
 import com.lynx.tasm.base.LLog;
 import com.lynx.tasm.base.TraceEvent;
+import com.lynx.tasm.base.trace.TraceEventDef;
 import com.lynx.tasm.behavior.LynxContext;
 import com.lynx.tasm.service.ILynxImageService;
 import com.lynx.tasm.service.ILynxResourceService;
@@ -62,14 +63,14 @@ public class LynxResourceModule extends LynxContextModule {
 
   @LynxMethod
   void cancelResourcePrefetch(final ReadableMap data, final Callback callback) {
-    TraceEvent.beginSection("cancelResourcePrefetch");
+    TraceEvent.beginSection(TraceEventDef.CANCEL_RESOURCE_PREFETCH);
 
     JavaOnlyMap allResults = new JavaOnlyMap();
     Pair<Integer, String> resultPair = resourcePrefetch(data, true, allResults);
     Integer globalCode = resultPair.first;
     String globalMsg = resultPair.second;
 
-    TraceEvent.endSection("cancelResourcePrefetch");
+    TraceEvent.endSection(TraceEventDef.CANCEL_RESOURCE_PREFETCH);
     allResults.putInt(CODE_KEY, globalCode);
     allResults.putString(MSG_KEY, globalMsg);
     if (callback != null) {
@@ -79,14 +80,14 @@ public class LynxResourceModule extends LynxContextModule {
 
   @LynxMethod
   void requestResourcePrefetch(final ReadableMap data, final Callback callback) {
-    TraceEvent.beginSection("requestResourcePrefetch");
+    TraceEvent.beginSection(TraceEventDef.REQUEST_RESOURCE_PREFETCH);
 
     JavaOnlyMap allResults = new JavaOnlyMap();
     Pair<Integer, String> resultPair = resourcePrefetch(data, false, allResults);
     Integer globalCode = resultPair.first;
     String globalMsg = resultPair.second;
 
-    TraceEvent.endSection("requestResourcePrefetch");
+    TraceEvent.endSection(TraceEventDef.REQUEST_RESOURCE_PREFETCH);
     allResults.putInt(CODE_KEY, globalCode);
     allResults.putString(MSG_KEY, globalMsg);
     if (callback != null) {

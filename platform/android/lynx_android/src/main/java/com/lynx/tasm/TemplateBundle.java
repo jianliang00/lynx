@@ -10,6 +10,7 @@ import com.lynx.tasm.LynxEnv;
 import com.lynx.tasm.TemplateBundleOption;
 import com.lynx.tasm.base.CalledByNative;
 import com.lynx.tasm.base.TraceEvent;
+import com.lynx.tasm.base.trace.TraceEventDef;
 import com.lynx.tasm.common.LepusBuffer;
 import com.lynx.tasm.service.LynxServiceCenter;
 import com.lynx.tasm.service.security.ILynxSecurityService;
@@ -22,8 +23,6 @@ import java.util.Map;
  * Class to decode `template.js` in Prev, and can get some Info in the `Template.js` file.
  */
 public final class TemplateBundle {
-  private static final String TEMPLATE_BUNDLE_FROM_TEMPLATE = "TemplateBundle.fromTemplate";
-
   private final String url;
   private long nativePtr = 0; // native pointer for LynxTemplateBundle.
   private Map<String, Object> extraInfo;
@@ -39,7 +38,7 @@ public final class TemplateBundle {
 
   private static TemplateBundle internalBuildTemplate(byte[] template, String url) {
     TemplateBundle result = null;
-    TraceEvent.beginSection(TEMPLATE_BUNDLE_FROM_TEMPLATE);
+    TraceEvent.beginSection(TraceEventDef.TEMPLATE_BUNDLE_FROM_TEMPLATE);
     if (template != null) {
       if (checkIfEnvPrepared()) {
         ILynxSecurityService securityService =
@@ -60,7 +59,7 @@ public final class TemplateBundle {
       } else {
         result = new TemplateBundle(0, template.length, url, "Lynx Env is not prepared");
       }
-      TraceEvent.endSection(TEMPLATE_BUNDLE_FROM_TEMPLATE);
+      TraceEvent.endSection(TraceEventDef.TEMPLATE_BUNDLE_FROM_TEMPLATE);
     }
     return result;
   }

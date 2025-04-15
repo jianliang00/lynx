@@ -22,6 +22,7 @@ import com.lynx.react.bridge.ReadableMap;
 import com.lynx.tasm.LynxEnv;
 import com.lynx.tasm.base.LLog;
 import com.lynx.tasm.base.TraceEvent;
+import com.lynx.tasm.base.trace.TraceEventDef;
 import com.lynx.tasm.behavior.ui.LynxBaseUI;
 import com.lynx.tasm.behavior.ui.LynxFlattenUI;
 import com.lynx.tasm.behavior.ui.LynxUI;
@@ -93,7 +94,7 @@ public abstract class LynxObserverManager {
     Runnable runnable = new Runnable() {
       @Override
       public void run() {
-        TraceEvent.beginSection("ObserverManager.ObserverHandler");
+        TraceEvent.beginSection(TraceEventDef.OBSERVER_MANAGER_OBSERVER_HANDLER);
         try {
           // sub class may override this and call postHandlerCallBackDelay function such that
           // mDelayedInInner may be true after exec this function
@@ -101,7 +102,7 @@ public abstract class LynxObserverManager {
         } catch (Throwable e) {
           LLog.e(TAG, "observerManager.intersectionObserverHandler failed: " + e.toString());
         }
-        TraceEvent.endSection("ObserverManager.ObserverHandler");
+        TraceEvent.endSection(TraceEventDef.OBSERVER_MANAGER_OBSERVER_HANDLER);
       }
     };
     UIThreadUtils.runOnUiThreadImmediately(runnable);

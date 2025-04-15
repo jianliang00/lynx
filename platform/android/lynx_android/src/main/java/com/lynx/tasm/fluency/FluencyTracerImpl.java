@@ -6,6 +6,7 @@ package com.lynx.tasm.fluency;
 
 import com.lynx.tasm.LynxBooleanOption;
 import com.lynx.tasm.base.TraceEvent;
+import com.lynx.tasm.base.trace.TraceEventDef;
 import com.lynx.tasm.behavior.LynxContext;
 import com.lynx.tasm.eventreport.LynxEventReporter;
 import java.lang.ref.WeakReference;
@@ -76,7 +77,7 @@ class FluencyTracerImpl {
       Map<String, String> props = new HashMap<>();
       props.put("scene", config.scene);
       props.put("tag", config.tag);
-      TraceEvent.instant(TraceEvent.CATEGORY_DEFAULT, "StartFluencyTrace", props);
+      TraceEvent.instant(TraceEvent.CATEGORY_DEFAULT, TraceEventDef.FLUENCY_TRACER_START, props);
     }
   }
 
@@ -86,7 +87,7 @@ class FluencyTracerImpl {
       tracer.stop();
       mKeyedTracer.remove(sign);
     }
-    TraceEvent.instant(TraceEvent.CATEGORY_DEFAULT, "StopFluencyTrace");
+    TraceEvent.instant(TraceEvent.CATEGORY_DEFAULT, TraceEventDef.FLUENCY_TRACER_STOP);
   }
 
   private LynxFpsTracer initLynxTracer(LynxContext context, FluencyTracerConfig config) {

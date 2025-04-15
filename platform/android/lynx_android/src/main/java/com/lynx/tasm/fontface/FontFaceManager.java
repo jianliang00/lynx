@@ -19,6 +19,7 @@ import com.lynx.tasm.LynxError;
 import com.lynx.tasm.LynxSubErrorCode;
 import com.lynx.tasm.base.LLog;
 import com.lynx.tasm.base.TraceEvent;
+import com.lynx.tasm.base.trace.TraceEventDef;
 import com.lynx.tasm.behavior.LynxContext;
 import com.lynx.tasm.behavior.shadow.text.TypefaceCache;
 import com.lynx.tasm.core.LynxThreadPool;
@@ -53,11 +54,6 @@ public class FontFaceManager {
   private static final String URL_HTTP_SRC_PREFIX = "http";
   private static final String BASE64_SRC_PREFIX = "data:";
   private static final String BASE64_SRC_CONTAIN = "base64,";
-  private static final String
-      TRACE_FONT_FACE_MANAGER_LOAD_TYPEFACE_WITH_GENERIC_LYNX_RESOURCE_FETCHER =
-          "FontFaceManager.loadTypefaceWithGenericLynxResourceFetcher";
-  private static final String TRACE_FONT_FACE_MANAGER_LOAD_TYPEFACE =
-      "FontFaceManager.loadTypeface";
 
   private static class Holder {
     static final FontFaceManager INSTANCE = new FontFaceManager();
@@ -182,16 +178,16 @@ public class FontFaceManager {
 
     if (lynxContext.getGenericResourceFetcher() != null) {
       TraceEvent.beginSection(
-          TRACE_FONT_FACE_MANAGER_LOAD_TYPEFACE_WITH_GENERIC_LYNX_RESOURCE_FETCHER);
+          TraceEventDef.FONT_FACE_MANAGER_LOAD_TYPEFACE_WITH_GENERIC_RESOURCE_FETCHER);
       LLog.i(TAG, "Try to loadTypeface with GenericLynxResourceFetcher.");
       loadTypefaceWithGenericLynxResourceFetcher(
           lynxContext, group, iterator, iteratorForRetry, handler);
       TraceEvent.endSection(
-          TRACE_FONT_FACE_MANAGER_LOAD_TYPEFACE_WITH_GENERIC_LYNX_RESOURCE_FETCHER);
+          TraceEventDef.FONT_FACE_MANAGER_LOAD_TYPEFACE_WITH_GENERIC_RESOURCE_FETCHER);
     } else {
-      TraceEvent.beginSection(TRACE_FONT_FACE_MANAGER_LOAD_TYPEFACE);
+      TraceEvent.beginSection(TraceEventDef.FONT_FACE_MANAGER_LOAD_TYPEFACE);
       loadTypeface(lynxContext, group, iterator, handler);
-      TraceEvent.endSection(TRACE_FONT_FACE_MANAGER_LOAD_TYPEFACE);
+      TraceEvent.endSection(TraceEventDef.FONT_FACE_MANAGER_LOAD_TYPEFACE);
     }
   }
 

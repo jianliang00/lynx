@@ -34,6 +34,7 @@ import com.lynx.tasm.LynxViewClient;
 import com.lynx.tasm.PageConfig;
 import com.lynx.tasm.base.LLog;
 import com.lynx.tasm.base.TraceEvent;
+import com.lynx.tasm.base.trace.TraceEventDef;
 import com.lynx.tasm.behavior.shadow.ShadowNode;
 import com.lynx.tasm.behavior.ui.LynxBaseUI;
 import com.lynx.tasm.behavior.ui.LynxFlattenUI;
@@ -368,7 +369,7 @@ public abstract class LynxContext extends LynxBaseContext implements ExceptionHa
   }
 
   private void updateLynxSessionID(LynxView lynxView) {
-    TraceEvent.beginSection("LynxContext.updateLynxSessionID");
+    TraceEvent.beginSection(TraceEventDef.LYNX_CONTEXT_UPDATE_SESSION_ID);
     String currentTimestamp = String.valueOf(System.currentTimeMillis());
     String lynxViewIdentify = String.valueOf(System.identityHashCode(lynxView));
     // sessionID would be like "$currentTimestamp-$lynxViewIdentify"
@@ -379,7 +380,7 @@ public abstract class LynxContext extends LynxBaseContext implements ExceptionHa
     builder.append("-");
     builder.append(lynxViewIdentify);
     mLynxSessionId = builder.toString();
-    TraceEvent.endSection("LynxContext.updateLynxSessionID");
+    TraceEvent.endSection(TraceEventDef.LYNX_CONTEXT_UPDATE_SESSION_ID);
   }
 
   public void setLynxView(LynxView lynxview) {

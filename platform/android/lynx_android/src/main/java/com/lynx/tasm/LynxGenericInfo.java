@@ -9,6 +9,7 @@ import android.text.TextUtils;
 import com.lynx.tasm.LynxEnv;
 import com.lynx.tasm.base.LLog;
 import com.lynx.tasm.base.TraceEvent;
+import com.lynx.tasm.base.trace.TraceEventDef;
 import com.lynx.tasm.behavior.LynxContext;
 import java.io.File;
 import java.util.HashSet;
@@ -54,9 +55,6 @@ public class LynxGenericInfo {
   // template's page version set by FE.
   private final static String PROP_NAME_LYNX_PAGE_VERSION = "lynx_page_version";
 
-  private final static String TRACE_MONITOR_GENERIC_INFO_UPDATE_RELATIVE_URL =
-      "LynxGenericInfo.updateRelativeURL";
-
   // GeneralInfo props value:
   private String mPropValueURL;
   private String mPropValueRelativePath;
@@ -78,9 +76,9 @@ public class LynxGenericInfo {
   }
 
   public LynxGenericInfo(LynxView lynxView) {
-    TraceEvent.beginSection("LynxGenericInfo initialized");
+    TraceEvent.beginSection(TraceEventDef.GENERIC_INFO_INIT);
     updateLynxSdkVersion();
-    TraceEvent.endSection("LynxGenericInfo initialized");
+    TraceEvent.endSection(TraceEventDef.GENERIC_INFO_INIT);
   }
 
   public JSONObject toJSONObject() {
@@ -148,9 +146,9 @@ public class LynxGenericInfo {
       return;
     }
     mPropValueURL = templateURL;
-    TraceEvent.beginSection(TRACE_MONITOR_GENERIC_INFO_UPDATE_RELATIVE_URL);
+    TraceEvent.beginSection(TraceEventDef.GENERIC_INFO_UPDATE_RELATIVE_URL);
     updateRelativeURL(lynxContext);
-    TraceEvent.endSection(TRACE_MONITOR_GENERIC_INFO_UPDATE_RELATIVE_URL);
+    TraceEvent.endSection(TraceEventDef.GENERIC_INFO_UPDATE_RELATIVE_URL);
   }
 
   public String getPropValueRelativePath() {
