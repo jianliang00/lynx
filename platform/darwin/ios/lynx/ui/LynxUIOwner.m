@@ -466,23 +466,31 @@ extern NSString* const kDefaultComponentID;
 }
 
 - (LynxUI*)createLynxUIWithTagName:(NSString*)tagName props:(NSDictionary*)props {
+  // Check for root UI first
+  if (!_hasRootAttached && [tagName isEqualToString:@"page"]) {
+    // Root UI created for the first time.
+    return [self createAndAttachRootUI];
+  }
+
+  // Search in registry
   LynxUI* ui;
   BOOL supported = YES;
-  if (!_hasRootAttached && [tagName isEqualToString:@"page"]) {
-    _hasRootAttached = YES;
-    _rootUI = [[LynxRootUI alloc] initWithLynxView:_containerView];
-    _uiContext.rootUI = (LynxRootUI*)_rootUI;
-    [_uiContext.uiExposure setRootUI:_rootUI];
-    ui = _rootUI;
-    LLogInfo(@"LynxUIOwner create rootUI %p with containerView %p", _rootUI, _containerView);
-  } else {
-    Class clazz = [_componentRegistry uiClassWithName:tagName accessible:&supported];
-    if (supported) {
-      ui = [[clazz alloc] init];
-      ui.tagName = tagName;
-    }
+  Class clazz = [_componentRegistry uiClassWithName:tagName accessible:&supported];
+  if (supported) {
+    ui = [[clazz alloc] init];
+    ui.tagName = tagName;
   }
   return ui;
+}
+
+- (LynxUI*)createAndAttachRootUI {
+  _hasRootAttached = YES;
+  _rootUI = [[LynxRootUI alloc] initWithLynxView:_containerView];
+  _uiContext.rootUI = (LynxRootUI*)_rootUI;
+  [_uiContext.uiExposure setRootUI:_rootUI];
+
+  LLogInfo(@"LynxUIOwner create rootUI %p with containerView %p", _rootUI, _containerView);
+  return _rootUI;
 }
 
 // Both createUISyncWithSign & createUIAsyncWithSign will invoke this method, which can be executed
@@ -636,12 +644,7 @@ extern NSString* const kDefaultComponentID;
               supportedState:(TagSupportedState)state
                 onMainThread:(BOOL)onMainThread {
   if (state == LynxRootTag) {
-    _hasRootAttached = YES;
-    _rootUI = [[LynxRootUI alloc] initWithLynxView:_containerView];
-    _uiContext.rootUI = (LynxRootUI*)_rootUI;
-    [_uiContext.uiExposure setRootUI:_rootUI];
-    LLogInfo(@"LynxUIOwner create rootUI %p with containerView %p", _rootUI, _containerView);
-    return _rootUI;
+    return [self createAndAttachRootUI];
   } else if (state == LynxSupportedTag) {
     if (onMainThread) {
       return [[clazz alloc] init];
