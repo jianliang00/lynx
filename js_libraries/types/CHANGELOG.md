@@ -5,6 +5,7 @@
 ### Patch Changes
 
 - Add some missing typing of event props
+- Add type testing for objects & methods mounted in global
 
 ## 3.2.2
 

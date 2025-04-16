@@ -89,10 +89,6 @@ export interface Lynx extends CommonLynx {
 
   getElementById: GetElementByIdFunc;
 
-  // cancelAnimationFrame(animationId: number): void;
-
-  // requestAnimationFrame(callback: () => void): number;
-
   cancelResourcePrefetch(data: ResourcePrefetchData, callback: (res: ResourcePrefetchResult) => void): void;
 
   createIntersectionObserver: CreateIntersectionObserverFunc;

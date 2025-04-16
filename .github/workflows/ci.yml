@@ -213,6 +213,27 @@ jobs:
           npm run build:release:darwin
           popd
 
+  lynx-types-check:
+    runs-on: lynx-ubuntu-22.04-avd-medium
+    steps:
+      - name: Download Source
+        uses: actions/checkout@v4.2.2
+        with:
+          path: lynx
+      - name: Python Setup
+        uses: actions/setup-python@v5
+        with:
+          python-version: '3.13'
+      - name: Install Common Dependencies
+        uses: ./lynx/.github/actions/common-deps
+      - name: Lynx Types Check
+        run: |
+          cd $GITHUB_WORKSPACE/lynx
+          source tools/envsetup.sh
+          pushd js_libraries/types
+          npm run test
+          popd
+
   android-unittests-check:
     runs-on: lynx-ubuntu-22.04-physical-medium
     steps:
