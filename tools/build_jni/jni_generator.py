@@ -732,7 +732,7 @@ class InlHeaderFileGenerator(object):
     self.class_name = self.fully_qualified_class.split('/')[-1]
     self.natives = natives
     self.called_by_natives = called_by_natives
-    self.header_guard = fully_qualified_class.replace('/', '_') + '_JNI'
+    self.header_guard = fully_qualified_class.replace('/', '_').upper() + '_JNI'
     self.constant_fields = constant_fields
     self.options = options
     self.init_native = self.ExtractInitNative(options)
@@ -1461,7 +1461,7 @@ def GenerateJNIHeader(input_file, output_file, options):
     with open(output_file, 'w') as f:
       f.write(content)
   else:
-    print(output)
+    print(output_file)
 
 
 def GetScriptName():

@@ -3,21 +3,6 @@
 # LICENSE file in the root directory of this source tree.
 
 CURRENT_PATH="$(dirname "$(realpath "$0")")"
-ANDROID_NAME=("lynx_android/src/main/")
-LIBRARY_NAME=("core")
-ANDROID_NAME_LENGTH=${#LIBRARY_NAME[@]}
-LIBRARY_NAME_LENGTH=${#ANDROID_NAME[@]}
-if [ ${ANDROID_NAME_LENGTH} -ne ${LIBRARY_NAME_LENGTH} ]; then
-    echo "Error: ANDROID_NAME and LIBRARY_NAME arrays are not of the same length!"
-    exit 1
-fi
-for index in $(seq 0 $(($ANDROID_NAME_LENGTH - 1)))
-do
-    GEN_FILE=$CURRENT_PATH"/../yaml_to_jni_configs.py"
-    LIBRARY_ROOT_PATH=$CURRENT_PATH"/../../.."
-    JAVA_ROOT_PATH=$CURRENT_PATH"/../../../platform/android/"${ANDROID_NAME[index]}"java/"
-    echo $JAVA_ROOT_PATH
-    OUTPUT_DIR=$CURRENT_PATH"/gen"
-    INCLUDE_ROOT_DIR="lynx/tools/build_jni/testing/gen"
-    python3 $GEN_FILE $LIBRARY_ROOT_PATH $JAVA_ROOT_PATH $OUTPUT_DIR $INCLUDE_ROOT_DIR
-done
+GEN_FILE=$CURRENT_PATH"/../generate_and_register_jni_files.py"
+LIBRARY_ROOT_PATH=$CURRENT_PATH"/../../.."
+$CURRENT_PATH/../../vpython $GEN_FILE -root $LIBRARY_ROOT_PATH -path $CURRENT_PATH/jni_configs.yml
