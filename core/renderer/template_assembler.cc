@@ -2723,6 +2723,11 @@ void TemplateAssembler::OnPageConfigDecoded(
         report::LynxFeature::CPP_DISABLE_MULTI_TOUCH,
         page_proxy()->element_manager()->GetInstanceId());
   }
+  if (!config->GetEnableMultiTouchParamsCompatible()) {
+    report::GlobalFeatureCounter::Count(
+        report::LynxFeature::CPP_DISABLE_MULTI_TOUCH_PARAMS_COMPATIBLE,
+        page_proxy()->element_manager()->GetInstanceId());
+  }
   if (!config->GetEnableTouchRefactor()) {
     report::GlobalFeatureCounter::Count(
         report::LynxFeature::OBJC_DISABLE_TOUCH_REFACTOR,
