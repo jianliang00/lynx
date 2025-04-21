@@ -85,8 +85,42 @@ class RefCountedThreadSafeBase {
   }
 #endif
 
- private:
-  mutable std::atomic_uint_fast32_t ref_count_;
+ protected:
+  union {
+    struct {
+      mutable std::atomic_uint32_t ref_count_;
+
+      // Because subclass of RefCountedThreadSafeBase contains vtable, on 64-bit
+      // platforms, 4 bytes of free space are left here.
+      union {
+        [[maybe_unused]] uint8_t __padding_chars__[4];
+        [[maybe_unused]] uint16_t __padding_shorts__[2];
+        [[maybe_unused]] uint32_t __padding__;
+      };
+    };
+
+    // Use `__init__` to fast initialize `ref_count_` to 1 and `__padding__` to
+    // 0. Testing results with Clang on Arm64:
+    //
+    //    1. Initialize by `ref_count_(1), __padding__(0)`.
+    //      0x100003e0c <+32>: adrp   x8, 0
+    //      0x100003e10 <+36>: ldr    d0, [x8, #0xf00]
+    //      0x100003e14 <+40>: str    d0, [x0, #0x8]
+    //      0x100003e18 <+44>: adrp   x8, 1
+    //      0x100003e1c <+48>: add    x8, x8, #0x38   ; vtable
+    //      0x100003e20 <+52>: str    x8, [x0]
+    //    Loads combined value of `ref_count_` and `__padding__` from DATA
+    //    section as 64bit to register d0 and then stores to x0[0x8]
+    //
+    //    2. Initialize with single `__init__(1)`.
+    //      0x100003e20 <+32>: adrp   x8, 1
+    //      0x100003e24 <+36>: add    x8, x8, #0x38   ; vtable
+    //      0x100003e28 <+40>: mov    w9, #0x1        ; =1
+    //      0x100003e2c <+44>: stp    x8, x9, [x0]
+    //    No loading of combined value from memory and stores to x0 together
+    //    with vtable using single stp instruction.
+    uint64_t __init__;
+  };
 
 #ifndef NDEBUG
   mutable bool adoption_required_;
@@ -97,7 +131,7 @@ class RefCountedThreadSafeBase {
 };
 
 inline RefCountedThreadSafeBase::RefCountedThreadSafeBase()
-    : ref_count_(1u)
+    : __init__(1u)
 #ifndef NDEBUG
       ,
       adoption_required_(true),

@@ -611,6 +611,22 @@ TEST(RefCountedTest, PublicCtorAndDtor) {
   EXPECT_FALSE(r1);
 }
 
+class MyRefCountedClass : public RefCountedThreadSafeStorage {
+ public:
+  uint32_t GetRefCount() const { return ref_count_.load(); }
+
+  uint32_t GetPadding() const { return __padding__; }
+
+ protected:
+  void ReleaseSelf() const override { delete this; }
+};
+
+TEST(RefCountedTest, MemberInitialValues) {
+  RefPtr<MyRefCountedClass> inst = MakeRefCounted<MyRefCountedClass>();
+  EXPECT_EQ(inst->GetRefCount(), 1u);
+  EXPECT_EQ(inst->GetPadding(), 0u);
+}
+
 // The danger with having a public constructor or destructor is that certain
 // things will compile. You should get some protection by assertions in Debug
 // builds.
