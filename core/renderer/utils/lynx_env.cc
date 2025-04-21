@@ -401,6 +401,10 @@ bool LynxEnv::EnableAnimationVsyncOnUIThread() {
   return GetBoolEnv(Key::ENABLE_ANIMATION_VSYNC_ON_UI_THREAD, false);
 }
 
+bool LynxEnv::EnableAnimationInfoReport() {
+  return GetBoolEnv(Key::ENABLE_ANIMATION_INFO_REPORT, true);
+}
+
 bool LynxEnv::EnableBatchLayoutTaskWithSyncLayout() {
   return GetBoolEnv(Key::ENABLE_BATCH_LAYOUT_TASK_WITH_SYNC_LAYOUT, false);
 }

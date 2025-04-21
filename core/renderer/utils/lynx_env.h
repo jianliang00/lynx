@@ -92,6 +92,7 @@ class BASE_EXPORT_FOR_DEVTOOL LynxEnv {
     MULTI_JS_THREAD_COUNT,
     FIX_FIBER_REMOVE_TWICE_BUG,
     OPT_PUSH_STYLE_TO_BUNDLE,
+    ENABLE_ANIMATION_INFO_REPORT,
     ENABLE_BATCH_LAYOUT_TASK_WITH_SYNC_LAYOUT,
     ENABLE_JSVM_RUNTIME,
     ENABLE_UNIFIED_PIXEL_PIPELINE,
@@ -194,6 +195,7 @@ class BASE_EXPORT_FOR_DEVTOOL LynxEnv {
             {Key::MULTI_JS_THREAD_COUNT, "multi_js_thread_count"},
             {Key::FIX_FIBER_REMOVE_TWICE_BUG, "fix_fiber_remove_twice_bug"},
             {Key::OPT_PUSH_STYLE_TO_BUNDLE, "opt_push_style_to_bundle"},
+            {Key::ENABLE_ANIMATION_INFO_REPORT, "enable_animation_info_report"},
             {Key::ENABLE_BATCH_LAYOUT_TASK_WITH_SYNC_LAYOUT,
              "enable_batch_layout_task_with_sync_layout"},
             {Key::ENABLE_JSVM_RUNTIME, kLyneEnableJSVMRuntime},
@@ -308,6 +310,7 @@ class BASE_EXPORT_FOR_DEVTOOL LynxEnv {
   bool EnableFixedNew();
   bool EnableMultiTouch();
   bool EnableNewIntersectionObserver();
+  bool EnableAnimationInfoReport();
   bool EnableBatchLayoutTaskWithSyncLayout();
   bool EnableJSVMRuntime();
   bool EnableUnifiedPixelPipeline();

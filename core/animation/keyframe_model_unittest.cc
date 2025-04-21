@@ -163,43 +163,44 @@ TEST(KeyframeModelTest, TrimTimeToCurrentIteration) {
   int iteration_count = 0;
   fml::TimePoint test_time =
       fml::TimePoint::FromEpochDelta(fml::TimeDelta::FromMilliseconds(-1000));
-  fml::TimeDelta trimmed_time =
-      test_model->TrimTimeToCurrentIteration(test_time, iteration_count);
+  bool need_report_flag = false;
+  fml::TimeDelta trimmed_time = test_model->TrimTimeToCurrentIteration(
+      test_time, iteration_count, need_report_flag);
   EXPECT_EQ(trimmed_time, fml::TimeDelta());
   EXPECT_EQ(iteration_count, 0);
 
   test_time =
       fml::TimePoint::FromEpochDelta(fml::TimeDelta::FromMilliseconds(500));
-  trimmed_time =
-      test_model->TrimTimeToCurrentIteration(test_time, iteration_count);
+  trimmed_time = test_model->TrimTimeToCurrentIteration(
+      test_time, iteration_count, need_report_flag);
   EXPECT_EQ(trimmed_time, fml::TimeDelta());
   EXPECT_EQ(iteration_count, 0);
 
   test_time =
       fml::TimePoint::FromEpochDelta(fml::TimeDelta::FromMilliseconds(1500));
-  trimmed_time =
-      test_model->TrimTimeToCurrentIteration(test_time, iteration_count);
+  trimmed_time = test_model->TrimTimeToCurrentIteration(
+      test_time, iteration_count, need_report_flag);
   EXPECT_EQ(trimmed_time, fml::TimeDelta::FromMilliseconds(500));
   EXPECT_EQ(iteration_count, 0);
 
   test_time =
       fml::TimePoint::FromEpochDelta(fml::TimeDelta::FromMilliseconds(2100));
-  trimmed_time =
-      test_model->TrimTimeToCurrentIteration(test_time, iteration_count);
+  trimmed_time = test_model->TrimTimeToCurrentIteration(
+      test_time, iteration_count, need_report_flag);
   EXPECT_EQ(trimmed_time, fml::TimeDelta::FromMilliseconds(100));
   EXPECT_EQ(iteration_count, 1);
 
   test_time =
       fml::TimePoint::FromEpochDelta(fml::TimeDelta::FromMilliseconds(3100));
-  trimmed_time =
-      test_model->TrimTimeToCurrentIteration(test_time, iteration_count);
+  trimmed_time = test_model->TrimTimeToCurrentIteration(
+      test_time, iteration_count, need_report_flag);
   EXPECT_EQ(trimmed_time, fml::TimeDelta::FromMilliseconds(100));
   EXPECT_EQ(iteration_count, 2);
 
   test_time =
       fml::TimePoint::FromEpochDelta(fml::TimeDelta::FromMilliseconds(4100));
-  trimmed_time =
-      test_model->TrimTimeToCurrentIteration(test_time, iteration_count);
+  trimmed_time = test_model->TrimTimeToCurrentIteration(
+      test_time, iteration_count, need_report_flag);
   EXPECT_EQ(trimmed_time, fml::TimeDelta::FromMilliseconds(1000));
   EXPECT_EQ(iteration_count, 2);
 }
