@@ -8860,6 +8860,7 @@ public class com::lynx::tasm::behavior::ui::list::container::UIListContainer : c
   public Map<String, Object> com.lynx.tasm.behavior.ui.list.container.UIListContainer.nativeListStateCache nativeListStateCache;
   public Map<String, HashSet<String> > com.lynx.tasm.behavior.ui.list.container.UIListContainer.initialFlushPropCache initialFlushPropCache;
   public com.lynx.tasm.behavior.ui.list.container.UIListContainer.UIListContainer(LynxContext context);
+  public boolean com.lynx.tasm.behavior.ui.list.container.UIListContainer.isScrollContainer();
   public void com.lynx.tasm.behavior.ui.list.container.UIListContainer.insertChild(LynxBaseUI child, int index);
   public void com.lynx.tasm.behavior.ui.list.container.UIListContainer.removeChild(LynxBaseUI child);
   public void com.lynx.tasm.behavior.ui.list.container.UIListContainer.onLayoutFinish(long operationId, @Nullable LynxBaseUI component);
