@@ -18,7 +18,5 @@ uint8_t* ByteArray::GetPtr() { return ptr_.get(); }
 
 size_t ByteArray::GetLength() { return length_; }
 
-void ByteArray::ReleaseSelf() const { delete this; }
-
 }  // namespace lepus
 }  // namespace lynx

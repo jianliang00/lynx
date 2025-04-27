@@ -107,6 +107,5 @@ bool operator==(const Dictionary& left, const Dictionary& right) {
   return left.hash_map_ == right.hash_map_;
 }
 
-void Dictionary::ReleaseSelf() const { delete this; }
 }  // namespace lepus
 }  // namespace lynx

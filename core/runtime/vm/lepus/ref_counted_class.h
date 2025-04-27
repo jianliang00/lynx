@@ -5,7 +5,7 @@
 #ifndef CORE_RUNTIME_VM_LEPUS_REF_COUNTED_CLASS_H_
 #define CORE_RUNTIME_VM_LEPUS_REF_COUNTED_CLASS_H_
 
-#include <optional>
+#include <memory>
 
 #include "base/include/fml/memory/ref_counted.h"
 #include "core/runtime/vm/lepus/lepus_value.h"
@@ -13,16 +13,15 @@
 
 namespace lynx {
 namespace lepus {
-class RefCounted : public fml::RefCountedThreadSafeStorage {
+class RefCountedBase : public fml::RefCountedThreadSafeStorage {
  public:
   void ReleaseSelf() const override { delete this; }
-  ~RefCounted() override = default;
+  ~RefCountedBase() override = default;
 
-  std::optional<lepus::Value> js_object_cache = std::nullopt;
   virtual bool IsConst() const { return false; }
 
   /*
-   * Return RefType of this RefCounted.
+   * Return RefType of this RefCountedBase.
    * ByteArray in core/runtime/vm/lepus/byte_array.h,
    * Value_JSOBject in core/runtime/vm/lepus/js_object.h,
    * Element in core/renderer/dom/element.h,
@@ -31,7 +30,12 @@ class RefCounted : public fml::RefCountedThreadSafeStorage {
   virtual RefType GetRefType() const = 0;
 
  protected:
-  RefCounted() = default;
+  RefCountedBase() = default;
+};
+
+class RefCounted : public RefCountedBase {
+ public:
+  std::unique_ptr<Value> js_object_cache;
 };
 
 }  // namespace lepus

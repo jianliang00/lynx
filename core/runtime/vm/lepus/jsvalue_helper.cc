@@ -493,6 +493,18 @@ lepus::Value LepusValueFactory::Create(const lepus::Value& value,
                       MAKE_LYNX_VALUE(val, tag));
 }
 
+std::unique_ptr<lepus::Value> LepusValueFactory::CreatePtr(
+    const LEPUSValue& val) {
+  if (LEPUS_IsLepusRef(val)) {
+    return std::make_unique<lepus::Value>(
+        LEPUSValueHelper::ConstructLepusRefToLynxValue(ctx_, val));
+  }
+  int32_t tag = LEPUSValueHelper::CalculateTag(val);
+  return std::make_unique<lepus::Value>(
+      Context::GetContextCellFromCtx(ctx_)->env_,
+      lynx_value(MAKE_LYNX_VALUE(val, tag)));
+}
+
 std::unique_ptr<lepus::Value> LepusValueFactory::CreatePtr(LEPUSValue&& val) {
   if (LEPUS_IsLepusRef(val)) {
     lynx_value value =

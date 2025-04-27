@@ -15,8 +15,6 @@ std::shared_ptr<LEPUSObject::JSIObjectProxy> LEPUSObject::jsi_object_proxy() {
   return jsi_object_proxy_;
 }
 
-void LEPUSObject::ReleaseSelf() const { delete this; }
-
 int64_t LEPUSObject::JSIObjectID() {
   return jsi_object_proxy_ ? jsi_object_proxy_->jsi_object_id() : -1;
 }

@@ -4,7 +4,6 @@
 #ifndef CORE_RUNTIME_VM_LEPUS_ARRAY_H_
 #define CORE_RUNTIME_VM_LEPUS_ARRAY_H_
 #include <utility>
-#include <vector>
 
 #include "base/include/base_export.h"
 #include "base/include/fml/memory/ref_counted.h"
@@ -15,7 +14,7 @@
 
 namespace lynx {
 namespace lepus {
-class BASE_EXPORT_FOR_DEVTOOL CArray : public lepus::RefCounted {
+class BASE_EXPORT_FOR_DEVTOOL CArray : public RefCountedBase {
  public:
   static fml::RefPtr<CArray> Create() {
     return fml::AdoptRef<CArray>(new CArray());
@@ -144,19 +143,17 @@ class BASE_EXPORT_FOR_DEVTOOL CArray : public lepus::RefCounted {
     return true;
   }
 
-  void SetIsMatchResult() { is_regexp_match_result_ = true; }
+  void SetIsMatchResult() { __padding_chars__[1] = 1; }
 
-  bool GetIsMatchResult() const { return is_regexp_match_result_; }
+  bool GetIsMatchResult() const { return __padding_chars__[1]; }
 
   size_t size() const { return vec_.size(); }
-
-  void ReleaseSelf() const override;
 
   ~CArray() override = default;
 
   friend bool operator==(const CArray& left, const CArray& right) {
     return left.vec_ == right.vec_ &&
-           left.is_regexp_match_result_ == right.is_regexp_match_result_;
+           left.GetIsMatchResult() == right.GetIsMatchResult();
   }
 
   friend bool operator!=(const CArray& left, const CArray& right) {
@@ -164,31 +161,32 @@ class BASE_EXPORT_FOR_DEVTOOL CArray : public lepus::RefCounted {
   }
 
   Value GetMatchIndex() {
-    DCHECK(is_regexp_match_result_);
+    DCHECK(GetIsMatchResult());
     DCHECK(size() >= 3);
     return get(size() - 3);
   }
 
   Value GetMatchGroups() {
-    DCHECK(is_regexp_match_result_);
+    DCHECK(GetIsMatchResult());
     DCHECK(size() >= 3);
     return get(size() - 1);
   }
 
   Value GetMatchInput() {
-    DCHECK(is_regexp_match_result_);
+    DCHECK(GetIsMatchResult());
     DCHECK(size() >= 3);
     return get(size() - 2);
   }
 
-  bool IsConst() const override { return is_const_; }
+  bool IsConst() const override { return __padding_chars__[0]; }
 
   bool MarkConst() {
-    if (is_const_) return true;
+    if (IsConst()) return true;
     for (const auto& ele : vec_) {
       if (!ele.MarkConst()) return false;
     }
-    return (is_const_ = true);
+    __padding_chars__[0] = 1;
+    return true;
   }
 
  protected:
@@ -196,8 +194,6 @@ class BASE_EXPORT_FOR_DEVTOOL CArray : public lepus::RefCounted {
 
  private:
   base::InlineVector<Value, 6> vec_;
-  bool is_regexp_match_result_ = false;
-  bool is_const_ = false;
 
   friend class LEPUSValueHelper;
 

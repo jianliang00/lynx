@@ -4,9 +4,5 @@
 #include "core/runtime/vm/lepus/array.h"
 
 namespace lynx {
-namespace lepus {
-
-void CArray::ReleaseSelf() const { delete this; }
-
-}  // namespace lepus
+namespace lepus {}  // namespace lepus
 }  // namespace lynx

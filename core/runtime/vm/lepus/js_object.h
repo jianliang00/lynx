@@ -37,8 +37,6 @@ class LEPUSObject : public lepus::RefCounted {
 
   std::shared_ptr<LEPUSObject::JSIObjectProxy> jsi_object_proxy();
 
-  void ReleaseSelf() const override;
-
   // return -1 if no JSIObjectProxy
   int64_t JSIObjectID();
 

@@ -29,7 +29,6 @@ class ByteArray : public lepus::RefCounted {
 
   uint8_t* GetPtr();
 
-  virtual void ReleaseSelf() const override;
   ~ByteArray() override = default;
 
   RefType GetRefType() const override { return RefType::kByteArray; };

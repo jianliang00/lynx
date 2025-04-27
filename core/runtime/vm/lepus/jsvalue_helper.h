@@ -51,7 +51,8 @@ class LEPUSValueHelper {
   static constexpr int64_t MAX_SAFE_INTEGER = 9007199254740991;
 
   static inline LEPUSValue CreateLepusRef(LEPUSContext* ctx,
-                                          lepus::RefCounted* p, int32_t tag) {
+                                          lepus::RefCountedBase* p,
+                                          int32_t tag) {
     p->AddRef();
     return LEPUS_NewLepusWrap(ctx, p, tag);
   }
@@ -337,6 +338,7 @@ class LepusValueFactory {
   lepus::Value Create(const LEPUSValue& val);
   lepus::Value Create(LEPUSValue&& val);
   lepus::Value Create(const lepus::Value& value, bool deep_convert = false);
+  std::unique_ptr<lepus::Value> CreatePtr(const LEPUSValue& val);
   std::unique_ptr<lepus::Value> CreatePtr(LEPUSValue&& val);
 
  private:

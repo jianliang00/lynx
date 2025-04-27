@@ -21,7 +21,7 @@
 namespace lynx {
 namespace lepus {
 
-class BASE_EXPORT_FOR_DEVTOOL Dictionary : public lepus::RefCounted {
+class BASE_EXPORT_FOR_DEVTOOL Dictionary : public RefCountedBase {
  public:
   // The implementation is not guaranteed to be std::unordered_map only.
   using HashMap = std::unordered_map<base::String, Value>;
@@ -237,7 +237,6 @@ class BASE_EXPORT_FOR_DEVTOOL Dictionary : public lepus::RefCounted {
   auto end() const { return hash_map_.end(); }
 
   void Dump();
-  void ReleaseSelf() const override;
 
   friend bool operator==(const Dictionary& left, const Dictionary& right);
 
@@ -245,14 +244,15 @@ class BASE_EXPORT_FOR_DEVTOOL Dictionary : public lepus::RefCounted {
     return !(left == right);
   }
 
-  bool IsConst() const override { return is_const_; }
+  bool IsConst() const override { return __padding_chars__[0]; }
 
   bool MarkConst() {
-    if (is_const_) return true;
+    if (IsConst()) return true;
     for (const auto& [key, value] : hash_map_) {
       if (!value.MarkConst()) return false;
     }
-    return (is_const_ = true);
+    __padding_chars__[0] = 1;
+    return true;
   }
 
  protected:
@@ -261,7 +261,6 @@ class BASE_EXPORT_FOR_DEVTOOL Dictionary : public lepus::RefCounted {
 
  private:
   HashMap hash_map_;
-  bool is_const_ = false;
 
   LEPUS_INLINE bool IsConstLog() const {
     if (IsConst()) {

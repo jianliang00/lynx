@@ -516,8 +516,8 @@ TEST_F(LepusValueTest, LepusValueRefCounted) {
     ASSERT_TRUE(v4.Type() == Value_JSObject);
   }
   {
-    auto arr = lepus::CArray::Create();
-    fml::RefPtr<lepus::RefCounted> ref_counted = arr;
+    auto js_object = lepus::LEPUSObject::Create();
+    fml::RefPtr<lepus::RefCounted> ref_counted = js_object;
     lepus::Value v1(ref_counted);
     ASSERT_TRUE(v1.IsRefCounted());
     lepus::Value v2;
@@ -791,16 +791,14 @@ TEST_F(LepusValueTest, LepusValueCloneValue) {
     dict->SetValue("key11", lepus::Value(dict1));
 
     LEPUSValue val_ref1 = lepus::LEPUSValueHelper::CreateLepusRef(
-        quick_ctx_.context(),
-        reinterpret_cast<lepus::RefCounted*>(arr_ref.get()), Value_Array);
+        quick_ctx_.context(), arr_ref.get(), Value_Array);
     dict->SetValue("key12", MK_JS_LEPUS_VALUE(quick_ctx_.context(), val_ref1));
     LEPUSRefCountHeader* p_ref =
         (LEPUSRefCountHeader*)LEPUS_VALUE_GET_PTR(val_ref1);
     ASSERT_TRUE(p_ref->ref_count == 1);
 
     LEPUSValue val_ref2 = lepus::LEPUSValueHelper::CreateLepusRef(
-        quick_ctx_.context(),
-        reinterpret_cast<lepus::RefCounted*>(dict_ref.get()), Value_Table);
+        quick_ctx_.context(), dict_ref.get(), Value_Table);
     lepus::Value id13 = MK_JS_LEPUS_VALUE(quick_ctx_.context(), val_ref2);
     dict->SetValue("key13", id13);
 
@@ -917,8 +915,7 @@ TEST_F(LepusValueTest, LepusValueCloneValue) {
 TEST_F(LepusValueTest, LepusValueLepusRef) {
   auto arr_ref = lepus::CArray::Create();
   LEPUSValue val_ref1 = lepus::LEPUSValueHelper::CreateLepusRef(
-      quick_ctx_.context(), reinterpret_cast<lepus::RefCounted*>(arr_ref.get()),
-      Value_Array);
+      quick_ctx_.context(), arr_ref.get(), Value_Array);
   LEPUSRefCountHeader* p_ref =
       (LEPUSRefCountHeader*)LEPUS_VALUE_GET_PTR(val_ref1);
   ASSERT_TRUE(p_ref->ref_count == 1);
@@ -1089,7 +1086,7 @@ TEST_F(LepusValueTest, LepusValueToJSValue) {
     auto ret5 = v6.ToLepusValue();
     ASSERT_TRUE(ret5.IsArray());
 
-    fml::RefPtr<lepus::RefCounted> ref_counted = lepus::CArray::Create();
+    fml::RefPtr<lepus::RefCounted> ref_counted = lepus::LEPUSObject::Create();
     lepus::Value v7(ref_counted);
     ASSERT_TRUE(v7.IsRefCounted());
     LEPUSValue ret6 =

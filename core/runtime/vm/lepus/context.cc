@@ -211,23 +211,24 @@ static LEPUSValue LepusConvertToObjectCallBack(LEPUSContext* ctx,
                                                LEPUSValue val) {
   TRACE_EVENT(LYNX_TRACE_CATEGORY, QUICK_CONTEXT_CONVERT_TO_OBJECT_CALLBACK);
   LEPUSLepusRef* pref = static_cast<LEPUSLepusRef*>(LEPUS_VALUE_GET_PTR(val));
-  auto* ref_ptr = static_cast<lepus::RefCounted*>(pref->p);
+  auto* ref_base_ptr = static_cast<lepus::RefCountedBase*>(pref->p);
   LEPUSValue result;
   switch (pref->tag) {
     case Value_Table: {
       result = LEPUSValueHelper::TableToJsValue(
-          ctx, *static_cast<const Dictionary*>(ref_ptr), false);
+          ctx, *static_cast<const Dictionary*>(ref_base_ptr), false);
     } break;
     case Value_Array: {
       result = LEPUSValueHelper::ArrayToJsValue(
-          ctx, *static_cast<const CArray*>(ref_ptr), false);
+          ctx, *static_cast<const CArray*>(ref_base_ptr), false);
     } break;
     case Value_RefCounted: {
+      auto* ref_ptr = static_cast<lepus::RefCounted*>(ref_base_ptr);
       if (ref_ptr->js_object_cache) {
         return LEPUSValueHelper::ToJsValue(ctx, *(ref_ptr->js_object_cache));
       }
       result = LEPUSValueHelper::RefCountedToJSValue(ctx, *ref_ptr);
-      ref_ptr->js_object_cache = MK_JS_LEPUS_VALUE(ctx, result);
+      ref_ptr->js_object_cache = LepusValueFactory(ctx).CreatePtr(result);
     } break;
     default:
       return LEPUS_UNDEFINED;

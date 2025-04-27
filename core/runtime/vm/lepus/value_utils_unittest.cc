@@ -33,7 +33,6 @@ class LepusValueMethods : public ::testing::Test {
    public:
     static auto Create() { return fml::AdoptRef(new TestRefCountedClass()); }
     TestRefCountedClass() = default;
-    void ReleaseSelf() const override { delete this; };
     ~TestRefCountedClass() override = default;
 
     lepus::RefType GetRefType() const override {
@@ -3536,7 +3535,7 @@ TEST_F(LepusValueMethods, RefCountedWeakMap) {
   )";
   lepus::BytecodeGenerator::GenerateBytecode(&ctx_, src, "");
   ctx_.Execute();
-  ASSERT_TRUE(element_value.RefCounted()->js_object_cache.has_value());
+  ASSERT_TRUE(element_value.RefCounted()->js_object_cache != nullptr);
   ASSERT_TRUE(LEPUS_VALUE_IS_OBJECT(
       WRAP_AS_JS_VALUE(element_value.RefCounted()->js_object_cache->value())));
 

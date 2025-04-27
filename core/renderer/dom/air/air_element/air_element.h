@@ -586,7 +586,6 @@ class AirLepusRef : public lepus::RefCounted {
   AirElement* operator->() const { return lepus_ref_.get(); }
 
   AirElement* Get() const { return lepus_ref_.get(); }
-  void ReleaseSelf() const override { delete this; }
 
  private:
   std::shared_ptr<AirElement> lepus_ref_;
