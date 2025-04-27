@@ -40,7 +40,6 @@ using ExtendedValueIteratorCallback =
     base::MoveOnlyClosure<void, lynx_api_env, const lynx_value&,
                           const lynx_value&>;
 
-typedef void* point_t;
 #define NormalNumberType(V) \
   V(Double, double)         \
   V(Int32, int32_t)         \
@@ -97,12 +96,12 @@ typedef Value (*CFunction)(Context*);
 
 class BASE_EXPORT_FOR_DEVTOOL Value {
  private:
-  lynx_api_env env_ = nullptr;
   lynx_value value_;
-  lynx_value_ref value_ref_ = nullptr;
+  lynx_api_env env_;
+  lynx_value_ref value_ref_;
 
  public:
-  explicit Value() = default;
+  explicit Value() { value_.type = lynx_value_null; };
 
   enum CreateAsUndefinedTag { kCreateAsUndefinedTag };
   explicit Value(CreateAsUndefinedTag);

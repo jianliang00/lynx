@@ -33,18 +33,25 @@ namespace lepus {
 
 Value::Value(CreateAsUndefinedTag) { value_.type = lynx_value_undefined; }
 
-Value::Value(const Value& value) { Copy(value); }
+Value::Value(const Value& value) {
+  value_.type = lynx_value_null;
+  Copy(value);
+}
 
 Value::Value(Value&& value) noexcept {
-  value_ = value.value_;
   if (value.IsJSValue()) {
     env_ = value.env_;
+    value_ref_ = nullptr;
     lynx_value_move_reference(env_, value.value_, value.value_ref_,
                               &value_ref_);
+    value_ = value.value_;
     value.value_ref_ = nullptr;
     value.env_ = nullptr;
+    value.value_.type = lynx_value_null;
+  } else {
+    value_ = value.value_;
+    value.value_.type = lynx_value_null;
   }
-  value.value_.type = lynx_value_null;
 }
 
 Value& Value::operator=(Value&& value) noexcept {
@@ -179,12 +186,14 @@ Value::Value(lynx_api_env env, int64_t val, int32_t tag) : env_(env) {
   value_.val_int64 = val;
   value_.type = lynx_value_extended;
   value_.tag = tag;
+  value_ref_ = nullptr;
   lynx_value_add_reference(env_, value_, &value_ref_);
 }
 
 Value::Value(lynx_api_env env, const lynx_value& value)
-    : env_(env), value_(value) {
+    : value_(value), env_(env) {
   if (value.type == lynx_value_extended && env) {
+    value_ref_ = nullptr;
     lynx_value_add_reference(env_, value_, &value_ref_);
   } else if (!env) {
     DupValue();
@@ -192,8 +201,9 @@ Value::Value(lynx_api_env env, const lynx_value& value)
 }
 
 Value::Value(lynx_api_env env, lynx_value&& value)
-    : env_(env), value_(std::move(value)) {
+    : value_(std::move(value)), env_(env) {
   if (value.type == lynx_value_extended && env) {
+    value_ref_ = nullptr;
     lynx_value_move_reference(env_, value_, nullptr, &value_ref_);
   }
 }
@@ -762,7 +772,9 @@ void Value::MergeValue(lepus::Value& target, const lepus::Value& update) {
   // 2. if update key is value path, clone the first level k-v pair and update
   //     the exact value.
   auto update_table =
-      reinterpret_cast<lepus::Dictionary*>(update.value_.val_ptr);
+      update.IsTable()
+          ? reinterpret_cast<lepus::Dictionary*>(update.value_.val_ptr)
+          : nullptr;
   if (update_table == nullptr) {
     return;
   }
@@ -1251,7 +1263,7 @@ bool Value::MarkConst() const {
       return reinterpret_cast<lepus::Dictionary*>(value_.val_ptr)->MarkConst();
     case lynx_value_array:
       return reinterpret_cast<lepus::CArray*>(value_.val_ptr)->MarkConst();
-    default:
+    case lynx_value_extended:
       // JSValue
       bool ret;
       lynx_value_has_ref_count(env_, value_, &ret);
@@ -1270,11 +1282,14 @@ void Value::Copy(const Value& value) {
   }
   value.DupValue();
   FreeValue();
-  value_ = value.value_;
   if (value.IsJSValue()) {
     env_ = value.env_;
+    if (value_.type != lynx_value_extended) {
+      value_ref_ = nullptr;
+    }
     lynx_value_add_reference(value.env_, value.value_, &value_ref_);
   }
+  value_ = value.value_;
 }
 
 void Value::DupValue() const {

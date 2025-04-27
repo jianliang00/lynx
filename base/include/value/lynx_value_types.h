@@ -57,8 +57,8 @@ struct lynx_value {
     lynx_value_ptr val_ptr;
   };
 
-  lynx_value_type type = lynx_value_null;
-  int32_t tag = 0;
+  lynx_value_type type;
+  int32_t tag;
 };
 
 typedef lynx_value (*lynx_value_function_callback)(
