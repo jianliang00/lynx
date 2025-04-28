@@ -103,15 +103,11 @@ public class NativeFacade implements EventEmitter.LynxEventReporter {
 
   private static final String TAG = "NativeFacade";
 
-  private boolean mEnableAutoExpose;
-  @Nullable private PageConfig mPageConfig;
-
   private boolean mEnableJSRuntime = true;
 
   private LynxModuleFactory mModuleFactory = null;
 
-  public NativeFacade(boolean enableAutoExpose, boolean enableJSRuntime) {
-    mEnableAutoExpose = enableAutoExpose;
+  public NativeFacade(boolean enableJSRuntime) {
     mEnableJSRuntime = enableJSRuntime;
   }
 
@@ -218,18 +214,6 @@ public class NativeFacade implements EventEmitter.LynxEventReporter {
     }
     mClient.onLynxEvent(detail);
     return false;
-  }
-
-  public String getPageVersion() {
-    if (null == mPageConfig) {
-      LLog.e(TAG, "PageConfig is null.GetPageVersion get default error;");
-      return "error";
-    } else {
-      return mPageConfig.getPageVersion();
-    }
-  }
-  public PageConfig getPageConfig() {
-    return mPageConfig;
   }
 
   // TODO(songshourui.null): Remove this API later. First, remove the function implementation. If
@@ -411,9 +395,8 @@ public class NativeFacade implements EventEmitter.LynxEventReporter {
 
   @CalledByNative
   public void onPageConfigDecoded(ReadableMap map) {
-    mPageConfig = new PageConfig(map);
     if (mCallback != null) {
-      mCallback.onPageConfigDecoded(mPageConfig);
+      mCallback.onPageConfigDecoded(new PageConfig(map));
     }
   }
 
@@ -530,18 +513,6 @@ public class NativeFacade implements EventEmitter.LynxEventReporter {
       context.getLynxUIOwner().invokeUIMethodForSelectorQuery(
           ui_result.getUiArray().getInt(0), method, params, callback);
     }
-  }
-
-  public boolean getAutoExpose() {
-    if (mEnableAutoExpose) {
-      if (null == mPageConfig) {
-        LLog.e(TAG, "PageConfig is null.GetAutoExpose get default true!");
-        return true; // default true
-      } else {
-        return mPageConfig.isAutoExpose();
-      }
-    }
-    return false;
   }
 
   public int getInstanceId() {

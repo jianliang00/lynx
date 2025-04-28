@@ -3651,7 +3651,11 @@ public class abstract com::lynx::tasm::behavior::LynxContext : com.lynx.tasm.beh
   public void com.lynx.tasm.behavior.LynxContext.setEnableAsyncLoadImage(boolean b);
   public boolean com.lynx.tasm.behavior.LynxContext.isEnableAsyncLoadImage();
   public void com.lynx.tasm.behavior.LynxContext.onPageConfigDecoded(PageConfig config);
+  public void com.lynx.tasm.behavior.LynxContext.setEnableAutoExpose(boolean enableAutoExpose);
+  public boolean com.lynx.tasm.behavior.LynxContext.getAutoExpose();
+  public String com.lynx.tasm.behavior.LynxContext.getPageVersion();
   public double com.lynx.tasm.behavior.LynxContext.getEnableLynxScrollFluency();
+  public boolean com.lynx.tasm.behavior.LynxContext.getEnableVsyncAlignedFlush();
   public boolean com.lynx.tasm.behavior.LynxContext.isAsyncRedirect();
   public boolean com.lynx.tasm.behavior.LynxContext.isSyncImageAttach();
   public boolean com.lynx.tasm.behavior.LynxContext.isPrefetchImageOnCreate();
@@ -3771,6 +3775,8 @@ public class abstract com::lynx::tasm::behavior::LynxContext : com.lynx.tasm.beh
   public boolean com.lynx.tasm.behavior.LynxContext.getEnableFlattenTranslateZ();
   public boolean com.lynx.tasm.behavior.LynxContext.enableEventThrough();
   public boolean com.lynx.tasm.behavior.LynxContext.getEnableNewIntersectionObserver();
+  public boolean com.lynx.tasm.behavior.LynxContext.getEnableCreateViewAsync();
+  public boolean com.lynx.tasm.behavior.LynxContext.isUseNewSwiper();
   public int com.lynx.tasm.behavior.LynxContext.getObserverFrameRate();
   public boolean com.lynx.tasm.behavior.LynxContext.getEnableExposureUIMargin();
   public int com.lynx.tasm.behavior.LynxContext.getLongPressDuration();
@@ -6338,7 +6344,7 @@ public interface com::lynx::react::bridge::NativeArrayInterface {
 }
 
 public class com::lynx::tasm::NativeFacade : com.lynx.tasm.EventEmitter.LynxEventReporter {
-  public com.lynx.tasm.NativeFacade.NativeFacade(boolean enableAutoExpose, boolean enableJSRuntime);
+  public com.lynx.tasm.NativeFacade.NativeFacade(boolean enableJSRuntime);
   public void com.lynx.tasm.NativeFacade.setCallback(Callback callback);
   public void com.lynx.tasm.NativeFacade.setTemplateLoadClient(LynxViewClient client);
   public void com.lynx.tasm.NativeFacade.setUrl(String url);
@@ -6351,8 +6357,6 @@ public class com::lynx::tasm::NativeFacade : com.lynx.tasm.EventEmitter.LynxEven
   public void com.lynx.tasm.NativeFacade.setModuleFactory(LynxModuleFactory moduleFactory);
   public LynxModuleFactory com.lynx.tasm.NativeFacade.getModuleFactory();
   public boolean com.lynx.tasm.NativeFacade.onLynxEvent(LynxEvent event);
-  public String com.lynx.tasm.NativeFacade.getPageVersion();
-  public PageConfig com.lynx.tasm.NativeFacade.getPageConfig();
   public void com.lynx.tasm.NativeFacade.onInternalEvent(@NonNull LynxInternalEvent event);
   public String com.lynx.tasm.NativeFacade.translateResourceForTheme(final String resId, final String themedKey);
   public void com.lynx.tasm.NativeFacade.destroyAnyThreadPart();
@@ -6362,7 +6366,6 @@ public class com::lynx::tasm::NativeFacade : com.lynx.tasm.EventEmitter.LynxEven
   public ByteBuffer com.lynx.tasm.NativeFacade.triggerLepusBridge(String methodName, Object args);
   public void com.lynx.tasm.NativeFacade.triggerLepusBridgeAsync(String methodName, Object args);
   public void com.lynx.tasm.NativeFacade.getI18nResourceByNative(final String channelOrUrl, String fallbackUrl);
-  public boolean com.lynx.tasm.NativeFacade.getAutoExpose();
   public int com.lynx.tasm.NativeFacade.getInstanceId();
   public void com.lynx.tasm.NativeFacade.clearAllNativeTimingInfo();
 }

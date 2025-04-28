@@ -26,7 +26,6 @@ import com.lynx.tasm.LynxEnvKey;
 import com.lynx.tasm.LynxError;
 import com.lynx.tasm.LynxSubErrorCode;
 import com.lynx.tasm.NativeFacade;
-import com.lynx.tasm.PageConfig;
 import com.lynx.tasm.animation.keyframe.KeyframeManager;
 import com.lynx.tasm.animation.transition.TransitionAnimationManager;
 import com.lynx.tasm.base.LLog;
@@ -1000,8 +999,7 @@ public class LynxUIOwner {
       child.destroy();
       insertA11yMutationEvent(MUTATION_ACTION_DETACH, child);
       // FiberElement may be referenced by JS engine. Just clear the parent-child relationship.
-      PageConfig pageConfig = getPageConfig();
-      if (pageConfig != null && !pageConfig.getEnableFiberArc()) {
+      if (!mContext.getEnableFiberArch()) {
         destroyChildrenRecursively(child);
       }
       final LynxBaseUI parent =
@@ -1518,7 +1516,7 @@ public class LynxUIOwner {
 
   public LynxBaseUI createUI(String tag, boolean flatten) {
     LynxBaseUI ui = null;
-    if (isUseNewSwiper()) {
+    if (mContext.isUseNewSwiper()) {
       ui = createSwiperIfNeeded(tag, ui);
     }
     if (ui == null) {
@@ -1606,11 +1604,7 @@ public class LynxUIOwner {
   }
 
   public boolean getEnableCreateViewAsync() {
-    PageConfig pageConfig = getPageConfig();
-    if (pageConfig == null) {
-      return false;
-    }
-    return pageConfig.getEnableCreateViewAsync();
+    return mContext.getEnableCreateViewAsync();
   }
 
   public void setContextFree(boolean isContextFree) {
@@ -1619,14 +1613,6 @@ public class LynxUIOwner {
 
   public boolean isContextFree() {
     return mIsContextFree;
-  }
-
-  private boolean isUseNewSwiper() {
-    PageConfig pageConfig = getPageConfig();
-    if (pageConfig == null) {
-      return false;
-    }
-    return pageConfig.isUseNewSwiper();
   }
 
   private LynxBaseUI createSwiperIfNeeded(String tagName, LynxBaseUI origin) {
@@ -1834,11 +1820,6 @@ public class LynxUIOwner {
         return props;
       });
     }
-  }
-
-  private PageConfig getPageConfig() {
-    NativeFacade nativeFacade = (mNativeFacade != null) ? mNativeFacade.get() : null;
-    return (nativeFacade != null) ? nativeFacade.getPageConfig() : null;
   }
 
   public void setAttachLynxPageUICallback(UIBodyView.attachLynxPageUICallback callback) {

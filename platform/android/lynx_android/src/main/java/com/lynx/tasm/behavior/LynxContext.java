@@ -81,71 +81,20 @@ public abstract class LynxContext extends LynxBaseContext implements ExceptionHa
   private WeakReference<ShadowNodeOwner> mShadowNodeOwnerRef;
   private DisplayMetrics mVirtualScreenMetrics;
   private Boolean mEnableAsyncLoadImage;
-  private boolean mDefaultOverflowVisible = false;
-  private boolean mAsyncInitTTVideoEngine = false;
-  private boolean mAsyncRedirect = false;
   private LynxProviderRegistry providerRegistry;
-  private LynxResourceFetcher mGenericResourceFetcher;
   private LynxFontFaceLoader.Loader fontLoader;
   private List<PatchFinishListener> mPatchFinishListeners;
-  private boolean mEnableTextRefactor = false;
-  private boolean mEnableTextOverflow = false;
-  private boolean mEnableTextBoringLayout = false;
-  private boolean mEnableNewClipMode = false;
   private UIExposure mExposure = null;
-  private boolean mUseRelativeKeyboardHeightApi = false;
-  // If the targetSdkVersion >= 2.4, the default value should be true
-  private boolean mDefaultTextIncludePadding = false;
-  // If the targetSdkVersion >= 2.5, the default value should be true
-  private boolean mEnableEventRefactor = true;
-  // The switch controlling whether to enable send disexposure events when lynxview is hidden.
-  private boolean mEnableDisexposureWhenLynxHidden = true;
-  // The switch controlling whether to enable exposure check when lynxview is isLayoutRequested.
-  // If mEnableExposureWhenLayout == true, execute exposure check when lynxview is
-  // isLayoutRequested. Otherwise, do not execute exposure check.
-  private boolean mEnableExposureWhenLayout = false;
   // for fresco monitor
   private Object mFrescoCallerContext = null;
   // for fresco disk cache choice
   private boolean mEnableImageSmallDiskCache = false;
-  // If the targetSdkVersion >= 2.5, the default value should be true
-  private boolean mEnableFlattenTranslateZ = false;
-  // The default value is false
-  private boolean mEnableEventThrough = false;
-  // The default value is false
-  private boolean mEnableNewIntersectionObserver = false;
-  // defalut value is 20fps
-  private int mObserverFrameRate = 20;
-  // The default value is false
-  private boolean mEnableExposureUIMargin = false;
-  // default value is true
-  private boolean mSyncImageAttach = true;
 
   private boolean mPrefetchImageOnCreate = false;
-  // default value is true
-  private boolean mEnableCheckLocalImage = true;
-  // default value is false
-  private boolean mEnableAsyncRequestImage = false;
   // default value is false
   private boolean mEnableAsyncImageCallback = false;
-  // default value is false
-  private boolean mUseImagePostProcessor = false;
-  // default value is false
-  private boolean mEnableNewGesture = false;
-
-  // default value is true
-  private boolean mEnableLoadImageFromService = true;
 
   private boolean mEnableImageResourceHint = false;
-
-  // when mLongPressDuration < 0, we think long-press-duration is not set
-  private int mLongPressDuration = -1;
-
-  private int mMapContainerType = 0;
-
-  private boolean mEnableFiberArc = false;
-  private boolean mCssAlignWithLegacyW3c = false;
-  private double mEnableLynxScrollFluency = -1.0;
 
   private HashMap<String, Object> mContextData;
 
@@ -191,6 +140,10 @@ public abstract class LynxContext extends LynxBaseContext implements ExceptionHa
 
   private boolean mEnableVSyncAligned;
 
+  private boolean mEnableAutoExpose;
+
+  private PageConfig mPageConfig;
+
   public LynxContext(Context base, DisplayMetrics screenMetrics) {
     super(base);
     mVirtualScreenMetrics = new DisplayMetrics();
@@ -208,34 +161,41 @@ public abstract class LynxContext extends LynxBaseContext implements ExceptionHa
   }
 
   public void onPageConfigDecoded(PageConfig config) {
-    mDefaultOverflowVisible = config.getDefaultOverflowVisible();
-    mEnableTextRefactor = config.isTextRefactorEnabled();
-    mEnableTextOverflow = config.isTextOverflowEnabled();
-    mEnableTextBoringLayout = config.isTextBoringLayoutEnabled();
-    mEnableNewClipMode = config.isNewClipModeEnabled();
-    mUseRelativeKeyboardHeightApi = config.useRelativeKeyboardHeightApi();
-    mAsyncRedirect = config.isAsyncRedirect();
-    mSyncImageAttach = config.isSyncImageAttach();
-    mEnableCheckLocalImage = config.isEnableCheckLocalImage();
-    mEnableAsyncRequestImage = config.isEnableAsyncRequestImage();
-    mUseImagePostProcessor = config.isUseImagePostProcessor();
-    mEnableLoadImageFromService = config.isEnableLoadImageFromService();
-    mDefaultTextIncludePadding = config.getDefaultTextIncludePadding();
-    mEnableEventRefactor = config.getEnableEventRefactor();
-    mEnableDisexposureWhenLynxHidden = config.getEnableDisexposureWhenLynxHidden();
-    mEnableExposureWhenLayout = config.getEnableExposureWhenLayout();
-    mEnableFlattenTranslateZ = config.getEnableFlattenTranslateZ();
-    mEnableEventThrough = config.enableEventThrough();
-    mEnableNewIntersectionObserver = config.getEnableNewIntersectionObserver();
-    mEnableNewGesture = config.isEnableNewGesture();
-    mObserverFrameRate = config.getObserverFrameRate();
-    mEnableExposureUIMargin = config.getEnableExposureUIMargin();
-    mAsyncInitTTVideoEngine = config.isAsyncInitTTVideoEngine();
-    mLongPressDuration = config.getLongPressDuration();
-    mMapContainerType = config.getMapContainerType();
-    mEnableFiberArc = config.getEnableFiberArc();
-    mCssAlignWithLegacyW3c = config.isCssAlignWithLegacyW3c();
-    mEnableLynxScrollFluency = config.getEnableLynxScrollFluency();
+    mPageConfig = config;
+  }
+
+  /**
+   * @brief switch for LynxView onShow onHide event
+   */
+  public void setEnableAutoExpose(boolean enableAutoExpose) {
+    mEnableAutoExpose = enableAutoExpose;
+  }
+
+  /**
+   * @brief switch for LynxView onShow onHide event
+   */
+  public boolean getAutoExpose() {
+    if (mEnableAutoExpose) {
+      if (null == mPageConfig) {
+        LLog.e(TAG, "PageConfig is null.GetAutoExpose get default true!");
+        return true; // default true
+      } else {
+        return mPageConfig.isAutoExpose();
+      }
+    }
+    return false;
+  }
+
+  /**
+   * @brief get PageVersion from PageConfig
+   */
+  public String getPageVersion() {
+    if (null == mPageConfig) {
+      LLog.e(TAG, "PageConfig is null.GetPageVersion get default error;");
+      return "error";
+    } else {
+      return mPageConfig.getPageVersion();
+    }
   }
 
   /**
@@ -244,15 +204,34 @@ public abstract class LynxContext extends LynxBaseContext implements ExceptionHa
    * @return double value of the probability
    */
   public double getEnableLynxScrollFluency() {
-    return mEnableLynxScrollFluency;
+    if (null != mPageConfig) {
+      return mPageConfig.getEnableLynxScrollFluency();
+    }
+    return -1.0;
+  }
+
+  /**
+   * @brief switch for enable VsyncAlignedFlush
+   */
+  public boolean getEnableVsyncAlignedFlush() {
+    if (null != mPageConfig) {
+      return mPageConfig.getEnableVsyncAlignedFlush();
+    }
+    return false;
   }
 
   public boolean isAsyncRedirect() {
-    return mAsyncRedirect;
+    if (null != mPageConfig) {
+      return mPageConfig.isAsyncRedirect();
+    }
+    return false;
   }
 
   public boolean isSyncImageAttach() {
-    return mSyncImageAttach;
+    if (null != mPageConfig) {
+      return mPageConfig.isSyncImageAttach();
+    }
+    return true;
   }
 
   public boolean isPrefetchImageOnCreate() {
@@ -260,11 +239,17 @@ public abstract class LynxContext extends LynxBaseContext implements ExceptionHa
   }
 
   public boolean isEnableCheckLocalImage() {
-    return mEnableCheckLocalImage;
+    if (null != mPageConfig) {
+      return mPageConfig.isEnableCheckLocalImage();
+    }
+    return true;
   }
 
   public boolean isEnableAsyncRequestImage() {
-    return mEnableAsyncRequestImage;
+    if (null != mPageConfig) {
+      return mPageConfig.isEnableAsyncRequestImage();
+    }
+    return false;
   }
 
   public boolean isEnableAsyncImageCallback() {
@@ -276,31 +261,52 @@ public abstract class LynxContext extends LynxBaseContext implements ExceptionHa
   }
 
   public boolean isUseImagePostProcessor() {
-    return mUseImagePostProcessor;
+    if (null != mPageConfig) {
+      return mPageConfig.isUseImagePostProcessor();
+    }
+    return false;
   }
 
   public boolean getEnableLoadImageFromService() {
-    return mEnableLoadImageFromService;
+    if (null != mPageConfig) {
+      return mPageConfig.isEnableLoadImageFromService();
+    }
+    return true;
   }
 
   public boolean getDefaultOverflowVisible() {
-    return mDefaultOverflowVisible;
+    if (null != mPageConfig) {
+      return mPageConfig.getDefaultOverflowVisible();
+    }
+    return false;
   }
 
   public boolean isAsyncInitTTVideoEngine() {
-    return mAsyncInitTTVideoEngine;
+    if (null != mPageConfig) {
+      return mPageConfig.isAsyncInitTTVideoEngine();
+    }
+    return false;
   }
 
   public boolean getEnableFiberArch() {
-    return mEnableFiberArc;
+    if (null != mPageConfig) {
+      return mPageConfig.getEnableFiberArc();
+    }
+    return false;
   }
 
   public boolean getCssAlignWithLegacyW3c() {
-    return mCssAlignWithLegacyW3c;
+    if (null != mPageConfig) {
+      return mPageConfig.isCssAlignWithLegacyW3c();
+    }
+    return false;
   }
 
   public boolean isEnableNewGesture() {
-    return mEnableNewGesture;
+    if (null != mPageConfig) {
+      return mPageConfig.isEnableNewGesture();
+    }
+    return false;
   }
 
   public FluencyTraceHelper getFluencyTraceHelper() {
@@ -881,39 +887,66 @@ public abstract class LynxContext extends LynxBaseContext implements ExceptionHa
   }
 
   public boolean isTextRefactorEnabled() {
-    return mEnableTextRefactor;
+    if (null != mPageConfig) {
+      return mPageConfig.isTextRefactorEnabled();
+    }
+    return false;
   }
 
   public boolean isNewClipModeEnabled() {
-    return mEnableNewClipMode;
+    if (null != mPageConfig) {
+      return mPageConfig.isNewClipModeEnabled();
+    }
+    return false;
   }
 
   public boolean isTextOverflowEnabled() {
-    return mEnableTextOverflow;
+    if (null != mPageConfig) {
+      return mPageConfig.isTextOverflowEnabled();
+    }
+    return false;
   }
 
   public boolean isTextBoringLayoutEnabled() {
-    return mEnableTextBoringLayout;
+    if (null != mPageConfig) {
+      return mPageConfig.isTextBoringLayoutEnabled();
+    }
+    return false;
   }
 
   public boolean useRelativeKeyboardHeightApi() {
-    return mUseRelativeKeyboardHeightApi;
+    if (null != mPageConfig) {
+      return mPageConfig.useRelativeKeyboardHeightApi();
+    }
+    return false;
   }
 
   public boolean getDefaultTextIncludePadding() {
-    return mDefaultTextIncludePadding;
+    if (null != mPageConfig) {
+      return mPageConfig.getDefaultTextIncludePadding();
+    }
+    return false;
   }
 
   public boolean getEnableEventRefactor() {
-    return mEnableEventRefactor;
+    if (null != mPageConfig) {
+      return mPageConfig.getEnableEventRefactor();
+    }
+    return true;
   }
 
   public boolean getEnableDisexposureWhenLynxHidden() {
-    return mEnableDisexposureWhenLynxHidden;
+    if (null != mPageConfig) {
+      return mPageConfig.getEnableDisexposureWhenLynxHidden();
+    }
+    return true;
   }
 
   public boolean getEnableExposureWhenLayout() {
-    return mEnableExposureWhenLayout;
+    if (null != mPageConfig) {
+      return mPageConfig.getEnableExposureWhenLayout();
+    }
+    return false;
   }
 
   public void reset() {
@@ -929,7 +962,7 @@ public abstract class LynxContext extends LynxBaseContext implements ExceptionHa
       mExposure.clear();
     }
 
-    if (mEnableNewIntersectionObserver && mIntersectionObserverManager != null) {
+    if (getEnableNewIntersectionObserver() && mIntersectionObserverManager != null) {
       LynxIntersectionObserverManager intersectionObserverManager =
           mIntersectionObserverManager.get();
       if (intersectionObserverManager != null) {
@@ -943,7 +976,7 @@ public abstract class LynxContext extends LynxBaseContext implements ExceptionHa
       mExposure.clear();
     }
 
-    if (mEnableNewIntersectionObserver && mIntersectionObserverManager != null) {
+    if (getEnableNewIntersectionObserver() && mIntersectionObserverManager != null) {
       LynxIntersectionObserverManager intersectionObserverManager =
           mIntersectionObserverManager.get();
       if (intersectionObserverManager != null) {
@@ -1009,7 +1042,7 @@ public abstract class LynxContext extends LynxBaseContext implements ExceptionHa
     if (mExposure != null) {
       mExposure.onRootViewDraw(canvas);
     }
-    if (mEnableNewIntersectionObserver && mIntersectionObserverManager != null) {
+    if (getEnableNewIntersectionObserver() && mIntersectionObserverManager != null) {
       LynxIntersectionObserverManager intersectionObserverManager =
           mIntersectionObserverManager.get();
       if (intersectionObserverManager != null) {
@@ -1026,31 +1059,72 @@ public abstract class LynxContext extends LynxBaseContext implements ExceptionHa
   }
 
   public boolean getEnableFlattenTranslateZ() {
-    return mEnableFlattenTranslateZ;
+    if (null != mPageConfig) {
+      return mPageConfig.getEnableFlattenTranslateZ();
+    }
+    return false;
   }
 
   public boolean enableEventThrough() {
-    return mEnableEventThrough;
+    if (null != mPageConfig) {
+      return mPageConfig.enableEventThrough();
+    }
+    return false;
   }
 
   public boolean getEnableNewIntersectionObserver() {
-    return mEnableNewIntersectionObserver;
+    if (null != mPageConfig) {
+      return mPageConfig.getEnableNewIntersectionObserver();
+    }
+    return false;
+  }
+
+  /**
+   * @brief switch for enable CreateViewAsync
+   */
+  public boolean getEnableCreateViewAsync() {
+    if (null != mPageConfig) {
+      return mPageConfig.getEnableCreateViewAsync();
+    }
+    return false;
+  }
+
+  /**
+   * @brief switch for is using new swiper
+   */
+  public boolean isUseNewSwiper() {
+    if (null != mPageConfig) {
+      return mPageConfig.isUseNewSwiper();
+    }
+    return false;
   }
 
   public int getObserverFrameRate() {
-    return mObserverFrameRate;
+    if (null != mPageConfig) {
+      return mPageConfig.getObserverFrameRate();
+    }
+    return 20;
   }
 
   public boolean getEnableExposureUIMargin() {
-    return mEnableExposureUIMargin;
+    if (null != mPageConfig) {
+      return mPageConfig.getEnableExposureUIMargin();
+    }
+    return false;
   }
 
   public int getLongPressDuration() {
-    return mLongPressDuration;
+    if (null != mPageConfig) {
+      return mPageConfig.getLongPressDuration();
+    }
+    return -1;
   }
 
   public int getMapContainerType() {
-    return mMapContainerType;
+    if (null != mPageConfig) {
+      return mPageConfig.getMapContainerType();
+    }
+    return 0;
   }
 
   public LynxAccessibilityWrapper getLynxAccessibilityWrapper() {

@@ -595,7 +595,7 @@ public class LynxTemplateRender implements ILynxEngine, ILynxErrorReceiver {
    * Get template's version. Should be called after loadTemplate, return empty string otherwise.
    */
   public String getPageVersion() {
-    return mNativeFacade == null ? "" : mNativeFacade.getPageVersion();
+    return mLynxContext == null ? "" : mLynxContext.getPageVersion();
   }
 
   public void pauseRootLayoutAnimation() {
@@ -645,8 +645,8 @@ public class LynxTemplateRender implements ILynxEngine, ILynxErrorReceiver {
     mGroup = mLynxRuntimeOptions.getLynxGroup();
     mLoader = new LynxResourceLoader(null, mLynxViewBuilder.fetcher, this,
         mLynxContext.getTemplateResourceFetcher(), mLynxContext.getGenericResourceFetcher());
-    mNativeFacade =
-        new NativeFacade(mLynxViewBuilder.enableAutoExpose, mLynxViewBuilder.enableJSRuntime());
+    mLynxContext.setEnableAutoExpose(mLynxViewBuilder.enableAutoExpose);
+    mNativeFacade = new NativeFacade(mLynxViewBuilder.enableJSRuntime());
     mNativeFacadeReporter = new NativeFacadeReporter();
     DisplayMetrics screenMetrics = mLynxContext.getScreenMetrics();
     long runtimeWrapperPtr = (mRuntime == null) ? 0 : mRuntime.getNativePtr();
@@ -1760,8 +1760,7 @@ public class LynxTemplateRender implements ILynxEngine, ILynxErrorReceiver {
   }
 
   private boolean isVsyncAlignedFlushPageConfigEnabled() {
-    return mNativeFacade != null && mNativeFacade.getPageConfig() != null
-        && mNativeFacade.getPageConfig().getEnableVsyncAlignedFlush();
+    return mLynxContext != null && mLynxContext.getEnableVsyncAlignedFlush();
   }
 
   private boolean isThreadStrategySupportVsyncAlignedFlush() {
@@ -1912,8 +1911,8 @@ public class LynxTemplateRender implements ILynxEngine, ILynxErrorReceiver {
       return;
     }
     error.setTemplateUrl(mUrl);
-    if (mNativeFacade != null) {
-      error.setCardVersion(mNativeFacade.getPageVersion());
+    if (mLynxContext != null) {
+      error.setCardVersion(mLynxContext.getPageVersion());
     }
     // show message in logbox
     showErrorMessage(error);
@@ -3244,7 +3243,7 @@ public class LynxTemplateRender implements ILynxEngine, ILynxErrorReceiver {
   }
 
   private boolean getAutoExpose() {
-    return mNativeFacade == null ? false : mNativeFacade.getAutoExpose();
+    return mLynxContext != null && mLynxContext.getAutoExpose();
   }
 
   private String getGroupID() {
