@@ -26,7 +26,6 @@
 #include "core/shared_data/lynx_white_board.h"
 #include "core/shell/lynx_runtime_actor_holder.h"
 #include "core/template_bundle/template_codec/ttml_constant.h"
-#include "core/value_wrapper/value_impl_piper.h"
 
 #if ENABLE_NAPI_BINDING
 #include "core/runtime/bindings/napi/napi_environment.h"
@@ -528,26 +527,6 @@ void LynxRuntime::CallFunction(const std::string& module_id,
     }
   }
 #endif
-  auto native_context_proxy =
-      app_->GetContextProxy(runtime::ContextProxy::Type::kNativeContext);
-  if (native_context_proxy != nullptr &&
-      native_context_proxy->HasEventListener(kMessageEventTypeGlobalEvent) &&
-      module_id == "GlobalEventEmitter" && method_id == "emit") {
-    auto js_runtime = GetJSRuntime();
-    MessageEvent jsContextEvent(
-        kMessageEventTypeGlobalEvent, ContextProxy::Type::kNativeContext,
-        ContextProxy::Type::kJSContext,
-        std::make_unique<pub::ValueImplPiper>(
-            *js_runtime, piper::Value(*js_runtime, arguments)));
-    native_context_proxy->DispatchEvent(jsContextEvent);
-    MessageEvent coreContextEvent(
-        kMessageEventTypeGlobalEvent, ContextProxy::Type::kNativeContext,
-        ContextProxy::Type::kCoreContext,
-        std::make_unique<pub::ValueImplLepus>(*app_->ParseJSValueToLepusValue(
-            piper::Value(*js_runtime, arguments), PAGE_GROUP_ID)));
-    native_context_proxy->DispatchEvent(coreContextEvent);
-    return;
-  }
   app_->CallFunction(module_id, method_id, std::move(arguments),
                      force_call_despite_app_state);
 }
@@ -923,8 +902,7 @@ void LynxRuntime::OnGlobalPropsUpdated(const lepus::Value& props) {
     runtime::MessageEvent event(
         runtime::kMessageEventTypeNotifyGlobalPropsUpdated,
         runtime::ContextProxy::Type::kCoreContext,
-        runtime::ContextProxy::Type::kJSContext,
-        std::make_unique<pub::ValueImplLepus>(props));
+        runtime::ContextProxy::Type::kJSContext, props);
     OnReceiveMessageEvent(std::move(event));
   }
 }
@@ -944,13 +922,13 @@ bool LynxRuntime::OnReceiveMessageEventForSSR(
     const runtime::MessageEvent& event) {
   // TODO(liyanbo.monster): refactor state and this.
   // SSR state is different.
-  auto args = pub::ValueUtils::ConvertValueToLepusValue(*event.message());
   if (event.type() == kMessageEventTypeOnSsrScriptReady) {
-    TryLoadSsrScript(args.StdString());
+    TryLoadSsrScript(event.message().StdString());
     return true;
   }
   if (state_ == State::kSsrRuntimeReady &&
       event.type() == kMessageEventTypeSendGlobalEvent) {
+    auto args = event.message();
     if (args.IsArray() && args.Array()->size() == 2) {
       auto args_array = args.Array();
       const auto& name = args_array->get(0).StdString();

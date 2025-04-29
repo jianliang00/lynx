@@ -182,11 +182,10 @@ void LayoutMediator::OnLayoutAfter(
   options.updated_list_elements_.clear();
   if (is_first_layout) {
     runtime_actor_->ActAsync([](auto &runtime) {
-      runtime::MessageEvent event(
-          runtime::kMessageEventTypeOnAppFirstScreen,
-          runtime::ContextProxy::Type::kCoreContext,
-          runtime::ContextProxy::Type::kJSContext,
-          std::make_unique<pub::ValueImplLepus>(lepus::Value()));
+      runtime::MessageEvent event(runtime::kMessageEventTypeOnAppFirstScreen,
+                                  runtime::ContextProxy::Type::kCoreContext,
+                                  runtime::ContextProxy::Type::kJSContext,
+                                  lepus::Value());
       runtime->OnReceiveMessageEvent(std::move(event));
     });
   }

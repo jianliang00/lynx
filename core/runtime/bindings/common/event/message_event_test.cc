@@ -7,16 +7,15 @@
 #include <memory>
 
 #include "core/runtime/bindings/common/event/context_proxy.h"
-#include "core/value_wrapper/value_impl_lepus.h"
 
 namespace lynx {
 namespace runtime {
 namespace test {
 
 TEST_F(MessageEventTest, TestMessageEventTest0) {
-  auto event = std::make_unique<MessageEvent>(
-      ContextProxy::Type::kCoreContext, ContextProxy::Type::kJSContext,
-      std::make_unique<pub::ValueImplLepus>(lepus::Value()));
+  auto event = std::make_unique<MessageEvent>(ContextProxy::Type::kCoreContext,
+                                              ContextProxy::Type::kJSContext,
+                                              lepus::Value());
 
   EXPECT_EQ(event->GetTargetType(), ContextProxy::Type::kJSContext);
   EXPECT_EQ(event->GetOriginType(), ContextProxy::Type::kCoreContext);

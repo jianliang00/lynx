@@ -313,8 +313,7 @@ void TasmMediator::OnJSAppReload(
 void TasmMediator::OnLifecycleEvent(const lepus::Value& args) {
   runtime::MessageEvent event(runtime::kMessageEventTypeOnLifecycleEvent,
                               runtime::ContextProxy::Type::kCoreContext,
-                              runtime::ContextProxy::Type::kJSContext,
-                              std::make_unique<pub::ValueImplLepus>(args));
+                              runtime::ContextProxy::Type::kJSContext, args);
   DispatchMessageEvent(std::move(event));
 }
 

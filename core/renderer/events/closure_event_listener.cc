@@ -8,7 +8,6 @@
 
 #include "core/runtime/bindings/common/event/message_event.h"
 #include "core/runtime/bindings/common/event/runtime_constants.h"
-#include "core/value_wrapper/value_wrapper_utils.h"
 
 namespace lynx {
 namespace event {
@@ -21,8 +20,7 @@ void ClosureEventListener::Invoke(event::Event* event) {
   if (event->event_type() == event::Event::EventType::kMessageEvent) {
     runtime::MessageEvent* message_event =
         static_cast<runtime::MessageEvent*>(event);
-    closure_(
-        pub::ValueUtils::ConvertValueToLepusValue(*message_event->message()));
+    closure_(message_event->message());
   }
 }
 

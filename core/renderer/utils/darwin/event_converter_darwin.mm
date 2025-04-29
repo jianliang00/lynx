@@ -7,8 +7,6 @@
 #import "LynxTemplateData+Converter.h"
 #include "core/renderer/dom/ios/lepus_value_converter.h"
 #include "core/renderer/utils/base/tasm_constants.h"
-#include "core/value_wrapper/value_impl_lepus.h"
-#include "core/value_wrapper/value_wrapper_utils.h"
 
 namespace lynx {
 namespace tasm {
@@ -27,9 +25,7 @@ NSDictionary* EventConverterDarwin::ConverMessageEventToNSDictionary(
   [dict setObject:[NSString stringWithUTF8String:event.GetOriginString().c_str()]
            forKey:[NSString stringWithUTF8String:kOrigin]];
 
-  [dict setObject:convertLepusValueToNSObject(
-                      pub::ValueUtils::ConvertValueToLepusValue(*event.message()))
-                      ?: [NSNull null]
+  [dict setObject:convertLepusValueToNSObject(event.message()) ?: [NSNull null]
            forKey:[NSString stringWithUTF8String:kData]];
   return dict;
 }
@@ -45,8 +41,7 @@ runtime::MessageEvent EventConverterDarwin::ConvertNSDictionaryToMessageEvent(NS
   auto origin = runtime::ContextProxy::ConvertStringToContextType(
       event.GetProperty(BASE_STATIC_STRING(kOrigin)).StdString());
   auto data = event.GetProperty(BASE_STATIC_STRING(kData));
-  return runtime::MessageEvent(type, time_stamp, origin, target,
-                               std::make_unique<pub::ValueImplLepus>(std::move(data)));
+  return runtime::MessageEvent(type, time_stamp, origin, target, data);
 }
 
 }  // namespace darwin

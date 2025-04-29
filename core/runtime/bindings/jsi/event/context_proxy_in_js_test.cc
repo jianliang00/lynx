@@ -15,8 +15,8 @@ namespace test {
 event::DispatchEventResult JSRuntimeTestMockDelegate::DispatchMessageEvent(
     runtime::MessageEvent event) {
   ss_ << "target: " << event.GetTargetString()
-      << ", origin: " << event.GetOriginString() << ", message: "
-      << pub::ValueUtils::ConvertValueToLepusValue(*event.message_);
+      << ", origin: " << event.GetOriginString()
+      << ", message: " << event.message_;
   return event::DispatchEventResult::kNotCanceled;
 }
 

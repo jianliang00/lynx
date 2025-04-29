@@ -6,7 +6,6 @@
 
 #include "core/runtime/bindings/common/event/message_event.h"
 #include "core/runtime/bindings/common/event/runtime_constants.h"
-#include "core/value_wrapper/value_wrapper_utils.h"
 
 namespace lynx {
 namespace tasm {
@@ -42,9 +41,8 @@ lepus::Value LepusClosureEventListener::ConvertEventToLepusValue(
         static_cast<runtime::MessageEvent*>(event);
     value.SetProperty(BASE_STATIC_STRING(runtime::kType),
                       lepus::Value(message_event->type()));
-    value.SetProperty(
-        BASE_STATIC_STRING(runtime::kData),
-        pub::ValueUtils::ConvertValueToLepusValue(*message_event->message()));
+    value.SetProperty(BASE_STATIC_STRING(runtime::kData),
+                      message_event->message());
     value.SetProperty(BASE_STATIC_STRING(runtime::kOrigin),
                       lepus::Value(message_event->GetOriginString()));
   }

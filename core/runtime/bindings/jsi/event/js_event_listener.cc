@@ -10,7 +10,6 @@
 #include "core/runtime/bindings/common/event/runtime_constants.h"
 #include "core/runtime/common/utils.h"
 #include "core/services/long_task_timing/long_task_monitor.h"
-#include "core/value_wrapper/value_wrapper_utils.h"
 
 namespace lynx {
 namespace piper {
@@ -95,8 +94,8 @@ piper::Value JSClosureEventListener::ConvertEventToPiperValue(
     obj.setProperty(*rt, runtime::kType,
                     piper::String::createFromUtf8(*rt, message_event->type()));
     obj.setProperty(*rt, runtime::kData,
-                    pub::ValueUtils::ConvertValueToPiperValue(
-                        *rt, *message_event->message()));
+                    *valueFromLepus(*rt, message_event->message(),
+                                    app->jsi_object_wrapper_manager().get()));
     obj.setProperty(
         *rt, runtime::kOrigin,
         piper::String::createFromUtf8(*rt, message_event->GetOriginString()));

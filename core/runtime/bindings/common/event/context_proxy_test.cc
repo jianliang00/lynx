@@ -10,7 +10,6 @@
 #include "core/event/event_listener_test.h"
 #include "core/runtime/bindings/common/event/context_proxy.h"
 #include "core/runtime/bindings/common/event/message_event.h"
-#include "core/value_wrapper/value_wrapper_utils.h"
 
 namespace lynx {
 namespace runtime {
@@ -68,9 +67,7 @@ TEST_F(ContextProxyTest, TestContextProxyTest0) {
 
   context_proxy->PostMessage(lepus::Value());
   EXPECT_EQ(delegate_.event_vec_.size(), 1);
-  EXPECT_TRUE(pub::ValueUtils::ConvertValueToLepusValue(
-                  *delegate_.event_vec_[0].message())
-                  .IsEmpty());
+  EXPECT_TRUE(delegate_.event_vec_[0].message().IsEmpty());
 }
 
 TEST_F(ContextProxyTest, TestContextProxyTest1) {

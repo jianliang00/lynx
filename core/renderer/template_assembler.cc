@@ -2234,11 +2234,10 @@ void TemplateAssembler::SendGlobalEvent(const std::string& name,
   args->emplace_back(name);
   // info be ShallowCopy first to avoid to be marked const.
   args->emplace_back(lepus_value::ShallowCopy(info));
-  runtime::MessageEvent event(
-      runtime::kMessageEventTypeSendGlobalEvent,
-      runtime::ContextProxy::Type::kCoreContext,
-      runtime::ContextProxy::Type::kJSContext,
-      std::make_unique<pub::ValueImplLepus>(lepus::Value(std::move(args))));
+  runtime::MessageEvent event(runtime::kMessageEventTypeSendGlobalEvent,
+                              runtime::ContextProxy::Type::kCoreContext,
+                              runtime::ContextProxy::Type::kJSContext,
+                              lepus::Value(std::move(args)));
   delegate_.DispatchMessageEvent(std::move(event));
 }
 
@@ -2468,8 +2467,7 @@ void TemplateAssembler::OnDynamicJSSourcePrepared(
   runtime::MessageEvent event(
       runtime::kMessageEventTypeOnDynamicJSSourcePrepared,
       runtime::ContextProxy::Type::kCoreContext,
-      runtime::ContextProxy::Type::kJSContext,
-      std::make_unique<pub::ValueImplLepus>(lepus::Value(component_url)));
+      runtime::ContextProxy::Type::kJSContext, lepus::Value(component_url));
   delegate_.DispatchMessageEvent(std::move(event));
 }
 
@@ -2480,11 +2478,10 @@ void TemplateAssembler::OnBTSConsoleEvent(const std::string& func_name,
   BASE_STATIC_STRING_DECL(kParams, "params");
   params->SetValue(kFuncName, func_name);
   params->SetValue(kParams, args);
-  runtime::MessageEvent event(
-      runtime::kMessageEventTypeOnBTSConsoleEvent,
-      runtime::ContextProxy::Type::kCoreContext,
-      runtime::ContextProxy::Type::kJSContext,
-      std::make_unique<pub::ValueImplLepus>(lepus::Value(std::move(params))));
+  runtime::MessageEvent event(runtime::kMessageEventTypeOnBTSConsoleEvent,
+                              runtime::ContextProxy::Type::kCoreContext,
+                              runtime::ContextProxy::Type::kJSContext,
+                              lepus::Value(std::move(params)));
   delegate_.DispatchMessageEvent(std::move(event));
   // Post msg to devtool when using LynxAir, which doesn't have js runtime.
   if (lepus_observer_ != nullptr) {
@@ -3133,11 +3130,10 @@ lepus::Value TemplateAssembler::GetCustomSection(const std::string& key) {
 }
 
 void TemplateAssembler::OnNativeAppReady() {
-  runtime::MessageEvent event(
-      runtime::kMessageEventTypeOnNativeAppReady,
-      runtime::ContextProxy::Type::kCoreContext,
-      runtime::ContextProxy::Type::kJSContext,
-      std::make_unique<pub::ValueImplLepus>(lepus::Value()));
+  runtime::MessageEvent event(runtime::kMessageEventTypeOnNativeAppReady,
+                              runtime::ContextProxy::Type::kCoreContext,
+                              runtime::ContextProxy::Type::kJSContext,
+                              lepus::Value());
   delegate_.DispatchMessageEvent(std::move(event));
 }
 

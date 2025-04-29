@@ -478,8 +478,7 @@ void TouchEventHandler::CallJSFunctionInLepusEvent(
   runtime::MessageEvent event(
       runtime::kMessageEventTypeCallJSFunctionInLepusEvent,
       runtime::ContextProxy::Type::kCoreContext,
-      runtime::ContextProxy::Type::kJSContext,
-      std::make_unique<pub::ValueImplLepus>(lepus::Value(std::move(args))));
+      runtime::ContextProxy::Type::kJSContext, lepus::Value(std::move(args)));
   context_proxy_delegate_.DispatchMessageEvent(std::move(event));
 #endif
 }
@@ -1172,11 +1171,10 @@ void TouchEventHandler::SendPageEvent(const EventType &type,
   args->emplace_back(handler);
   // info be ShallowCopy first to avoid to be marked const.
   args->emplace_back(lepus_value::ShallowCopy(info));
-  runtime::MessageEvent event(
-      runtime::kMessageEventTypeSendPageEvent,
-      runtime::ContextProxy::Type::kCoreContext,
-      runtime::ContextProxy::Type::kJSContext,
-      std::make_unique<pub::ValueImplLepus>(lepus::Value(std::move(args))));
+  runtime::MessageEvent event(runtime::kMessageEventTypeSendPageEvent,
+                              runtime::ContextProxy::Type::kCoreContext,
+                              runtime::ContextProxy::Type::kJSContext,
+                              lepus::Value(std::move(args)));
   context_proxy_delegate_.DispatchMessageEvent(std::move(event));
   if (type != EventType::kComponent) {
     constexpr const static char *kPrefix = "Page";
@@ -1199,11 +1197,10 @@ void TouchEventHandler::PublishComponentEvent(const EventType &type,
   args->emplace_back(handler);
   // info be ShallowCopy first to avoid to be marked const.
   args->emplace_back(lepus_value::ShallowCopy(info));
-  runtime::MessageEvent event(
-      runtime::kMessageEventTypePublishComponentEvent,
-      runtime::ContextProxy::Type::kCoreContext,
-      runtime::ContextProxy::Type::kJSContext,
-      std::make_unique<pub::ValueImplLepus>(lepus::Value(std::move(args))));
+  runtime::MessageEvent event(runtime::kMessageEventTypePublishComponentEvent,
+                              runtime::ContextProxy::Type::kCoreContext,
+                              runtime::ContextProxy::Type::kJSContext,
+                              lepus::Value(std::move(args)));
   context_proxy_delegate_.DispatchMessageEvent(std::move(event));
   if (type != EventType::kComponent) {
     constexpr const static char *kPrefix = "Component";
@@ -1221,11 +1218,10 @@ void TouchEventHandler::SendGlobalEvent(const EventType &type,
   args->emplace_back(name);
   // info be ShallowCopy first to avoid to be marked const.
   args->emplace_back(lepus_value::ShallowCopy(info));
-  runtime::MessageEvent event(
-      runtime::kMessageEventTypeSendGlobalEvent,
-      runtime::ContextProxy::Type::kCoreContext,
-      runtime::ContextProxy::Type::kJSContext,
-      std::make_unique<pub::ValueImplLepus>(lepus::Value(std::move(args))));
+  runtime::MessageEvent event(runtime::kMessageEventTypeSendGlobalEvent,
+                              runtime::ContextProxy::Type::kCoreContext,
+                              runtime::ContextProxy::Type::kJSContext,
+                              lepus::Value(std::move(args)));
   context_proxy_delegate_.DispatchMessageEvent(std::move(event));
   if (type != EventType::kComponent) {
     constexpr const static char *kPrefix = "Global";

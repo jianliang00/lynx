@@ -10,7 +10,6 @@
 #include "core/event/event_listener.h"
 #include "core/runtime/bindings/common/event/context_proxy.h"
 #include "core/runtime/bindings/common/event/message_event.h"
-#include "core/value_wrapper/value_impl_lepus.h"
 #include "third_party/googletest/googlemock/include/gmock/gmock.h"
 #include "third_party/googletest/googletest/include/gtest/gtest.h"
 
@@ -25,20 +24,18 @@ TEST(ClosureEventListenerTest, Invoke) {
     EXPECT_TRUE(args.String().IsEqual("foo"));
     called = true;
   });
-  runtime::MessageEvent event(
-      runtime::ContextProxy::Type::kCoreContext,
-      runtime::ContextProxy::Type::kJSContext,
-      std::make_unique<pub::ValueImplLepus>(lepus::Value("foo")));
+  runtime::MessageEvent event(runtime::ContextProxy::Type::kCoreContext,
+                              runtime::ContextProxy::Type::kJSContext,
+                              lepus::Value("foo"));
   listener.Invoke(&event);
   EXPECT_TRUE(called);
 }
 
 TEST(ClosureEventListenerTest, Matches) {
   ClosureEventListener listener([](lepus::Value args) {});
-  runtime::MessageEvent event(
-      runtime::ContextProxy::Type::kCoreContext,
-      runtime::ContextProxy::Type::kJSContext,
-      std::make_unique<pub::ValueImplLepus>(lepus::Value()));
+  runtime::MessageEvent event(runtime::ContextProxy::Type::kCoreContext,
+                              runtime::ContextProxy::Type::kJSContext,
+                              lepus::Value());
   EXPECT_TRUE(listener.Matches(&listener));
   ClosureEventListener listener2([](lepus::Value args) {});
   EXPECT_FALSE(listener.Matches(&listener2));

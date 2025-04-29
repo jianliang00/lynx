@@ -13,7 +13,6 @@
 #include "core/event/event_listener_test.h"
 #include "core/runtime/bindings/common/event/message_event.h"
 #include "core/runtime/bindings/jsi/event/js_event_listener.h"
-#include "core/value_wrapper/value_impl_lepus.h"
 #include "third_party/googletest/googletest/include/gtest/gtest.h"
 
 namespace lynx {
@@ -150,8 +149,7 @@ TEST_P(JSClosureEventListenerTest,
        JSClosureEventListenerConvertEventToPiperValue) {
   auto message_event = std::make_unique<runtime::MessageEvent>(
       runtime::ContextProxy::Type::kCoreContext,
-      runtime::ContextProxy::Type::kJSContext,
-      std::make_unique<pub::ValueImplLepus>(lepus::Value("1")));
+      runtime::ContextProxy::Type::kJSContext, lepus::Value("1"));
 
   auto js_function = function(R"--(
 function onEvent(e) {

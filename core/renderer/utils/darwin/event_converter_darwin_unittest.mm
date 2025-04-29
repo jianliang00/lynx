@@ -27,8 +27,7 @@ using namespace lynx;
 
 - (void)testConvertFunctions {
   runtime::MessageEvent event("xxx", 1, runtime::ContextProxy::Type::kJSContext,
-                              runtime::ContextProxy::Type::kDevTool,
-                              std::make_unique<pub::ValueImplLepus>(lepus::Value("zzz")));
+                              runtime::ContextProxy::Type::kDevTool, lepus::Value("zzz"));
 
   auto dict = tasm::darwin::EventConverterDarwin::ConverMessageEventToNSDictionary(event);
   auto result = tasm::darwin::EventConverterDarwin::ConvertNSDictionaryToMessageEvent(dict);
@@ -51,8 +50,7 @@ using namespace lynx;
 
 - (void)testConvertFunctions0 {
   runtime::MessageEvent event("", 1, runtime::ContextProxy::Type::kJSContext,
-                              runtime::ContextProxy::Type::kDevTool,
-                              std::make_unique<pub::ValueImplLepus>(lepus::Value()));
+                              runtime::ContextProxy::Type::kDevTool, lepus::Value());
 
   auto dict = tasm::darwin::EventConverterDarwin::ConverMessageEventToNSDictionary(event);
   auto result = tasm::darwin::EventConverterDarwin::ConvertNSDictionaryToMessageEvent(dict);

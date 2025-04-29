@@ -4,14 +4,10 @@
 
 #include "core/renderer/utils/android/event_converter_android.h"
 
-#include <memory>
-
 #include "core/base/android/jni_helper.h"
 #include "core/renderer/utils/android/value_converter_android.h"
 #include "core/renderer/utils/base/tasm_constants.h"
 #include "core/runtime/bindings/common/event/context_proxy.h"
-#include "core/value_wrapper/value_impl_lepus.h"
-#include "core/value_wrapper/value_wrapper_utils.h"
 
 namespace lynx {
 namespace tasm {
@@ -25,9 +21,8 @@ EventConverterAndroid::ConvertMessageEventToJavaOnlyMap(
   jni_map.PushInt64(kTimestamp, event.time_stamp());
   jni_map.PushString(kTarget, event.GetTargetString());
   jni_map.PushString(kOrigin, event.GetOriginString());
-  ValueConverterAndroid::PushKeyAndValueToJavaOnlyMap(
-      jni_map, kData,
-      pub::ValueUtils::ConvertValueToLepusValue(*event.message()));
+  ValueConverterAndroid::PushKeyAndValueToJavaOnlyMap(jni_map, kData,
+                                                      event.message());
   return jni_map;
 }
 
@@ -42,8 +37,7 @@ runtime::MessageEvent EventConverterAndroid::ConvertJavaOnlyMapToMessageEvent(
   auto origin = runtime::ContextProxy::ConvertStringToContextType(
       event.GetProperty(BASE_STATIC_STRING(kOrigin)).StdString());
   auto data = event.GetProperty(BASE_STATIC_STRING(kData));
-  return runtime::MessageEvent(type, time_stamp, origin, target,
-                               std::make_unique<pub::ValueImplLepus>(data));
+  return runtime::MessageEvent(type, time_stamp, origin, target, data);
 }
 
 }  // namespace android

@@ -64,10 +64,6 @@ class EventTarget {
 
   EventListenerMap* GetEventListenerMap() { return event_listener_map_.get(); }
 
-  bool HasEventListener(const std::string& event_type) {
-    return event_listener_map_->Contains(event_type);
-  }
-
  protected:
   std::unique_ptr<EventListenerMap> event_listener_map_;
 };
