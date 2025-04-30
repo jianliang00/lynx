@@ -11,5 +11,11 @@ NS_ASSUME_NONNULL_BEGIN
 
 - (void)consumeInternalGesture:(BOOL)consume;
 
+/**
+ * @breif Dynamically intercepting native gestures
+ * @param intercept true: intercept native gesture, false: not intercept native gesture
+ */
+- (void)interceptGesture:(BOOL)intercept;
+
 @end
 NS_ASSUME_NONNULL_END
