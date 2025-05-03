@@ -11,6 +11,7 @@ import android.view.MotionEvent;
 import androidx.annotation.NonNull;
 import androidx.annotation.Nullable;
 import com.lynx.devtoolwrapper.ScreenshotBitmapHandler;
+import com.lynx.tasm.LynxBooleanOption;
 import com.lynx.tasm.LynxGroup;
 import com.lynx.tasm.LynxView;
 import com.lynx.tasm.NativeFacade;
@@ -29,8 +30,8 @@ import com.lynx.tasm.performance.TimingCollector;
 public interface ILynxUIRenderer {
   public void onInitLynxView(LynxView lynxView, Context context, LynxGroup group);
 
-  public void onInitLynxTemplateRender(
-      LynxContext context, BehaviorRegistry behaviorRegistry, @Nullable UIBodyView body);
+  public void onInitLynxTemplateRender(LynxContext context, BehaviorRegistry behaviorRegistry,
+      @Nullable UIBodyView body, @Nullable LynxBooleanOption longTaskMonitorEnabled);
 
   public void onCreateTemplateRenderer(LynxContext context, TimingCollector timingCollector,
       LynxPageLoadListener pageLoadListener, ThreadStrategyForRendering threadStrategy,

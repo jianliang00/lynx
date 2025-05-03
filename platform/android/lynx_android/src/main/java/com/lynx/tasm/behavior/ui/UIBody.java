@@ -15,6 +15,7 @@ import android.widget.FrameLayout;
 import androidx.annotation.NonNull;
 import androidx.annotation.Nullable;
 import androidx.annotation.RestrictTo;
+import com.lynx.tasm.LynxBooleanOption;
 import com.lynx.tasm.PageConfig;
 import com.lynx.tasm.base.TraceEvent;
 import com.lynx.tasm.base.trace.TraceEventDef;
@@ -199,9 +200,8 @@ public class UIBody extends UIGroup<UIBodyView> {
     protected void dispatchDraw(final Canvas canvas) {
       TraceEvent.beginSection(TraceEventDef.LYNX_TEMPLATE_RENDER_DRAW);
       boolean needLongTaskMonitor = false;
-      TimingCollector timingCollector = mTimingCollector.get();
-      LynxLongTaskMonitor.willProcessTask("LynxTemplateRender.Draw", mInstanceId);
-      needLongTaskMonitor = true;
+      needLongTaskMonitor = LynxLongTaskMonitor.willProcessTask(
+          "LynxTemplateRender.Draw", mInstanceId, getLongTaskMonitorEnabled());
       if (mDrawChildHook != null) {
         mDrawChildHook.beforeDispatchDraw(canvas);
       }
@@ -216,6 +216,8 @@ public class UIBody extends UIGroup<UIBodyView> {
         mMeaningfulPaintTiming = System.currentTimeMillis();
         mHasMeaningfulPaint = true;
       }
+
+      TimingCollector timingCollector = mTimingCollector.get();
       if (timingCollector != null) {
         timingCollector.markDrawEndTimingIfNeeded();
       }
@@ -326,6 +328,16 @@ public class UIBody extends UIGroup<UIBodyView> {
     @RestrictTo(RestrictTo.Scope.LIBRARY)
     public boolean HasPendingRequestLayout() {
       return mHasPendingRequestLayout;
+    }
+
+    @RestrictTo(RestrictTo.Scope.LIBRARY)
+    public LynxBooleanOption getLongTaskMonitorEnabled() {
+      LynxBooleanOption longTaskEnabled = LynxBooleanOption.UNSET;
+      Context context = getContext();
+      if (context instanceof LynxContext) {
+        longTaskEnabled = ((LynxContext) context).getLongTaskMonitorEnabled();
+      }
+      return longTaskEnabled;
     }
 
     public boolean isAccessibilityDisabled() {

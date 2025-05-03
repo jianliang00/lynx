@@ -3,6 +3,7 @@
 // LICENSE file in the root directory of this source tree.
 
 package com.lynx.tasm.performance.longtasktiming;
+import com.lynx.tasm.LynxBooleanOption;
 import com.lynx.tasm.LynxEnv;
 import com.lynx.tasm.LynxEnvKey;
 
@@ -13,16 +14,20 @@ public class LynxLongTaskMonitor {
   private static volatile boolean sIsNativeLibraryLoaded = false;
   // Called when a task starts. This method does the following:
   //  1. Captures the start timestamp and assigns it to LynxLongTaskTiming
-  public static void willProcessTask(String name, int instanceId) {
-    willProcessTask(PLATFORM_FUNC_TASK, name, null, instanceId);
+  public static boolean willProcessTask(String name, int instanceId, LynxBooleanOption enabled) {
+    return willProcessTask(PLATFORM_FUNC_TASK, name, null, instanceId, enabled);
   }
   // Called when a task starts. This method does the following:
   //  1. Creates a LynxLongTaskTiming object and sets the task name and type
   //  2. Captures the start timestamp and assigns it to LynxLongTaskTiming
   //  3. Gets the name of the current thread and assigns it to LynxLongTaskTiming
-  public static void willProcessTask(String type, String name, String taskInfo, int instanceId) {
-    if (canExecute()) {
+  public static boolean willProcessTask(
+      String type, String name, String taskInfo, int instanceId, LynxBooleanOption enabled) {
+    if (enabled != LynxBooleanOption.FALSE && canExecute()) {
       nativeWillProcessTask(type, name, taskInfo, instanceId);
+      return true;
+    } else {
+      return false;
     }
   }
 

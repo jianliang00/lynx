@@ -159,7 +159,7 @@ public class LynxTemplateRender implements ILynxEngine, ILynxErrorReceiver {
   // for fontscale
   private float mFontScale = 1.0f;
   private boolean mAutoConcurrency;
-
+  private LynxBooleanOption mLongTaskMonitorEnabled = LynxBooleanOption.UNSET;
   private boolean mEnableUIFlush = true;
 
   private List<Map<String, Object>> componentsData;
@@ -480,9 +480,19 @@ public class LynxTemplateRender implements ILynxEngine, ILynxErrorReceiver {
     onTraceEventEnd(eventName);
   }
 
-  public void setFluencyTracerEnabled(LynxBooleanOption enabledBySampling) {
+  public void setFluencyTracerEnabled(LynxBooleanOption enabled) {
     if (mLynxContext != null) {
-      mLynxContext.getFluencyTraceHelper().setEnabledBySampling(enabledBySampling);
+      mLynxContext.getFluencyTraceHelper().setEnabledBySampling(enabled);
+    }
+  }
+
+  public void setLongTaskMonitorEnabled(LynxBooleanOption enabled) {
+    UIThreadUtils.assertOnUiThread();
+
+    mLongTaskMonitorEnabled = enabled;
+    if (mNativePtr != 0) {
+      nativeSetLongTaskMonitorDisabled(
+          mNativePtr, mNativeLifecycle, enabled == LynxBooleanOption.FALSE);
     }
   }
 
@@ -667,7 +677,8 @@ public class LynxTemplateRender implements ILynxEngine, ILynxErrorReceiver {
         mAutoConcurrency, enableVSyncAligned, mLynxViewBuilder.enableAsyncHydration,
         mGroup != null && mGroup.enableJSGroupThread(), getJSGroupThreadNameIfNeed(),
         new TasmPlatformInvoker(mNativeFacade), whiteBoardPtr, lynxUIRenderer.getUIDelegatePtr(),
-        lynxUIRenderer.useInvokeUIMethod(), mForceLayoutOnBackgroundThread);
+        lynxUIRenderer.useInvokeUIMethod(), mLongTaskMonitorEnabled == LynxBooleanOption.FALSE,
+        mForceLayoutOnBackgroundThread);
     lynxUIRenderer.attachNativeFacade(mNativeFacade);
     mNativeLifecycle = nativeLifecycleCreate();
     mCleanupReference = new CleanupReference(this, new CleanupOnUiThread(mNativeLifecycle), true);
@@ -798,7 +809,7 @@ public class LynxTemplateRender implements ILynxEngine, ILynxErrorReceiver {
 
     ILynxUIRenderer lynxUIRenderer = lynxUIRenderer();
     lynxUIRenderer.onInitLynxTemplateRender(
-        mLynxContext, mLynxViewBuilder.behaviorRegistry, mLynxView);
+        mLynxContext, mLynxViewBuilder.behaviorRegistry, mLynxView, mLongTaskMonitorEnabled);
     if (LynxEnv.inst().isLynxDebugEnabled()) {
       if (mRuntime != null) {
         mDevTool = mRuntime.getDevtool();
@@ -1632,9 +1643,8 @@ public class LynxTemplateRender implements ILynxEngine, ILynxErrorReceiver {
     TraceEvent.beginSection(TraceEventDef.LYNX_TEMPLATE_RENDER_MEASURE);
     boolean needLongTaskMonitor = false;
     if (mLynxContext != null) {
-      LynxLongTaskMonitor.willProcessTask(
-          "LynxTemplateRender.Measure", mLynxContext.getInstanceId());
-      needLongTaskMonitor = true;
+      needLongTaskMonitor = LynxLongTaskMonitor.willProcessTask(
+          "LynxTemplateRender.Measure", mLynxContext.getInstanceId(), mLongTaskMonitorEnabled);
     }
     long startTime = 0;
     if (mFirstMeasureTime == -1) {
@@ -3375,7 +3385,7 @@ public class LynxTemplateRender implements ILynxEngine, ILynxErrorReceiver {
       boolean enablePreUpdateData, boolean enableAutoConcurrency,
       boolean enableVSyncAlignedMessageLoop, boolean enableAsyncHydration,
       boolean enableJSGroupThread, String jsGroupThreadName, Object tasmPlatformInvoker,
-      long whiteboard, long uiDelegate, boolean useInvokeUIMethod,
+      long whiteboard, long uiDelegate, boolean useInvokeUIMethod, boolean longTaskMonitorDisabled,
       boolean forceLayoutOnBackgroundThread);
 
   private static native void nativeDestroy(long ptr);
@@ -3538,6 +3548,8 @@ public class LynxTemplateRender implements ILynxEngine, ILynxErrorReceiver {
   private native JavaOnlyMap nativeGetAllTimingInfo(long ptr, long lifecycle);
 
   private native void nativeClearAllTimingInfo(long ptr, long lifecycle);
+
+  private native void nativeSetLongTaskMonitorDisabled(long ptr, long lifecycle, boolean disabled);
 
   private native void nativeSetSessionStorageItem(
       long ptr, long lifecycle, String key, long value, boolean readonly);

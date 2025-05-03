@@ -33,6 +33,7 @@ import com.lynx.config.LynxLiteConfigs;
 import com.lynx.devtoolwrapper.DevToolOverlayDelegate;
 import com.lynx.devtoolwrapper.ScreenshotBitmapHandler;
 import com.lynx.devtoolwrapper.ScreenshotMode;
+import com.lynx.tasm.LynxBooleanOption;
 import com.lynx.tasm.LynxEnv;
 import com.lynx.tasm.LynxGroup;
 import com.lynx.tasm.LynxView;
@@ -88,6 +89,7 @@ public class LynxUIRenderer implements ILynxUIRenderer {
   private TimingCollector mTimingCollector;
   private long mNativeUIDelegatePtr = 0;
   private String mScreenshotMode = ScreenshotMode.SCREEN_SHOT_MODE_FULL_SCREEN;
+  private LynxBooleanOption mLongTaskMonitorEnabled;
 
   // static synchronization object to ensure thread-safe operations of screenshot
   private static final Object mSyncObject = new Object();
@@ -104,8 +106,8 @@ public class LynxUIRenderer implements ILynxUIRenderer {
   public void onInitLynxView(LynxView lynxView, Context context, LynxGroup group) {}
 
   @Override
-  public void onInitLynxTemplateRender(
-      LynxContext lynxContext, BehaviorRegistry behaviorRegistry, @Nullable UIBodyView body) {
+  public void onInitLynxTemplateRender(LynxContext lynxContext, BehaviorRegistry behaviorRegistry,
+      @Nullable UIBodyView body, LynxBooleanOption longTaskMonitorEnabled) {
     // Prepare owner to manage ui and shadow node
     mLynxUIOwner = new LynxUIOwner(lynxContext, behaviorRegistry, body);
     if (body == null) {
@@ -117,6 +119,7 @@ public class LynxUIRenderer implements ILynxUIRenderer {
     lynxContext.setTouchEventDispatcher(mEventDispatcher);
 
     mLynxContext = new WeakReference<>(lynxContext);
+    mLongTaskMonitorEnabled = longTaskMonitorEnabled;
 
     // Check if the handler thread is required and start it if it hasn't been started already.
     // This is necessary for the devtool to take screenshot.
@@ -413,9 +416,14 @@ public class LynxUIRenderer implements ILynxUIRenderer {
     LynxContext lynxContext = (mLynxContext != null) ? mLynxContext.get() : null;
     if (lynxContext != null) {
       String eventName = "LynxTemplateRender.Layout";
-      LynxLongTaskMonitor.willProcessTask(eventName, lynxContext.getInstanceId());
+      boolean needLongTaskMonitor = LynxLongTaskMonitor.willProcessTask(
+          eventName, lynxContext.getInstanceId(), mLongTaskMonitorEnabled);
+
       mLynxUIOwner.performLayout();
-      LynxLongTaskMonitor.didProcessTask();
+
+      if (needLongTaskMonitor) {
+        LynxLongTaskMonitor.didProcessTask();
+      }
     } else {
       mLynxUIOwner.performLayout();
     }

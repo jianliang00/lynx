@@ -2175,7 +2175,7 @@ public interface com::lynx::tasm::service::ILynxTrailService {
 
 public interface com::lynx::tasm::behavior::ILynxUIRenderer {
   public void com.lynx.tasm.behavior.ILynxUIRenderer.onInitLynxView(LynxView lynxView, Context context, LynxGroup group);
-  public void com.lynx.tasm.behavior.ILynxUIRenderer.onInitLynxTemplateRender(LynxContext context, BehaviorRegistry behaviorRegistry, @Nullable UIBodyView body);
+  public void com.lynx.tasm.behavior.ILynxUIRenderer.onInitLynxTemplateRender(LynxContext context, BehaviorRegistry behaviorRegistry, @Nullable UIBodyView body, @Nullable LynxBooleanOption longTaskMonitorEnabled);
   public void com.lynx.tasm.behavior.ILynxUIRenderer.onCreateTemplateRenderer(LynxContext context, TimingCollector timingCollector, LynxPageLoadListener pageLoadListener, ThreadStrategyForRendering threadStrategy, BehaviorRegistry behaviorRegistry, LayoutTick layoutTick);
   public void com.lynx.tasm.behavior.ILynxUIRenderer.attachLynxView(LynxView lynxView, LynxContext lynxContext, Context context);
   public void com.lynx.tasm.behavior.ILynxUIRenderer.attachNativeFacade(NativeFacade nativeFacade);
@@ -3650,6 +3650,8 @@ public class abstract com::lynx::tasm::behavior::LynxContext : com.lynx.tasm.beh
   public com.lynx.tasm.behavior.LynxContext.LynxContext(Context base, DisplayMetrics screenMetrics);
   public void com.lynx.tasm.behavior.LynxContext.setEnableAsyncLoadImage(boolean b);
   public boolean com.lynx.tasm.behavior.LynxContext.isEnableAsyncLoadImage();
+  public LynxBooleanOption com.lynx.tasm.behavior.LynxContext.getLongTaskMonitorEnabled();
+  public void com.lynx.tasm.behavior.LynxContext.setLongTaskMonitorEnabled(LynxBooleanOption enabled);
   public void com.lynx.tasm.behavior.LynxContext.onPageConfigDecoded(PageConfig config);
   public void com.lynx.tasm.behavior.LynxContext.setEnableAutoExpose(boolean enableAutoExpose);
   public boolean com.lynx.tasm.behavior.LynxContext.getAutoExpose();
@@ -4758,8 +4760,8 @@ public enum com::lynx::tasm::LynxLoadOption {
 
 public class com::lynx::tasm::performance::longtasktiming::LynxLongTaskMonitor :  {
   public final String com.lynx.tasm.performance.longtasktiming.LynxLongTaskMonitor.PLATFORM_FUNC_TASK PLATFORM_FUNC_TASK;
-  public static void com.lynx.tasm.performance.longtasktiming.LynxLongTaskMonitor.willProcessTask(String name, int instanceId);
-  public static void com.lynx.tasm.performance.longtasktiming.LynxLongTaskMonitor.willProcessTask(String type, String name, String taskInfo, int instanceId);
+  public static boolean com.lynx.tasm.performance.longtasktiming.LynxLongTaskMonitor.willProcessTask(String name, int instanceId, LynxBooleanOption enabled);
+  public static boolean com.lynx.tasm.performance.longtasktiming.LynxLongTaskMonitor.willProcessTask(String type, String name, String taskInfo, int instanceId, LynxBooleanOption enabled);
   public static void com.lynx.tasm.performance.longtasktiming.LynxLongTaskMonitor.updateLongTaskTimingIfNeed(String type, String name, String taskInfo);
   public static void com.lynx.tasm.performance.longtasktiming.LynxLongTaskMonitor.didProcessTask();
 }
@@ -5394,7 +5396,8 @@ public class com::lynx::tasm::LynxTemplateRender : com.lynx.tasm.ILynxEngine, co
   public void com.lynx.tasm.LynxTemplateRender.removeLynxViewClient(LynxViewClient client);
   public void com.lynx.tasm.LynxTemplateRender.removeLynxViewClientV2(LynxViewClientV2 client);
   public void com.lynx.tasm.LynxTemplateRender.setExtraTiming(TimingHandler.ExtraTimingInfo extraTiming);
-  public void com.lynx.tasm.LynxTemplateRender.setFluencyTracerEnabled(LynxBooleanOption enabledBySampling);
+  public void com.lynx.tasm.LynxTemplateRender.setFluencyTracerEnabled(LynxBooleanOption enabled);
+  public void com.lynx.tasm.LynxTemplateRender.setLongTaskMonitorEnabled(LynxBooleanOption enabled);
   public void com.lynx.tasm.LynxTemplateRender.putExtraParamsForReportingEvents(final Map< String, Object > params);
   public HashMap< String, Object > com.lynx.tasm.LynxTemplateRender.getAllTimingInfo();
   public String com.lynx.tasm.LynxTemplateRender.getRenderPhase();
@@ -5798,7 +5801,7 @@ public class com::lynx::tasm::behavior::LynxUIOwner :  {
 public class com::lynx::tasm::behavior::LynxUIRenderer : com.lynx.tasm.behavior.ILynxUIRenderer {
   public static synchronized void com.lynx.tasm.behavior.LynxUIRenderer.startPixelCopyHandlerThreadIfNecessary();
   public void com.lynx.tasm.behavior.LynxUIRenderer.onInitLynxView(LynxView lynxView, Context context, LynxGroup group);
-  public void com.lynx.tasm.behavior.LynxUIRenderer.onInitLynxTemplateRender(LynxContext lynxContext, BehaviorRegistry behaviorRegistry, @Nullable UIBodyView body);
+  public void com.lynx.tasm.behavior.LynxUIRenderer.onInitLynxTemplateRender(LynxContext lynxContext, BehaviorRegistry behaviorRegistry, @Nullable UIBodyView body, LynxBooleanOption longTaskMonitorEnabled);
   public void com.lynx.tasm.behavior.LynxUIRenderer.attachLynxView(LynxView lynxView, LynxContext lynxContext, Context context);
   public void com.lynx.tasm.behavior.LynxUIRenderer.attachNativeFacade(NativeFacade nativeFacade);
   public void com.lynx.tasm.behavior.LynxUIRenderer.onCreateTemplateRenderer(LynxContext context, TimingCollector timingCollector, LynxPageLoadListener pageLoadListener, ThreadStrategyForRendering threadStrategy, BehaviorRegistry behaviorRegistry, LayoutTick layoutTick);
@@ -5874,6 +5877,7 @@ public class com::lynx::tasm::LynxView : com.lynx.tasm.behavior.ui.UIBody.UIBody
   public boolean com.lynx.tasm.LynxView.isAccessibilityDisabled();
   public LynxBaseInspectorOwner com.lynx.tasm.LynxView.getBaseInspectorOwner();
   public void com.lynx.tasm.LynxView.setExtraTiming(TimingHandler.ExtraTimingInfo extraTiming);
+  public void com.lynx.tasm.LynxView.setLongTaskMonitorEnabled(LynxBooleanOption enabled);
   public void com.lynx.tasm.LynxView.setFluencyTracerEnabled(LynxBooleanOption enabled);
   public void com.lynx.tasm.LynxView.putParamsForReportingEvents(final Map< String, Object > params);
   public String com.lynx.tasm.LynxView.getRenderPhase();
@@ -8629,6 +8633,7 @@ public class com::lynx::tasm::behavior::ui::UIBody::UIBodyView : FrameLayout, co
   public boolean com.lynx.tasm.behavior.ui.UIBody.UIBodyView.requestSendAccessibilityEvent(View child, android.view.accessibility.AccessibilityEvent event);
   public void com.lynx.tasm.behavior.ui.UIBody.UIBodyView.SetShouldInterceptRequestLayout(boolean intercept);
   public boolean com.lynx.tasm.behavior.ui.UIBody.UIBodyView.HasPendingRequestLayout();
+  public LynxBooleanOption com.lynx.tasm.behavior.ui.UIBody.UIBodyView.getLongTaskMonitorEnabled();
   public boolean com.lynx.tasm.behavior.ui.UIBody.UIBodyView.isAccessibilityDisabled();
   public boolean com.lynx.tasm.behavior.ui.UIBody.UIBodyView.isChildLynxPageUI();
   public void com.lynx.tasm.behavior.ui.UIBody.UIBodyView.setIsChildLynxPageUI(boolean isChildLynxPageUI);

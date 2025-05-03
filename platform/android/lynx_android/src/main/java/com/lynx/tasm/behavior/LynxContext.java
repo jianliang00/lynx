@@ -96,6 +96,8 @@ public abstract class LynxContext extends LynxBaseContext implements ExceptionHa
 
   private boolean mEnableImageResourceHint = false;
 
+  private LynxBooleanOption mLongTaskMonitorEnabled = LynxBooleanOption.UNSET;
+
   private HashMap<String, Object> mContextData;
 
   private boolean mInPreLoad;
@@ -158,6 +160,14 @@ public abstract class LynxContext extends LynxBaseContext implements ExceptionHa
 
   public boolean isEnableAsyncLoadImage() {
     return mEnableAsyncLoadImage != null && mEnableAsyncLoadImage;
+  }
+
+  public LynxBooleanOption getLongTaskMonitorEnabled() {
+    return mLongTaskMonitorEnabled;
+  }
+
+  public void setLongTaskMonitorEnabled(LynxBooleanOption enabled) {
+    mLongTaskMonitorEnabled = enabled;
   }
 
   public void onPageConfigDecoded(PageConfig config) {

@@ -190,7 +190,7 @@ jlong Create(JNIEnv* env, jclass jcaller, jlong timing_collector_android,
              jboolean enable_async_hydration, jboolean enable_js_group_thread,
              jstring js_group_thread_name, jobject tasm_platform_invoker,
              jlong white_board_ptr, jlong ui_delegate_ptr,
-             jboolean use_invoke_ui_method,
+             jboolean use_invoke_ui_method, jboolean long_task_monitor_disabled,
              jboolean force_layout_on_background_thread) {
   auto* ui_delegate =
       reinterpret_cast<lynx::tasm::UIDelegate*>(ui_delegate_ptr);
@@ -222,6 +222,10 @@ jlong Create(JNIEnv* env, jclass jcaller, jlong timing_collector_android,
       runtime_wrapper == nullptr
           ? -1  // {kUnknownInstanceId};
           : runtime_wrapper->GetRuntimeActor()->GetInstanceId();
+  shell_option.page_options_.SetInstanceID(shell_option.instance_id_);
+  shell_option.page_options_.SetLongTaskMonitorDisabled(
+      long_task_monitor_disabled);
+
   std::shared_ptr<lynx::tasm::WhiteBoard> white_board = nullptr;
   if (white_board_ptr != 0) {
     white_board = *reinterpret_cast<std::shared_ptr<lynx::tasm::WhiteBoard>*>(
@@ -1232,6 +1236,21 @@ void ClearAllTimingInfo(JNIEnv* env, jobject jcaller, jlong ptr,
   }
   auto* shell = reinterpret_cast<LynxShell*>(ptr);
   shell->ClearAllTimingInfo();
+  AtomicLifecycle::TryFree(lifecycle_ptr);
+}
+
+void SetLongTaskMonitorDisabled(JNIEnv* env, jobject jcaller, jlong ptr,
+                                jlong lifecycle, jboolean disabled) {
+  AtomicLifecycle* lifecycle_ptr =
+      reinterpret_cast<AtomicLifecycle*>(lifecycle);
+  if (!AtomicLifecycle::TryLock(lifecycle_ptr)) {
+    return;
+  }
+  auto* shell = reinterpret_cast<LynxShell*>(ptr);
+
+  auto options = shell->GetPageOptions();
+  options.SetLongTaskMonitorDisabled(disabled);
+  shell->SetPageOptions(options);
   AtomicLifecycle::TryFree(lifecycle_ptr);
 }
 
