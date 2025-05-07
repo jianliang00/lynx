@@ -26,12 +26,6 @@
     _enableAirStrictMode = [TestBenchURLAnalyzer getQueryBooleanParameter:baseURL
                                                                    forKey:@"enableAirStrict"
                                                              defaultValue:NO];
-
-    _enableSizeOptimization =
-        [TestBenchURLAnalyzer getQueryBooleanParameter:baseURL
-                                                forKey:@"enableSizeOptimization"
-                                          defaultValue:NO];
-
     _createWhenReload = [TestBenchURLAnalyzer getQueryBooleanParameter:baseURL
                                                                 forKey:@"createWhenReload"
                                                           defaultValue:NO];

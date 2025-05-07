@@ -151,8 +151,7 @@
   [_manager startWithUrl:_url
                   inView:self.view
               withOrigin:CGPointMake(0, 0)
-            replayConfig:[[TestBenchReplayConfig alloc] initWithProductUrl:_url]
-                  NavBar:self.navigationController.navigationBar.frame.size];
+            replayConfig:[[TestBenchReplayConfig alloc] initWithProductUrl:_url]];
 }
 
 - (void)viewWillDisappear:(BOOL)animated {
