@@ -3,8 +3,7 @@
 // LICENSE file in the root directory of this source tree.
 
 import type { IErrorState } from '@/models/errorReducer';
-import type { IErrorRecord } from '@/common/interface';
-import { LogLevels } from '@/common/interface';
+import type { IErrorRecord } from '@lynx-dev/logbox-types';
 import { ErrorContainer } from './error-container';
 import styles from './displayError.less';
 import React from 'react';
@@ -15,6 +14,14 @@ import { popErrorCache } from '@/models/errorReducer';
 import { add } from '@/models/errorEffects';
 import { useSelector, useDispatch } from 'react-redux';
 import { IViewsInfoState } from '@/models/viewsInfo';
+
+enum LogLevels {
+  Verbose = 'verbose',
+  Info = 'info',
+  Warning = 'warn',
+  Error = 'error',
+  Fatal = 'fatal',
+}
 
 export interface IDisplayErrorProps {
   error?: IErrorState;

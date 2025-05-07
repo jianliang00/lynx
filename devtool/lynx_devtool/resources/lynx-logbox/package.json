@@ -7,7 +7,7 @@
     "dist"
   ],
   "scripts": {
-    "build": "rsbuild build && ncp node_modules/source-map/lib/mappings.wasm dist",
+    "build": "rsbuild build && ncp node_modules/source-map/lib/mappings.wasm dist/mappings.wasm",
     "dev": "rsbuild dev"
   },
   "author": "Lynx Authors",
@@ -29,6 +29,7 @@
     "utf8": "^3.0.0"
   },
   "devDependencies": {
+    "@lynx-dev/logbox-types": "workspace:*",
     "@ant-design/icons": "^5.5.2",
     "@ant-design/pro-layout": "^5.0.12",
     "@babel/code-frame": "^7.12.11",
