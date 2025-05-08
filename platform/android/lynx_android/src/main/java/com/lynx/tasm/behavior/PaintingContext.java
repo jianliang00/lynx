@@ -685,7 +685,7 @@ public final class PaintingContext {
   @CalledByNative
   public void removeListItemNode(int listSign, int childSign) {
     String traceEvent = null;
-    if (TraceEvent.enableTrace()) {
+    if (TraceEvent.isTracingStarted()) {
       traceEvent = TraceEventDef.PAINTING_CONTEXT_REMOVE_LIST_ITEM + listSign + "_" + childSign;
       TraceEvent.beginSection(traceEvent);
     }
@@ -694,7 +694,7 @@ public final class PaintingContext {
     if (parent instanceof UIListContainer && child instanceof UIComponent) {
       ((UIListContainer) parent).removeView(child);
     }
-    if (TraceEvent.enableTrace()) {
+    if (TraceEvent.isTracingStarted()) {
       TraceEvent.endSection(traceEvent);
     }
   }
@@ -702,7 +702,7 @@ public final class PaintingContext {
   @CalledByNative
   public void insertListItemNode(int listSign, int childSign) {
     String traceEvent = null;
-    if (TraceEvent.enableTrace()) {
+    if (TraceEvent.isTracingStarted()) {
       traceEvent = TraceEventDef.PAINTING_CONTEXT_INSERT_LIST_ITEM + listSign + "_" + childSign;
       TraceEvent.beginSection(traceEvent);
     }
@@ -711,7 +711,7 @@ public final class PaintingContext {
     if (parent instanceof UIListContainer && child instanceof UIComponent) {
       ((UIListContainer) parent).insertListItemNode(child);
     }
-    if (TraceEvent.enableTrace()) {
+    if (TraceEvent.isTracingStarted()) {
       TraceEvent.endSection(traceEvent);
     }
   }

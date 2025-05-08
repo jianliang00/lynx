@@ -22,6 +22,8 @@ class TraceControllerDelegateAndroid : public TraceController::Delegate {
 
   std::string GenerateTracingFileDir() override;
 
+  void SetIsTracingStarted(bool is_tracing_started) override;
+
   void RefreshATraceTags() override;
 
  private:

@@ -64,6 +64,7 @@ class TRACE_EXPORT TraceController {
     virtual std::string GenerateTracingFileDir() = 0;
 #ifdef OS_ANDROID
     virtual void RefreshATraceTags() = 0;
+    virtual void SetIsTracingStarted(bool is_tracing_started) = 0;
 #endif  // BASE_TRACE_NATIVE_TRACE_CONTROLLER_H_
   };
 

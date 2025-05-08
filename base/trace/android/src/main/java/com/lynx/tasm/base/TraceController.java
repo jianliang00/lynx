@@ -57,7 +57,7 @@ public class TraceController {
   private Context mContext;
   private List<CompleteCallback> mCompleteCallbacks = new ArrayList<>();
   private TraceBroadcastReceiver mBroadcastReceiver;
-  private boolean mTracingStarted = false;
+  private static boolean mTracingStarted = false;
   private long mNativeTraceController = 0;
   private int tracingSession = -1;
   // Control Whether Record Java Trace or Not
@@ -158,7 +158,7 @@ public class TraceController {
     }
   }
 
-  public boolean isTracingStarted() {
+  public static boolean isTracingStarted() {
     return mTracingStarted;
   }
 
@@ -181,6 +181,11 @@ public class TraceController {
   @CalledByNative
   private String generateTracingFileDir() {
     return mContext.getExternalFilesDir(null).getPath();
+  }
+
+  @CalledByNative
+  private void setIsTracingStarted(boolean is_tracing_started) {
+    mTracingStarted = is_tracing_started;
   }
 
   private File getFile() {

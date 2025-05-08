@@ -318,7 +318,7 @@ public class TextShadowNode extends BaseTextShadowNode implements CustomMeasureF
   private MeasureContext mMeasureContext = null;
   public long measure(
       LayoutNode node, float width, MeasureMode widthMode, float height, MeasureMode heightMode) {
-    if (TraceEvent.enableTrace()) {
+    if (TraceEvent.isTracingStarted()) {
       Map<String, String> args = new HashMap<>();
       String string = "";
       if (mSpannableString != null) {

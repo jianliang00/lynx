@@ -94,5 +94,12 @@ void TraceControllerDelegateAndroid::RefreshATraceTags() {
   Java_TraceController_refreshATraceTags(env, weak_owner_.Get());
 }
 
+void TraceControllerDelegateAndroid::SetIsTracingStarted(
+    bool is_tracing_started) {
+  JNIEnv* env = lynx::base::android::AttachCurrentThread();
+  Java_TraceController_setIsTracingStarted(env, weak_owner_.Get(),
+                                           is_tracing_started);
+}
+
 }  // namespace trace
 }  // namespace lynx

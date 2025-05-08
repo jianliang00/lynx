@@ -88,7 +88,7 @@ public class ImageUrlRedirectUtils {
 
   private static String shouldRedirectImageUrl(
       @NonNull ImageInterceptor interceptor, String origUrl, String templateUrl) {
-    if (TraceEvent.enableTrace()) {
+    if (TraceEvent.isTracingStarted()) {
       Map<String, String> props = new HashMap<>();
       props.put("url", origUrl);
       TraceEvent.beginSection(TraceEventDef.IMAGE_SHOULD_REDIRECT_IMAGE_URL, props);

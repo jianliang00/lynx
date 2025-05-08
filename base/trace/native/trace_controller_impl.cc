@@ -321,6 +321,7 @@ int TraceControllerImpl::StartTracing(
 #ifdef OS_ANDROID
   if (delegate_) {
     delegate_->RefreshATraceTags();
+    delegate_->SetIsTracingStarted(true);
   }
 #endif
   return session.id;
@@ -346,6 +347,11 @@ bool TraceControllerImpl::StopTracing(int session_id) {
   session->session_impl->StopBlocking();
   session->started = false;
   is_tracing_started_ = false;
+#ifdef OS_ANDROID
+  if (delegate_) {
+    delegate_->SetIsTracingStarted(false);
+  }
+#endif
   if (session->config->is_startup_tracing) {
     startup_tracing_file_ = session->config->file_path;
   }

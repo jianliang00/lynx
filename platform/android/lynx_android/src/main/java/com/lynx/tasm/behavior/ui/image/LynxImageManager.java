@@ -485,7 +485,7 @@ public class LynxImageManager implements Drawable.Callback {
 
   // region UIMethod
   public void updatePropertiesInterval(StylesDiffMap props) {
-    if (TraceEvent.enableTrace()) {
+    if (TraceEvent.isTracingStarted()) {
       TraceEvent.beginSection(TraceEventDef.IMAGE_MANAGER_UPDATE_PROPS_INTERVAL);
     }
     ReadableMapKeySetIterator iterator = props.mBackingMap.keySetIterator();
@@ -681,7 +681,7 @@ public class LynxImageManager implements Drawable.Callback {
   public void onPropsUpdated() {}
 
   private void updateImageSource() {
-    if (TraceEvent.enableTrace()) {
+    if (TraceEvent.isTracingStarted()) {
       TraceEvent.beginSection(TraceEventDef.IMAGE_MANAGER_UPDATE_IMAGE_SOURCE);
     }
     int width = 0;
@@ -703,7 +703,7 @@ public class LynxImageManager implements Drawable.Callback {
   }
 
   private void updatePlaceholderSource() {
-    if (TraceEvent.enableTrace()) {
+    if (TraceEvent.isTracingStarted()) {
       TraceEvent.beginSection(TraceEventDef.IMAGE_MANAGER_UPDATE_PLACEHOLDER_SOURCE);
     }
     int width = 0;

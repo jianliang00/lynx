@@ -610,7 +610,7 @@ public abstract class LynxUI<T extends View> extends LynxBaseUI {
   @Override
   public void measure() {
     String traceEvent = null;
-    if (TraceEvent.enableTrace()) {
+    if (TraceEvent.isTracingStarted()) {
       traceEvent = TraceEventDef.LYNX_UI_MEASURE + getTagName();
       TraceEvent.beginSection(traceEvent);
     }
@@ -618,7 +618,7 @@ public abstract class LynxUI<T extends View> extends LynxBaseUI {
     int widthSpec = View.MeasureSpec.makeMeasureSpec(getWidth(), View.MeasureSpec.EXACTLY);
     int heightSpec = View.MeasureSpec.makeMeasureSpec(getHeight(), View.MeasureSpec.EXACTLY);
     mView.measure(widthSpec, heightSpec);
-    if (TraceEvent.enableTrace()) {
+    if (TraceEvent.isTracingStarted()) {
       TraceEvent.endSection(traceEvent);
     }
   }
@@ -656,7 +656,7 @@ public abstract class LynxUI<T extends View> extends LynxBaseUI {
 
   public void handleLayout() {
     String layoutTrace = null;
-    if (TraceEvent.enableTrace()) {
+    if (TraceEvent.isTracingStarted()) {
       layoutTrace = TraceEventDef.LYNX_UI_LAYOUT + getTagName();
       TraceEvent.beginSection(layoutTrace);
     }
@@ -697,7 +697,7 @@ public abstract class LynxUI<T extends View> extends LynxBaseUI {
       // [workaround]textLayout cannot be drawn, if view's width or height is zero
       ((AndroidText) mView).setOverflow(getOverflow());
     }
-    if (TraceEvent.enableTrace()) {
+    if (TraceEvent.isTracingStarted()) {
       TraceEvent.endSection(layoutTrace);
     }
   }
