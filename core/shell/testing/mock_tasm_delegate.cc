@@ -305,8 +305,7 @@ void MockTasmDelegate::RemovePlatformCallback(
 
 void MockTasmDelegate::CallJSFunction(const std::string& module_id,
                                       const std::string& method_id,
-                                      const lepus::Value& arguments,
-                                      bool force_call_despite_app_state) {
+                                      const lepus::Value& arguments) {
   ss_ << "CallJSFunction " << module_id << " " << method_id << " ";
   arguments.PrintValue(ss_);
   ss_ << std::endl;

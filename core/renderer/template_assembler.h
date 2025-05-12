@@ -178,8 +178,7 @@ class TemplateAssembler final
         const std::shared_ptr<shell::PlatformCallBackHolder>& callback) = 0;
     virtual void CallJSFunction(const std::string& module_id,
                                 const std::string& method_id,
-                                const lepus::Value& arguments,
-                                bool force_call_despite_app_state = false) = 0;
+                                const lepus::Value& arguments) = 0;
     virtual void OnDataUpdatedByNative(tasm::TemplateData data,
                                        const bool reset) = 0;
     virtual void OnJSAppReload(tasm::TemplateData data,

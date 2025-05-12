@@ -105,8 +105,7 @@ class App : public std::enable_shared_from_this<App> {
   void NotifyUpdatePageData();
   void NotifyUpdateCardConfigData();
   void CallFunction(const std::string& module_id, const std::string& method_id,
-                    const piper::Array& arguments,
-                    bool force_call_despite_app_state = false);
+                    const piper::Array& arguments);
   void SendSsrGlobalEvent(const std::string& name,
                           const lepus::Value& arguments);
   void LoadSsrScript(const std::string& script);

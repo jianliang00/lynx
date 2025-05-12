@@ -74,15 +74,13 @@ class LynxRuntime final {
 
   void CallJSFunction(const std::string& module_id,
                       const std::string& method_id,
-                      const lepus::Value& arguments,
-                      bool force_call_despite_app_state = false);
+                      const lepus::Value& arguments);
 
   void CallIntersectionObserver(int32_t observer_id, int32_t callback_id,
                                 piper::Value data);
 
   void CallFunction(const std::string& module_id, const std::string& method_id,
-                    const piper::Array& arguments,
-                    bool force_call_despite_app_state = false);
+                    const piper::Array& arguments);
   void FlushJSBTiming(piper::NativeModuleInfo timing);
   void SendSsrGlobalEvent(const std::string& name, const lepus::Value& info);
   void OnJSSourcePrepared(

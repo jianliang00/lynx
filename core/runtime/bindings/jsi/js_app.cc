@@ -2352,11 +2352,9 @@ void App::SendSsrGlobalEvent(const std::string& name,
 
 void App::CallFunction(const std::string& module_id,
                        const std::string& method_id,
-                       const piper::Array& arguments,
-                       bool force_call_despite_app_state) {
+                       const piper::Array& arguments) {
   auto rt = rt_.lock();
-  if (rt && (IsJsAppStateValid() ||
-             (force_call_despite_app_state && js_app_.isObject()))) {
+  if (rt && IsJsAppStateValid() && js_app_.isObject()) {
     Scope scope(*rt);
     Object js_app = js_app_.getObject(*rt);
 

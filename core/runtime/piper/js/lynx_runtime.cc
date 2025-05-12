@@ -339,12 +339,10 @@ void LynxRuntime::OnSsrRuntimeReady() {
 
 void LynxRuntime::CallJSFunction(const std::string& module_id,
                                  const std::string& method_id,
-                                 const lepus::Value& arguments,
-                                 bool force_call_despite_app_state) {
+                                 const lepus::Value& arguments) {
   LynxFatal(arguments.IsArrayOrJSArray(), error::E_BTS_RUNTIME_ERROR,
             "the arguments should be array when CallJSFunction!");
-  QueueOrExecTask([this, module_id, method_id, arguments,
-                   force_call_despite_app_state]() {
+  QueueOrExecTask([this, module_id, method_id, arguments]() {
     piper::Scope scope(*GetJSRuntime());
     auto array =
         piper::arrayFromLepus(*GetJSRuntime(), *(arguments.Array().get()));
@@ -354,7 +352,7 @@ void LynxRuntime::CallJSFunction(const std::string& module_id,
                                      "lepus value to js value fail."));
       return;
     }
-    CallFunction(module_id, method_id, *array, force_call_despite_app_state);
+    CallFunction(module_id, method_id, *array);
   });
 }
 
@@ -509,8 +507,7 @@ void LynxRuntime::CallIntersectionObserver(int32_t observer_id,
 
 void LynxRuntime::CallFunction(const std::string& module_id,
                                const std::string& method_id,
-                               const piper::Array& arguments,
-                               bool force_call_despite_app_state) {
+                               const piper::Array& arguments) {
   if (state_ == State::kDestroying) {
     return;
   }
@@ -551,8 +548,7 @@ void LynxRuntime::CallFunction(const std::string& module_id,
     native_context_proxy->DispatchEvent(coreContextEvent);
     return;
   }
-  app_->CallFunction(module_id, method_id, std::move(arguments),
-                     force_call_despite_app_state);
+  app_->CallFunction(module_id, method_id, std::move(arguments));
 }
 
 void LynxRuntime::FlushJSBTiming(piper::NativeModuleInfo timing) {

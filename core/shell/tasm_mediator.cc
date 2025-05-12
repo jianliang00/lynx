@@ -285,14 +285,12 @@ void TasmMediator::RemoveJSApiCallback(piper::ApiCallBack callback) {
 
 void TasmMediator::CallJSFunction(const std::string& module_id,
                                   const std::string& method_id,
-                                  const lepus::Value& arguments,
-                                  bool force_call_despite_app_state) {
-  runtime_actor_->ActAsync([module_id, method_id,
-                            safe_value = lepus_value::ShallowCopy(arguments),
-                            force_call_despite_app_state](auto& runtime) {
-    runtime->CallJSFunction(module_id, method_id, safe_value,
-                            force_call_despite_app_state);
-  });
+                                  const lepus::Value& arguments) {
+  runtime_actor_->ActAsync(
+      [module_id, method_id,
+       safe_value = lepus_value::ShallowCopy(arguments)](auto& runtime) {
+        runtime->CallJSFunction(module_id, method_id, safe_value);
+      });
 }
 
 void TasmMediator::OnJSAppReload(
