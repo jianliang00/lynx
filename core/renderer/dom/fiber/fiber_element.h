@@ -23,6 +23,7 @@
 #include "core/renderer/css/css_style_sheet_manager.h"
 #include "core/renderer/dom/attribute_holder.h"
 #include "core/renderer/dom/element.h"
+#include "core/renderer/dom/element_context_delegate.h"
 #include "core/renderer/dom/element_context_task_queue.h"
 #include "core/renderer/dom/fiber/list_item_scheduler_adapter.h"
 #include "core/renderer/dom/fiber/pseudo_element.h"
@@ -632,7 +633,8 @@ class FiberElement : public Element, public SelectorItem {
 
   virtual void CheckHasInlineContainer(Element* parent) override;
 
-  void HandleLayoutTask(base::MoveOnlyClosure<void> operation) override;
+  virtual void EnqueueLayoutTask(
+      base::MoveOnlyClosure<void> operation) override;
 
   void HandleDelayTask(base::MoveOnlyClosure<void> operation) override;
 
@@ -812,17 +814,12 @@ class FiberElement : public Element, public SelectorItem {
 
   void MarkAttrDirtyForPseudoElement() { dirty_ |= kDirtyAttr; }
 
-  void CreateListItemScheduler(
-      list::BatchRenderStrategy batch_render_strategy) {
-    scheduler_adapter_ =
-        std::make_shared<ListItemSchedulerAdapter>(this, batch_render_strategy);
-  }
+  void CreateListItemScheduler(list::BatchRenderStrategy batch_render_strategy,
+                               ElementContextDelegate* parent_context);
 
   void RecursivelyMarkRenderRootElement(FiberElement* render_root);
 
   void UpdateRenderRootElementIfNecessary(FiberElement* child);
-
-  void HandleFlushActionsLayoutTask(base::MoveOnlyClosure<void> operation);
 
   void ClearExtremeParsedStyles() {
     if (has_extreme_parsed_styles_) {
@@ -831,6 +828,9 @@ class FiberElement : public Element, public SelectorItem {
     }
   }
 
+  // Exported for accessing private field from Element Manager to handle legacy
+  // logic
+  inline FiberElement* GetRenderRootElement() { return render_root_element_; }
   ListItemSchedulerAdapter* GetSchedulerAdapter() {
     if (scheduler_adapter_) {
       return scheduler_adapter_.get();
@@ -843,8 +843,8 @@ class FiberElement : public Element, public SelectorItem {
            resolve_status_ == AsyncResolveStatus::kSyncResolving;
   }
 
-  inline void UpdateElementContextQueue(ElementContextTaskQueue* queue) {
-    element_context_queue_ = queue;
+  inline void EnqueueReduceTask(base::MoveOnlyClosure<void> operation) {
+    parallel_reduce_tasks_.emplace_back(std::move(operation));
   }
 
  protected:
@@ -904,7 +904,7 @@ class FiberElement : public Element, public SelectorItem {
 
   bool ShouldDestroy() const;
 
-  ElementContextTaskQueue* element_context_queue_ = nullptr;
+  ElementContextDelegate* element_context_delegate_{nullptr};
 
  private:
   friend class WrapperElement;
@@ -960,6 +960,8 @@ class FiberElement : public Element, public SelectorItem {
   void SetFontSizeForAllElement(double cur_node_font_size,
                                 double root_node_font_size);
   void UpdateLengthContextValueForAllElement(const LynxEnvConfig& env_config);
+
+  void UpdateDynamicElementStyleRecursively(uint32_t style, bool force_update);
 
   // relevant to hierarchy
   base::InlineVector<fml::RefPtr<FiberElement>, kChildrenInlineVectorSize>
@@ -1090,7 +1092,7 @@ class FiberElement : public Element, public SelectorItem {
   std::unordered_map<PseudoState, std::unique_ptr<PseudoElement>>
       pseudo_elements_{};
 
-  std::shared_ptr<ListItemSchedulerAdapter> scheduler_adapter_ = nullptr;
+  std::shared_ptr<ListItemSchedulerAdapter> scheduler_adapter_{nullptr};
 };
 
 }  // namespace tasm

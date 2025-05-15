@@ -387,6 +387,11 @@ inline constexpr const char* const FIBER_CREATE_SCOPE = "FiberCreateScope";
 inline constexpr const char* const FIBER_GET_SCOPE = "FiberGetScope";
 inline constexpr const char* const FIBER_CLEAN_UP = "FiberCleanUp";
 inline constexpr const char* const FIBER_ON_CLEAN_UP = "FiberOnCleanUp";
+inline constexpr const char* const
+    ELEMENT_CONTEXT_DELEGATE_FLUSH_ENQUEUED_TASKS =
+        "ElementContextDelegate::FlushEnqueuedTasks";
+inline constexpr const char* const ELEMENT_CONTEXT_DELEGATE_ENQUEUE_TASK =
+    "ElementContextDelegate::EnqueueTask";
 inline constexpr const char* const SET_SOURCE_MAP_RELEASE =
     "SetSourceMapRelease";
 inline constexpr const char* const REPORT_ERROR = "ReportError";

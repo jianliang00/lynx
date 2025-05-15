@@ -73,7 +73,7 @@ FiberElement::FiberElement(ElementManager *manager, const base::String &tag,
     return;
   }
 
-  element_context_queue_ = manager->GetElementContextTaskQueue();
+  element_context_delegate_ = manager;
 
   // Set font scale and font size if needed.
   const auto &env_config = manager->GetLynxEnvConfig();
@@ -138,7 +138,7 @@ FiberElement::FiberElement(const FiberElement &element,
     config_ = lepus::Value::ShallowCopy(element.config());
   }
 
-  element_context_queue_ = element.element_context_queue_;
+  element_context_delegate_ = element.element_context_delegate_;
   // TODO(wujintian): Clone animation-related objects.
 }
 
@@ -187,7 +187,7 @@ void FiberElement::AttachToElementManager(
     MarkDirty(kDirtyStyle);
   }
 
-  element_context_queue_ = manager->GetElementContextTaskQueue();
+  element_context_delegate_ = manager;
 }
 
 void FiberElement::OnNodeAdded(FiberElement *child) {
@@ -210,6 +210,12 @@ FiberElement::~FiberElement() {
     DestroyPlatformNode();
     element_manager()->DestroyLayoutNode(impl_id());
     element_manager()->node_manager()->Erase(id_);
+    // If FiberElement to be destroyed is the root of its ElementContext, need
+    // to remove corresponding ElementContext from tree
+    if (element_context_delegate_ &&
+        element_context_delegate_->GetElementContextRoot() == this) {
+      element_context_delegate_->RemoveSelf();
+    }
   }
 }
 
@@ -1409,6 +1415,7 @@ void FiberElement::FlushActionsAsRoot() {
 
   ParallelFlushAsRoot();
   FlushActions();
+  element_context_delegate_->FlushEnqueuedTasks();
 }
 
 void FiberElement::FlushSelf() {
@@ -1589,11 +1596,6 @@ void FiberElement::ParallelFlushRecursively() {
   }
 
   for (const auto &child : scoped_children_) {
-    TRACE_EVENT(LYNX_TRACE_CATEGORY,
-                FIBER_ELEMENT_CHILD_PREPARE_FOR_CRATE_OR_UPDATE,
-                [this](lynx::perfetto::EventContext ctx) {
-                  UpdateTraceDebugInfo(ctx.event());
-                });
     child->ParallelFlushRecursively();
   }
 }
@@ -1782,9 +1784,7 @@ void FiberElement::HandleInsertChildAction(FiberElement *child, int to_index,
                child->is_wrapper())) {
     TreeResolver::AttachChildToTargetParentForWrapper(parent, child, ref_node);
   } else {
-    HandleFlushActionsLayoutTask([this, child, ref_node]() mutable {
-      InsertLayoutNode(child, ref_node);
-    });
+    InsertLayoutNode(child, ref_node);
   }
 
   HandleContainerInsertion(parent, child, ref_node);
@@ -1826,8 +1826,7 @@ void FiberElement::HandleRemoveChildAction(FiberElement *child) {
     }
     TreeResolver::RemoveFromParentForWrapperChild(parent, child);
   } else {
-    HandleFlushActionsLayoutTask(
-        [this, child]() mutable { RemoveLayoutNode(child); });
+    RemoveLayoutNode(child);
   }
 
   child->element_container()->RemoveSelf(false);
@@ -2554,8 +2553,8 @@ void FiberElement::UpdateLayoutNodeByBundle() {
   if (layout_bundle_ == nullptr) {
     return;
   }
-  HandleLayoutTask([element_manager = element_manager(), id = impl_id(),
-                    layout_bundle = std::move(layout_bundle_)]() mutable {
+  EnqueueLayoutTask([element_manager = element_manager(), id = impl_id(),
+                     layout_bundle = std::move(layout_bundle_)]() mutable {
     element_manager->UpdateLayoutNodeByBundle(id, std::move(layout_bundle));
   });
   layout_bundle_ = nullptr;
@@ -2566,15 +2565,11 @@ void FiberElement::CheckHasInlineContainer(Element *parent) {
   allow_layoutnode_inline_ = parent->IsShadowNodeCustom();
 }
 
-void FiberElement::HandleLayoutTask(base::MoveOnlyClosure<void> operation) {
-  // Layout Task should be stored to be executed in threaded flush or sync
-  // resolving(i.e. PageElement) scenario
-  if (element_manager()->GetParallelWithSyncLayout() &&
-      (this->parallel_flush_ ||
-       this->resolve_status_ == AsyncResolveStatus::kSyncResolving)) {
-    parallel_reduce_tasks_.emplace_back(std::move(operation));
+void FiberElement::EnqueueLayoutTask(base::MoveOnlyClosure<void> operation) {
+  if (LynxEnv::GetInstance().EnableBatchLayoutTaskWithSyncLayout()) {
+    element_context_delegate_->EnqueueTask(std::move(operation));
   } else {
-    operation();
+    element_manager()->LegacyHandleLayoutTask(this, std::move(operation));
   }
 }
 
@@ -2751,13 +2746,19 @@ void FiberElement::InsertLayoutNode(FiberElement *child, FiberElement *ref) {
     this->LogNodeInfo();
     child->LogNodeInfo();
   }
-  element_manager()->InsertLayoutNodeBefore(id_, child->impl_id(),
-                                            ref ? ref->impl_id() : -1);
+  EnqueueLayoutTask([element_manager = element_manager(), id = id_,
+                     child_id = child->impl_id(),
+                     ref_id = ref ? ref->impl_id() : -1]() {
+    element_manager->InsertLayoutNodeBefore(id, child_id, ref_id);
+  });
   child->attached_to_layout_parent_ = true;
 }
 
 void FiberElement::RemoveLayoutNode(FiberElement *child) {
-  element_manager()->RemoveLayoutNode(id_, child->impl_id());
+  EnqueueLayoutTask([element_manager = element_manager(), id = id_,
+                     child_id = child->impl_id()]() {
+    element_manager->RemoveLayoutNode(id, child_id);
+  });
   child->attached_to_layout_parent_ = false;
 }
 
@@ -3298,8 +3299,8 @@ std::optional<CSSValue> FiberElement::GetElementStyle(
   return iter->second;
 }
 
-void FiberElement::UpdateDynamicElementStyle(uint32_t style,
-                                             bool force_update) {
+void FiberElement::UpdateDynamicElementStyleRecursively(uint32_t style,
+                                                        bool force_update) {
   if (is_raw_text()) {
     return;
   }
@@ -3393,9 +3394,15 @@ void FiberElement::UpdateDynamicElementStyle(uint32_t style,
 
   auto *child = first_render_child_;
   while (child) {
-    child->UpdateDynamicElementStyle(style, inner_force_update);
+    child->UpdateDynamicElementStyleRecursively(style, inner_force_update);
     child = child->next_render_sibling_;
   }
+}
+
+void FiberElement::UpdateDynamicElementStyle(uint32_t style,
+                                             bool force_update) {
+  UpdateDynamicElementStyleRecursively(style, force_update);
+  element_context_delegate_->FlushEnqueuedTasks();
 }
 
 void FiberElement::SetCSSID(int32_t id) {
@@ -3452,7 +3459,7 @@ PseudoElement *FiberElement::CreatePseudoElementIfNeed(PseudoState state) {
 void FiberElement::RecursivelyMarkRenderRootElement(FiberElement *render_root) {
   render_root_element_ = render_root;
   if (render_root) {
-    element_context_queue_ = render_root->element_context_queue_;
+    element_context_delegate_ = render_root->element_context_delegate_;
   }
   for (auto child : scoped_children_) {
     if (!child->is_list_item()) {
@@ -3487,21 +3494,6 @@ void FiberElement::UpdateRenderRootElementIfNecessary(FiberElement *child) {
   child->RecursivelyMarkRenderRootElement(this->render_root_element_);
 }
 
-void FiberElement::HandleFlushActionsLayoutTask(
-    base::MoveOnlyClosure<void> operation) {
-  // Dispatch operation according to batch rendering state
-  auto *parent = this;
-  if (parent->render_root_element_ != nullptr &&
-      parent->render_root_element_->scheduler_adapter_.get() &&
-      parent->render_root_element_->scheduler_adapter_->IsBatchRendering()) {
-    parent->render_root_element_->scheduler_adapter_
-        ->resolve_element_tree_queue()
-        .emplace_back(std::move(operation));
-  } else {
-    operation();
-  }
-}
-
 void FiberElement::SetFontSizeForAllElement(double cur_node_font_size,
                                             double root_node_font_size) {
   computed_css_style()->SetFontSize(cur_node_font_size, root_node_font_size);
@@ -3533,23 +3525,66 @@ void FiberElement::UpdateLengthContextValueForAllElement(
 // TODO: Move this method out of fiber_element when a more general render root
 // is introduced.
 void FiberElement::AsyncResolveSubtreeProperty() {
-  if (element_manager()->GetEnableParallelElement() &&
-      ((dirty_ & ~kDirtyTree) != 0) && scheduler_adapter_.get()) {
-    element_manager()->GetTasmWorkerTaskRunner()->PostTask([this]() mutable {
-      scheduler_adapter_->ResolveSubtreeProperty();
+  if (LynxEnv::GetInstance().EnableBatchLayoutTaskWithSyncLayout()) {
+    if (element_manager()->GetEnableParallelElement() &&
+        ((dirty_ & ~kDirtyTree) != 0) && element_context_delegate_ &&
+        element_context_delegate_->IsListItemElementContext()) {
+      element_manager()->GetTasmWorkerTaskRunner()->PostTask([this]() mutable {
+        auto list_item_context_ptr =
+            static_cast<ListItemSchedulerAdapter *>(element_context_delegate_);
+        list_item_context_ptr->ResolveSubtreeProperty();
 
-      std::promise<ParallelFlushReturn> promise;
-      std::future<ParallelFlushReturn> future = promise.get_future();
-      auto task_info_ptr =
-          fml::MakeRefCounted<base::OnceTask<ParallelFlushReturn>>(
-              [promise = std::move(promise),
-               scheduler = scheduler_adapter_]() mutable {
-                promise.set_value(
-                    scheduler->GenerateReduceTaskForResolveProperty());
-              },
-              std::move(future));
-      element_manager()->ParallelTasks().emplace_back(std::move(task_info_ptr));
-    });
+        std::promise<ParallelFlushReturn> promise;
+        std::future<ParallelFlushReturn> future = promise.get_future();
+        auto task_info_ptr =
+            fml::MakeRefCounted<base::OnceTask<ParallelFlushReturn>>(
+                [promise = std::move(promise),
+                 context_ptr = list_item_context_ptr]() mutable {
+                  promise.set_value(
+                      context_ptr->GenerateReduceTaskForResolveProperty());
+                },
+                std::move(future));
+        element_manager()->ParallelTasks().emplace_back(
+            std::move(task_info_ptr));
+      });
+    }
+  } else {
+    // TODO(ZHOUZHITAO): remove this branch once
+    // ENABLE_BATCH_LAYOUT_TASK_WITH_SYNC_LAYOUT is fully rolled out
+    if (element_manager()->GetEnableParallelElement() &&
+        ((dirty_ & ~kDirtyTree) != 0) && scheduler_adapter_.get()) {
+      element_manager()->GetTasmWorkerTaskRunner()->PostTask([this]() mutable {
+        scheduler_adapter_->ResolveSubtreeProperty();
+
+        std::promise<ParallelFlushReturn> promise;
+        std::future<ParallelFlushReturn> future = promise.get_future();
+        auto task_info_ptr =
+            fml::MakeRefCounted<base::OnceTask<ParallelFlushReturn>>(
+                [promise = std::move(promise),
+                 scheduler = scheduler_adapter_]() mutable {
+                  promise.set_value(
+                      scheduler->GenerateReduceTaskForResolveProperty());
+                },
+                std::move(future));
+        element_manager()->ParallelTasks().emplace_back(
+            std::move(task_info_ptr));
+      });
+    }
+  }
+}
+
+void FiberElement::CreateListItemScheduler(
+    list::BatchRenderStrategy batch_render_strategy,
+    ElementContextDelegate *parent_context) {
+  if (LynxEnv::GetInstance().EnableBatchLayoutTaskWithSyncLayout()) {
+    std::shared_ptr<ElementContextDelegate> element_context_delegate_ptr =
+        std::make_shared<ListItemSchedulerAdapter>(this, batch_render_strategy,
+                                                   parent_context);
+    element_context_delegate_ = element_context_delegate_ptr.get();
+    parent_context->OnChildElementContextAdded(element_context_delegate_ptr);
+  } else {
+    scheduler_adapter_ = std::make_shared<ListItemSchedulerAdapter>(
+        this, batch_render_strategy, parent_context);
   }
 }
 

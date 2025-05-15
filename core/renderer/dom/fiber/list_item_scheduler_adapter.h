@@ -11,6 +11,7 @@
 #include "base/include/closure.h"
 #include "base/include/concurrent_queue.h"
 #include "core/base/thread/once_task.h"
+#include "core/renderer/dom/element_context_delegate.h"
 #include "core/renderer/dom/element_context_task_queue.h"
 #include "core/renderer/ui_component/list/list_types.h"
 
@@ -18,10 +19,11 @@ namespace lynx {
 namespace tasm {
 class FiberElement;
 
-class ListItemSchedulerAdapter {
+class ListItemSchedulerAdapter : public ElementContextDelegate {
  public:
   ListItemSchedulerAdapter(FiberElement* sub_root,
-                           list::BatchRenderStrategy batch_render_strategy);
+                           list::BatchRenderStrategy batch_render_strategy,
+                           ElementContextDelegate* parent_context);
 
   std::list<base::OnceTaskRefptr<base::closure>>& resolve_property_queue() {
     return resolve_property_queue_;
@@ -44,15 +46,9 @@ class ListItemSchedulerAdapter {
   void PostResolveElementTree(std::list<base::OnceTaskRefptr<base::closure>>&
                                   parallel_resolve_element_tree_queue);
 
-  bool IsBatchRendering() { return batch_rendering_; }
+  bool IsBatchResolvingTree() { return batch_resolving_tree_; }
 
-  ElementContextTaskQueue* GetElementContextTaskQueue() {
-    if (element_context_task_queue_) {
-      return element_context_task_queue_.get();
-    }
-
-    return nullptr;
-  }
+  bool IsListItemElementContext() override { return true; }
 
  private:
   FiberElement* render_root_;
@@ -62,10 +58,7 @@ class ListItemSchedulerAdapter {
   std::list<base::OnceTaskRefptr<base::closure>> resolve_property_queue_{};
 
   std::list<base::closure> resolve_element_tree_queue_{};
-  bool batch_rendering_{false};
-
-  std::unique_ptr<ElementContextTaskQueue> element_context_task_queue_ =
-      nullptr;
+  bool batch_resolving_tree_{false};
 };
 
 }  // namespace tasm

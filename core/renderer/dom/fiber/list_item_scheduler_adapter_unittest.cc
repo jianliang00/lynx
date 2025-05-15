@@ -8,6 +8,7 @@
 #include "core/renderer/dom/fiber/list_item_scheduler_adapter.h"
 
 #include <memory>
+#include <tuple>
 #include <vector>
 
 #include "core/base/threading/vsync_monitor.h"
@@ -42,9 +43,16 @@ static constexpr float kDefaultLayoutsUnitPerPx = 1.f;
 static constexpr double kDefaultPhysicalPixelsPerLayoutUnit = 1.f;
 static constexpr int64_t kFrameDuration = 16;  // ms
 
-const int scheduler_adapter_generation_params[] = {
-    0,  // ALL_ON_UI thread strategy
-    3,  // MULTI_THREAD strategy
+const std::tuple<int, bool> scheduler_adapter_generation_params[] = {
+    std::make_tuple(0, false),  // ALL_ON_UI thread strategy with batch layout
+                                // strategy disabled
+    std::make_tuple(
+        0,
+        true),  // ALL_ON_UI thread strategy with batch layout strategy enabled
+    std::make_tuple(
+        3, false),  // MULTI_THREAD strategy with batch layout strategy disabled
+    std::make_tuple(
+        3, true),  // MULTI_THREAD strategy with batch layout strategy enabled
 };
 
 class TestVSyncMonitor : public base::VSyncMonitor {
@@ -77,7 +85,8 @@ class ListItemSchedulerAdapterMockTasmDelegate : public test::MockTasmDelegate {
   std::vector<std::unique_ptr<LayoutBundle>> captured_bundles_;
 };
 
-class ListItemSchedulerAdapterTest : public ::testing::TestWithParam<int> {
+class ListItemSchedulerAdapterTest
+    : public ::testing::TestWithParam<std::tuple<int, bool>> {
  public:
   ListItemSchedulerAdapterTest() { current_parameter_ = GetParam(); }
   ~ListItemSchedulerAdapterTest() override {}
@@ -113,7 +122,7 @@ class ListItemSchedulerAdapterTest : public ::testing::TestWithParam<int> {
     manager->SetConfig(config);
     tasm->page_config_ = config;
 
-    thread_strategy = current_parameter_;
+    thread_strategy = std::get<0>(current_parameter_);
     if (thread_strategy == 0) {
       manager->SetThreadStrategy(base::ThreadStrategyForRendering::ALL_ON_UI);
     } else {
@@ -121,14 +130,28 @@ class ListItemSchedulerAdapterTest : public ::testing::TestWithParam<int> {
           base::ThreadStrategyForRendering::MULTI_THREADS);
     }
     manager->SetEnableParallelElement(true);
+    enable_batch_layout_operation = std::get<1>(current_parameter_);
+    if (enable_batch_layout_operation) {
+      LynxEnv::GetInstance().external_env_map_
+          [LynxEnv::Key::ENABLE_BATCH_LAYOUT_TASK_WITH_SYNC_LAYOUT] = "true";
+    } else {
+      LynxEnv::GetInstance().external_env_map_
+          [LynxEnv::Key::ENABLE_BATCH_LAYOUT_TASK_WITH_SYNC_LAYOUT] = "false";
+    }
     const_cast<DynamicCSSConfigs&>(manager->GetDynamicCSSConfigs())
         .unify_vw_vh_behavior_ = true;
   }
 
+  void TearDown() override {
+    LynxEnv::GetInstance().external_env_map_
+        [LynxEnv::Key::ENABLE_BATCH_LAYOUT_TASK_WITH_SYNC_LAYOUT] = "false";
+  }
+
  protected:
-  int current_parameter_;
+  std::tuple<int, bool> current_parameter_;
   int32_t thread_strategy;
   bool enable_parallel_element_flush;
+  bool enable_batch_layout_operation;
 };
 
 TEST_P(ListItemSchedulerAdapterTest, ListItemResolveSubtreePropertyTest) {
@@ -215,22 +238,57 @@ TEST_P(ListItemSchedulerAdapterTest, ListItemResolveSubtreePropertyTest) {
 
   EXPECT_TRUE(manager->ParallelTasks().size() == 0);
   EXPECT_TRUE(manager->ParallelResolveTreeTasks().size() == 0);
-  EXPECT_TRUE(wrapper_0->scheduler_adapter_->resolve_property_queue_.size() ==
-              0);
-  EXPECT_TRUE(wrapper_1->scheduler_adapter_->resolve_property_queue_.size() ==
-              0);
-  EXPECT_TRUE(wrapper_2->scheduler_adapter_->resolve_property_queue_.size() ==
-              0);
-  EXPECT_TRUE(wrapper_3->scheduler_adapter_->resolve_property_queue_.size() ==
-              0);
-  EXPECT_TRUE(
-      wrapper_0->scheduler_adapter_->resolve_element_tree_queue_.size() == 0);
-  EXPECT_TRUE(
-      wrapper_1->scheduler_adapter_->resolve_element_tree_queue_.size() == 0);
-  EXPECT_TRUE(
-      wrapper_2->scheduler_adapter_->resolve_element_tree_queue_.size() == 0);
-  EXPECT_TRUE(
-      wrapper_3->scheduler_adapter_->resolve_element_tree_queue_.size() == 0);
+  if (!enable_batch_layout_operation) {
+    EXPECT_TRUE(wrapper_0->scheduler_adapter_->resolve_property_queue_.size() ==
+                0);
+    EXPECT_TRUE(wrapper_1->scheduler_adapter_->resolve_property_queue_.size() ==
+                0);
+    EXPECT_TRUE(wrapper_2->scheduler_adapter_->resolve_property_queue_.size() ==
+                0);
+    EXPECT_TRUE(wrapper_3->scheduler_adapter_->resolve_property_queue_.size() ==
+                0);
+    EXPECT_TRUE(
+        wrapper_0->scheduler_adapter_->resolve_element_tree_queue_.size() == 0);
+    EXPECT_TRUE(
+        wrapper_1->scheduler_adapter_->resolve_element_tree_queue_.size() == 0);
+    EXPECT_TRUE(
+        wrapper_2->scheduler_adapter_->resolve_element_tree_queue_.size() == 0);
+    EXPECT_TRUE(
+        wrapper_3->scheduler_adapter_->resolve_element_tree_queue_.size() == 0);
+  } else {
+    EXPECT_TRUE(wrapper_0->scheduler_adapter_ == nullptr);
+    EXPECT_TRUE(wrapper_1->scheduler_adapter_ == nullptr);
+    EXPECT_TRUE(wrapper_2->scheduler_adapter_ == nullptr);
+    EXPECT_TRUE(wrapper_3->scheduler_adapter_ == nullptr);
+    EXPECT_TRUE(wrapper_0->element_context_delegate_ != nullptr);
+    EXPECT_TRUE(wrapper_1->element_context_delegate_ != nullptr);
+    EXPECT_TRUE(wrapper_2->element_context_delegate_ != nullptr);
+    EXPECT_TRUE(wrapper_3->element_context_delegate_ != nullptr);
+    EXPECT_TRUE(static_cast<ListItemSchedulerAdapter*>(
+                    wrapper_0->element_context_delegate_)
+                    ->resolve_property_queue_.size() == 0);
+    EXPECT_TRUE(static_cast<ListItemSchedulerAdapter*>(
+                    wrapper_1->element_context_delegate_)
+                    ->resolve_property_queue_.size() == 0);
+    EXPECT_TRUE(static_cast<ListItemSchedulerAdapter*>(
+                    wrapper_2->element_context_delegate_)
+                    ->resolve_property_queue_.size() == 0);
+    EXPECT_TRUE(static_cast<ListItemSchedulerAdapter*>(
+                    wrapper_3->element_context_delegate_)
+                    ->resolve_property_queue_.size() == 0);
+    EXPECT_TRUE(static_cast<ListItemSchedulerAdapter*>(
+                    wrapper_0->element_context_delegate_)
+                    ->resolve_element_tree_queue_.size() == 0);
+    EXPECT_TRUE(static_cast<ListItemSchedulerAdapter*>(
+                    wrapper_1->element_context_delegate_)
+                    ->resolve_element_tree_queue_.size() == 0);
+    EXPECT_TRUE(static_cast<ListItemSchedulerAdapter*>(
+                    wrapper_2->element_context_delegate_)
+                    ->resolve_element_tree_queue_.size() == 0);
+    EXPECT_TRUE(static_cast<ListItemSchedulerAdapter*>(
+                    wrapper_3->element_context_delegate_)
+                    ->resolve_element_tree_queue_.size() == 0);
+  }
 
   EXPECT_TRUE(text_0->parsed_styles_map_.size() == 1);
   EXPECT_TRUE(text_1->parsed_styles_map_.size() == 1);
@@ -336,23 +394,62 @@ TEST_P(ListItemSchedulerAdapterTest, RecordingRenderRootComponentElementTest) {
 
   EXPECT_TRUE(manager->ParallelTasks().size() == 0);
   EXPECT_TRUE(manager->ParallelResolveTreeTasks().size() == 0);
-  EXPECT_TRUE(comp_1->scheduler_adapter_->resolve_property_queue_.size() == 0);
-  EXPECT_TRUE(comp_2->scheduler_adapter_->resolve_property_queue_.size() == 0);
-  EXPECT_TRUE(comp_3->scheduler_adapter_->resolve_property_queue_.size() == 0);
-  EXPECT_TRUE(comp_4->scheduler_adapter_->resolve_property_queue_.size() == 0);
-  EXPECT_TRUE(comp_1->scheduler_adapter_->resolve_element_tree_queue_.size() ==
-              0);
-  EXPECT_TRUE(comp_2->scheduler_adapter_->resolve_element_tree_queue_.size() ==
-              0);
-  EXPECT_TRUE(comp_3->scheduler_adapter_->resolve_element_tree_queue_.size() ==
-              0);
-  EXPECT_TRUE(comp_4->scheduler_adapter_->resolve_element_tree_queue_.size() ==
-              0);
+  if (!enable_batch_layout_operation) {
+    EXPECT_TRUE(comp_1->scheduler_adapter_->resolve_property_queue_.size() ==
+                0);
+    EXPECT_TRUE(comp_2->scheduler_adapter_->resolve_property_queue_.size() ==
+                0);
+    EXPECT_TRUE(comp_3->scheduler_adapter_->resolve_property_queue_.size() ==
+                0);
+    EXPECT_TRUE(comp_4->scheduler_adapter_->resolve_property_queue_.size() ==
+                0);
+    EXPECT_TRUE(
+        comp_1->scheduler_adapter_->resolve_element_tree_queue_.size() == 0);
+    EXPECT_TRUE(
+        comp_2->scheduler_adapter_->resolve_element_tree_queue_.size() == 0);
+    EXPECT_TRUE(
+        comp_3->scheduler_adapter_->resolve_element_tree_queue_.size() == 0);
+    EXPECT_TRUE(
+        comp_4->scheduler_adapter_->resolve_element_tree_queue_.size() == 0);
 
-  EXPECT_TRUE(comp_1->scheduler_adapter_ != nullptr);
-  EXPECT_TRUE(comp_2->scheduler_adapter_ != nullptr);
-  EXPECT_TRUE(comp_3->scheduler_adapter_ != nullptr);
-  EXPECT_TRUE(comp_4->scheduler_adapter_ != nullptr);
+    EXPECT_TRUE(comp_1->scheduler_adapter_ != nullptr);
+    EXPECT_TRUE(comp_2->scheduler_adapter_ != nullptr);
+    EXPECT_TRUE(comp_3->scheduler_adapter_ != nullptr);
+    EXPECT_TRUE(comp_4->scheduler_adapter_ != nullptr);
+  } else {
+    EXPECT_TRUE(comp_1->scheduler_adapter_ == nullptr);
+    EXPECT_TRUE(comp_2->scheduler_adapter_ == nullptr);
+    EXPECT_TRUE(comp_3->scheduler_adapter_ == nullptr);
+    EXPECT_TRUE(comp_4->scheduler_adapter_ == nullptr);
+    EXPECT_TRUE(comp_1->element_context_delegate_ != nullptr);
+    EXPECT_TRUE(comp_2->element_context_delegate_ != nullptr);
+    EXPECT_TRUE(comp_3->element_context_delegate_ != nullptr);
+    EXPECT_TRUE(comp_4->element_context_delegate_ != nullptr);
+    EXPECT_TRUE(static_cast<ListItemSchedulerAdapter*>(
+                    comp_1->element_context_delegate_)
+                    ->resolve_property_queue_.size() == 0);
+    EXPECT_TRUE(static_cast<ListItemSchedulerAdapter*>(
+                    comp_2->element_context_delegate_)
+                    ->resolve_property_queue_.size() == 0);
+    EXPECT_TRUE(static_cast<ListItemSchedulerAdapter*>(
+                    comp_3->element_context_delegate_)
+                    ->resolve_property_queue_.size() == 0);
+    EXPECT_TRUE(static_cast<ListItemSchedulerAdapter*>(
+                    comp_4->element_context_delegate_)
+                    ->resolve_property_queue_.size() == 0);
+    EXPECT_TRUE(static_cast<ListItemSchedulerAdapter*>(
+                    comp_1->element_context_delegate_)
+                    ->resolve_element_tree_queue_.size() == 0);
+    EXPECT_TRUE(static_cast<ListItemSchedulerAdapter*>(
+                    comp_2->element_context_delegate_)
+                    ->resolve_element_tree_queue_.size() == 0);
+    EXPECT_TRUE(static_cast<ListItemSchedulerAdapter*>(
+                    comp_3->element_context_delegate_)
+                    ->resolve_element_tree_queue_.size() == 0);
+    EXPECT_TRUE(static_cast<ListItemSchedulerAdapter*>(
+                    comp_4->element_context_delegate_)
+                    ->resolve_element_tree_queue_.size() == 0);
+  }
 
   EXPECT_TRUE(comp_1->parent_component_element_ == page.get());
   EXPECT_TRUE(comp_2->parent_component_element_ == page.get());

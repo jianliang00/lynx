@@ -149,7 +149,8 @@ ElementManager::ElementManager(
     int32_t instance_id,
     const std::shared_ptr<base::VSyncMonitor> &vsync_monitor,
     const bool enable_diff_without_layout)
-    : node_manager_(new NodeManager),
+    : ElementContextDelegate(nullptr, nullptr),
+      node_manager_(new NodeManager),
       air_node_manager_(new AirNodeManager),
       component_manager_(new ComponentManager),
       catalyzer_(
@@ -1327,6 +1328,29 @@ void ElementManager::SetEnableOptPushStyleToBundle(TernaryBool value) {
     enable_opt_push_style_to_bundle_ = LynxEnv::GetInstance().GetBoolEnv(
         lynx::tasm::LynxEnv::Key::OPT_PUSH_STYLE_TO_BUNDLE, true);
   }
+}
+
+void ElementManager::LegacyHandleLayoutTask(
+    FiberElement *target, base::MoveOnlyClosure<void> operation) {
+  // Dispatch operation according to batch rendering state
+  auto *parent = target;
+  if (parent->GetRenderRootElement() != nullptr &&
+      parent->GetRenderRootElement()->GetSchedulerAdapter() &&
+      parent->GetRenderRootElement()
+          ->GetSchedulerAdapter()
+          ->IsBatchResolvingTree()) {
+    parent->GetRenderRootElement()
+        ->GetSchedulerAdapter()
+        ->resolve_element_tree_queue()
+        .emplace_back(std::move(operation));
+    return;
+  }
+  if (this->GetParallelWithSyncLayout() &&
+      target->ShouldProcessParallelTasks()) {
+    target->EnqueueReduceTask(std::move(operation));
+    return;
+  }
+  operation();
 }
 
 namespace {

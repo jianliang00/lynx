@@ -28,6 +28,7 @@
 #include "core/renderer/dom/css_patching.h"
 #include "core/renderer/dom/element.h"
 #include "core/renderer/dom/element_container.h"
+#include "core/renderer/dom/element_context_delegate.h"
 #include "core/renderer/dom/element_context_task_queue.h"
 #include "core/renderer/dom/element_manager_delegate.h"
 #include "core/renderer/dom/element_vsync_proxy.h"
@@ -204,7 +205,7 @@ class AirNodeManager {
 #endif
 };
 
-class ElementManager {
+class ElementManager : public ElementContextDelegate {
  public:
   class Delegate {
    public:
@@ -1069,13 +1070,8 @@ class ElementManager {
     return element_manager_delegate_;
   }
 
-  ElementContextTaskQueue *GetElementContextTaskQueue() {
-    if (element_context_task_queue_) {
-      return element_context_task_queue_.get();
-    }
-
-    return nullptr;
-  }
+  void LegacyHandleLayoutTask(FiberElement *target,
+                              base::MoveOnlyClosure<void> operation);
 
  protected:
   /**
@@ -1221,9 +1217,6 @@ class ElementManager {
       devtool_func_map_;
 
   ElementManagerDelegate *element_manager_delegate_{nullptr};
-
-  std::unique_ptr<ElementContextTaskQueue> element_context_task_queue_ =
-      nullptr;
 
  public:
   // fixed node attached to the page node.

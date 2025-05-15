@@ -15,11 +15,18 @@ namespace lynx {
 namespace tasm {
 
 ListItemSchedulerAdapter::ListItemSchedulerAdapter(
-    FiberElement* sub_root, list::BatchRenderStrategy batch_render_strategy) {
+    FiberElement* sub_root, list::BatchRenderStrategy batch_render_strategy,
+    ElementContextDelegate* parent_context)
+    : ElementContextDelegate(parent_context, sub_root) {
   render_root_ = sub_root;
   batch_render_strategy_ = batch_render_strategy;
-  element_context_task_queue_ = std::make_unique<ElementContextTaskQueue>(
-      [this]() { return batch_rendering_; });
+  element_context_task_queue_ =
+      std::make_unique<ElementContextTaskQueue>([this]() {
+        return (render_root_ && render_root_->element_manager())
+                   ? render_root_->element_manager()
+                         ->GetParallelWithSyncLayout()
+                   : false;
+      });
 }
 
 void ListItemSchedulerAdapter::ResolveSubtreeProperty() {
@@ -107,9 +114,9 @@ void ListItemSchedulerAdapter::PostResolveElementTree(
               TRACE_EVENT(LYNX_TRACE_CATEGORY,
                           LIST_SCHEDULER_ADAPTER_ASYNC_FLUSH, "list_item",
                           std::to_string(render_root_->impl_id()));
-              batch_rendering_ = true;
+              batch_resolving_tree_ = true;
               render_root_->FlushActions();
-              batch_rendering_ = false;
+              batch_resolving_tree_ = false;
               promise.set_value(
                   this->GenerateReduceTaskForResolveElementTree());
             },
@@ -118,6 +125,8 @@ void ListItemSchedulerAdapter::PostResolveElementTree(
         [task_info_ptr]() { task_info_ptr->Run(); },
         base::ConcurrentTaskType::HIGH_PRIORITY);
     parallel_resolve_element_tree_queue.emplace_back(std::move(task_info_ptr));
+  } else {
+    FlushEnqueuedTasks();
   }
 }
 
@@ -128,6 +137,8 @@ ListItemSchedulerAdapter::GenerateReduceTaskForResolveElementTree() {
         list::BatchRenderStrategy::kAsyncResolvePropertyAndElementTree) {
       ConsumeResolveElementTreeReduceTasks();
     }
+
+    FlushEnqueuedTasks();
   });
 }
 

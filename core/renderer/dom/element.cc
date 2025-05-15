@@ -1502,6 +1502,10 @@ void Element::TransitionToNativeView() {
       });
 }
 
+void Element::EnqueueLayoutTask(base::MoveOnlyClosure<void> operation) {
+  operation();
+}
+
 bool Element::IsExtendedLayoutOnlyProps(CSSPropertyID css_id) {
   static const base::NoDestructor<std::array<bool, kPropertyEnd>>
       kWantedProperty([]() {

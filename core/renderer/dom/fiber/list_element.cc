@@ -68,9 +68,8 @@ void ListElement::OnNodeAdded(FiberElement* child) {
   // Create scheduler for each list-item
   if (UseNewResolveStrategy()) {
     child->CreateListItemScheduler(
-        list_container_delegate()->GetBatchRenderStrategy());
-    child->UpdateElementContextQueue(
-        child->GetSchedulerAdapter()->GetElementContextTaskQueue());
+        list_container_delegate()->GetBatchRenderStrategy(),
+        element_context_delegate_);
     // Mark inserted child as render_root of its subtree
     // TODO: Override UpdateRenderRootElementIfNecessary when list-item-element
     // concept is introduced.

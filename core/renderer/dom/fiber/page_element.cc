@@ -78,6 +78,7 @@ void PageElement::FlushActionsAsRoot() {
   FiberElement::ParallelFlushAsRoot();
   FiberElement::FlushActions();
   FiberElement::TraversalInsertFixedElementOfTree();
+  element_context_delegate_->FlushEnqueuedTasks();
 }
 
 void PageElement::PostResolveTaskToThreadPool(
