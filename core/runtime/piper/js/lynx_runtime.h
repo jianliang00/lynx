@@ -14,6 +14,7 @@
 #include "base/include/closure.h"
 #include "base/include/debug/lynx_assert.h"
 #include "base/include/debug/lynx_error.h"
+#include "base/include/vector.h"
 #include "core/base/threading/task_runner_manufactor.h"
 #include "core/public/jsb/native_module_factory.h"
 #include "core/public/page_options.h"
@@ -248,6 +249,8 @@ class LynxRuntime final {
   tasm::PageOptions page_options_;
   lepus::Value init_global_props_;
   bool is_pending_core_js_{false};
+  base::InlineVector<std::unique_ptr<piper::NativeModuleFactory>, 4>
+      cached_native_factories_;
   bool force_reload_js_core_{false};
 };
 

@@ -115,6 +115,12 @@ void LynxRuntime::Init(
   tasm::TimingCollector::Scope<TemplateDelegate> scope(delegate_.get());
   lifecycle_observer_->OnRuntimeInit(instance_id_);
 
+  if (module_manager && cached_native_factories_.size() > 0) {
+    for (auto&& module : cached_native_factories_) {
+      module_manager->SetModuleFactory(std::move(module));
+    }
+    cached_native_factories_.clear();
+  }
   js_executor_ = std::make_unique<lynx::piper::JSExecutor>(
       std::make_shared<JSIExceptionHandlerImpl>(this), group_id_,
       module_manager, runtime_observer, force_use_light_weight_js_engine);
@@ -1006,7 +1012,14 @@ void LynxRuntime::AddLifecycleListener(
 
 void LynxRuntime::AddModuleFactory(
     std::unique_ptr<piper::NativeModuleFactory> native_factory) {
-  js_executor_->GetModuleManager()->SetModuleFactory(std::move(native_factory));
+  if (js_executor_) {
+    auto& module_manager = js_executor_->GetModuleManager();
+    if (module_manager) {
+      module_manager->SetModuleFactory(std::move(native_factory));
+      return;
+    }
+  }
+  cached_native_factories_.push_back(std::move(native_factory));
 }
 
 }  // namespace runtime
