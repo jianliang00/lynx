@@ -406,7 +406,8 @@ void DataBindingLoadTemplateBundleShell::TasmLoadTemplate(
   if (template_bundle.is_lepusng_binary()) {
     template_bundle.page_configs_->SetEnableUseContextPool(true);
     template_bundle.quick_context_pool_ = lepus::QuickContextPool::Create(
-        template_bundle.context_bundle_, template_bundle.compile_options_);
+        template_bundle.context_bundle_, template_bundle.compile_options_,
+        template_bundle.page_configs_.get());
     template_bundle.quick_context_pool_->AddContextSafely(1);
   }
 

@@ -7,9 +7,11 @@
 
 #include <memory>
 #include <mutex>
+#include <string>
 #include <utility>
 
 #include "base/include/vector.h"
+#include "core/template_bundle/template_codec/binary_decoder/page_config.h"
 #include "core/template_bundle/template_codec/compile_options.h"
 
 namespace lynx {
@@ -25,7 +27,8 @@ class QuickContextPool : public std::enable_shared_from_this<QuickContextPool> {
   // replenishing the cache, so it can only exist in the form of shared_ptr
   static std::shared_ptr<QuickContextPool> Create(
       const std::shared_ptr<ContextBundle>& context_bundle,
-      const tasm::CompileOptions& compile_options);
+      const tasm::CompileOptions& compile_options,
+      tasm::PageConfig* page_configs);
 
   ~QuickContextPool() = default;
 
@@ -49,10 +52,14 @@ class QuickContextPool : public std::enable_shared_from_this<QuickContextPool> {
   explicit QuickContextPool() : need_check_settings_(true) {}
   explicit QuickContextPool(
       const std::shared_ptr<ContextBundle>& context_bundle,
-      const tasm::CompileOptions& compile_options)
+      const tasm::CompileOptions& compile_options,
+      tasm::PageConfig* page_configs)
       : need_check_settings_(context_bundle == nullptr),
+        enable_signal_api_(
+            page_configs ? page_configs->GetEnableSignalAPIBoolValue() : false),
         context_bundle_(context_bundle),
-        arch_option_(compile_options.arch_option_) {}
+        arch_option_(compile_options.arch_option_),
+        target_sdk_version_(compile_options.target_sdk_version_) {}
 
   int32_t TryCheckSettings(int32_t default_value);
 
@@ -61,9 +68,11 @@ class QuickContextPool : public std::enable_shared_from_this<QuickContextPool> {
   base::InlineVector<std::shared_ptr<lepus::QuickContext>, 8> contexts_;
   std::mutex mtx_;
   bool need_check_settings_{true};
-  std::shared_ptr<ContextBundle> context_bundle_{nullptr};
   bool enable_auto_generate_{true};
+  bool enable_signal_api_;
+  std::shared_ptr<ContextBundle> context_bundle_{nullptr};
   tasm::ArchOption arch_option_;
+  std::string target_sdk_version_;
 };
 
 }  // namespace lepus

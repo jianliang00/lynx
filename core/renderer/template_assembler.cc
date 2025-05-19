@@ -302,7 +302,6 @@ void TemplateAssembler::UpdateGlobalPropsWithDefaultProps(
 
 void TemplateAssembler::UpdateGlobalPropsToContext(const lepus::Value& props) {
   ForEachEntry([&props](const auto& entry) {
-    entry->RegisterLynx();
     entry->UpdateGlobalPropsToContext(props);
   });
 }

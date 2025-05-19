@@ -210,6 +210,8 @@ class Context {
   const std::shared_ptr<tasm::AnimationFrameManager>& GetAnimationFrameManager()
       const;
 
+  void RegisterLynx(bool enable_signal_api);
+
   virtual bool DeSerialize(const ContextBundle&, bool, Value* ret,
                            const char* file_name = nullptr) = 0;
 

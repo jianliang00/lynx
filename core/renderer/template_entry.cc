@@ -100,8 +100,10 @@ bool TemplateEntry::ConstructContext(TemplateAssembler* assembler,
     return false;
   }
 
-  vm_context_->SetSdkVersion(assembler->target_sdk_version_);
-  vm_context_->Initialize();
+  if (source_type != LepusContextSourceType::kFromLocalPool) {
+    vm_context_->SetSdkVersion(assembler->target_sdk_version_);
+    vm_context_->Initialize();
+  }
 #if ENABLE_TRACE_PERFETTO
   if (is_lepusng_binary) {
     std::shared_ptr<lepus::QuickContext> context =
@@ -113,6 +115,10 @@ bool TemplateEntry::ConstructContext(TemplateAssembler* assembler,
   SetTemplateAssembler(assembler);
   if (source_type != LepusContextSourceType::kFromLocalPool) {
     RegisterBuiltin();
+    vm_context_->RegisterLynx(
+        template_bundle_.page_configs_
+            ? template_bundle_.page_configs_->GetEnableSignalAPIBoolValue()
+            : false);
   }
   std::string file_name = GenerateLepusJSFileName(name_);
 
@@ -308,27 +314,6 @@ lepus::Value TemplateEntry::ProcessBinaryEvalResult() {
     }
   }
   return binary_eval_result_;
-}
-
-void TemplateEntry::RegisterLynx() {
-  if (!vm_context_) {
-    return;
-  }
-  BASE_STATIC_STRING_DECL(kPostDataBeforeUpdate, "postDataBeforeUpdate");
-  BASE_STATIC_STRING_DECL(kTriggerReadyWhenReload, "triggerReadyWhenReload");
-  const auto enable_signal_api =
-      template_bundle_.page_configs_
-          ? template_bundle_.page_configs_->GetEnableSignalAPIBoolValue()
-          : false;
-
-  vm_context_->SetPropertyToLynx(BASE_STATIC_STRING(kSystemInfo),
-                                 tasm::GenerateSystemInfo(nullptr));
-  vm_context_->SetPropertyToLynx(kTriggerReadyWhenReload, lepus::Value(true));
-  if (LynxEnv::GetInstance().EnablePostDataBeforeUpdateTemplate()) {
-    vm_context_->SetPropertyToLynx(kPostDataBeforeUpdate, lepus::Value(true));
-  }
-  vm_context_->SetPropertyToLynx(BASE_STATIC_STRING(kEnableSignalAPI),
-                                 lepus::Value(enable_signal_api));
 }
 
 void TemplateEntry::UpdateGlobalPropsToContext(const lepus::Value& props) {

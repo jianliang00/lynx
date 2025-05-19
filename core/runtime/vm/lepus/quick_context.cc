@@ -323,9 +323,7 @@ void QuickContext::Initialize() {
 
 void QuickContext::RegisterMethodToLynx() {
 #ifndef LEPUS_PC
-  EnsureDelegate();
-  std::string targetSdkVersion = delegate_ ? delegate_->TargetSdkVersion() : "";
-  tasm::Utils::RegisterNGMethodToLynx(this, lynx_, std::move(targetSdkVersion));
+  tasm::Utils::RegisterNGMethodToLynx(this, lynx_, GetSdkVersion());
 #endif
 }
 

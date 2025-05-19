@@ -73,8 +73,6 @@ class TemplateEntry : public VmContextHolder, public CSSStyleSheetDelegate {
 
   void SetLepusInitData(const lepus::Value& value) { lepus_init_data_ = value; }
 
-  void RegisterLynx();
-
   void UpdateGlobalPropsToContext(const lepus::Value& props);
 
   // Get, Only for use, Can't be stored.

@@ -21,9 +21,10 @@ std::shared_ptr<QuickContextPool> QuickContextPool::Create() {
 
 std::shared_ptr<QuickContextPool> QuickContextPool::Create(
     const std::shared_ptr<ContextBundle>& context_bundle,
-    const tasm::CompileOptions& compile_options) {
+    const tasm::CompileOptions& compile_options,
+    tasm::PageConfig* page_configs) {
   return std::shared_ptr<QuickContextPool>(
-      new QuickContextPool(context_bundle, compile_options));
+      new QuickContextPool(context_bundle, compile_options, page_configs));
 }
 
 void QuickContextPool::FillPool(int32_t count) {
@@ -61,7 +62,10 @@ void QuickContextPool::AddContextSafely(int32_t count) {
   for (; count > 0; --count) {
     auto context = std::make_shared<QuickContext>();
     if (context_bundle_) {
+      context->SetSdkVersion(target_sdk_version_);
+      context->Initialize();
       context->RegisterCtxBuiltin(arch_option_);
+      context->RegisterLynx(enable_signal_api_);
       // if context_bundle_ exists, should call DeSerialize. And if DeSerialize
       // fails, just return.
       if (!context->DeSerialize(*context_bundle_, false, nullptr)) {

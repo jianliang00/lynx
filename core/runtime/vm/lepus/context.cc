@@ -11,6 +11,7 @@
 #include "base/trace/native/trace_event.h"
 #include "core/renderer/utils/base/base_def.h"
 #include "core/renderer/utils/base/tasm_constants.h"
+#include "core/renderer/utils/base/tasm_utils.h"
 #include "core/renderer/utils/lynx_env.h"
 #include "core/runtime/common/js_error_reporter.h"
 #include "core/runtime/common/utils.h"
@@ -389,6 +390,20 @@ Context::GetAnimationFrameManager() const {
     animate_frame_manager_ = std::make_shared<tasm::AnimationFrameManager>();
   }
   return animate_frame_manager_;
+}
+
+void Context::RegisterLynx(bool enable_signal_api) {
+  BASE_STATIC_STRING_DECL(kPostDataBeforeUpdate, "postDataBeforeUpdate");
+  BASE_STATIC_STRING_DECL(kTriggerReadyWhenReload, "triggerReadyWhenReload");
+
+  SetPropertyToLynx(BASE_STATIC_STRING(tasm::kSystemInfo),
+                    tasm::GenerateSystemInfo(nullptr));
+  SetPropertyToLynx(kTriggerReadyWhenReload, lepus::Value(true));
+  if (tasm::LynxEnv::GetInstance().EnablePostDataBeforeUpdateTemplate()) {
+    SetPropertyToLynx(kPostDataBeforeUpdate, lepus::Value(true));
+  }
+  SetPropertyToLynx(BASE_STATIC_STRING(tasm::kEnableSignalAPI),
+                    lepus::Value(enable_signal_api));
 }
 
 void Context::ReportError(const std::string& exception_info, int32_t err_code,
