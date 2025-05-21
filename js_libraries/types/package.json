@@ -11,7 +11,7 @@
   "types": "types/index.d.ts",
   "main": "types/index.d.ts",
   "scripts": {
-    "test": "vitest --typecheck --run & tsc --noEmit"
+    "test": "vitest --typecheck --run && tsc --noEmit"
   },
   "exports": {
     ".": {
