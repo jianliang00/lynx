@@ -152,6 +152,8 @@ public abstract class LynxContext extends LynxBaseContext implements ExceptionHa
     super(base);
     mVirtualScreenMetrics = new DisplayMetrics();
     mVirtualScreenMetrics.setTo(screenMetrics);
+
+    initUIExposure();
   }
 
   /**
@@ -727,6 +729,7 @@ public abstract class LynxContext extends LynxBaseContext implements ExceptionHa
 
   public void setLynxUIOwner(LynxUIOwner owner) {
     mLynxUIOwner = new WeakReference<>(owner);
+    mExposure.setRootUI(owner.getRootUI());
   }
 
   public UIExposure getExposure() {
@@ -1031,6 +1034,10 @@ public abstract class LynxContext extends LynxBaseContext implements ExceptionHa
   }
 
   public void addUIToExposedMap(LynxBaseUI ui) {
+    if (mExposure == null) {
+      LLog.e(TAG, "addUIToExposedMap failed, since mExposure is null");
+      return;
+    }
     addUIToExposedMap(ui, null, null, null);
   }
 
@@ -1042,24 +1049,20 @@ public abstract class LynxContext extends LynxBaseContext implements ExceptionHa
     if (uniqueID == null && ui.getEvents() != null
         && (ui.getEvents().containsKey(UIAPPEAREVENT)
             || ui.getEvents().containsKey(UIDISAPPEAREVENT))) {
-      if (mExposure == null) {
-        initUIExposure();
-      }
       JavaOnlyMap customOption = new JavaOnlyMap();
       customOption.put("sendCustom", true);
       mExposure.addUIToExposedMap(ui, String.valueOf(ui.getSign()), null, customOption);
     }
 
     // Native components can call this interface to reuse the exposure capability.
-    if (uniqueID != null || ui.getExposureID() != null) {
-      if (mExposure == null) {
-        initUIExposure();
-      }
-      mExposure.addUIToExposedMap(ui, uniqueID, data, options);
-    }
+    mExposure.addUIToExposedMap(ui, uniqueID, data, options);
   }
 
   public void removeUIFromExposedMap(LynxBaseUI ui) {
+    if (mExposure == null) {
+      LLog.e(TAG, "removeUIFromExposedMap failed, since mExposure is null");
+      return;
+    }
     removeUIFromExposedMap(ui, null);
   }
 
@@ -1070,19 +1073,11 @@ public abstract class LynxContext extends LynxBaseContext implements ExceptionHa
     if (uniqueID == null && ui.getEvents() != null
         && (ui.getEvents().containsKey(UIAPPEAREVENT)
             || ui.getEvents().containsKey(UIDISAPPEAREVENT))) {
-      if (mExposure == null) {
-        initUIExposure();
-      }
       mExposure.removeUIFromExposedMap(ui, String.valueOf(ui.getSign()));
     }
 
     // Native components can call this interface to reuse the exposure capability.
-    if (uniqueID != null || ui.getExposureID() != null) {
-      if (mExposure == null) {
-        initUIExposure();
-      }
-      mExposure.removeUIFromExposedMap(ui, uniqueID);
-    }
+    mExposure.removeUIFromExposedMap(ui, uniqueID);
   }
 
   public void onRootViewDraw(Canvas canvas) {
@@ -1290,10 +1285,6 @@ public abstract class LynxContext extends LynxBaseContext implements ExceptionHa
 
   private void initUIExposure() {
     mExposure = new UIExposure();
-    LynxUIOwner owner = mLynxUIOwner.get();
-    if (owner != null) {
-      mExposure.setRootUI(owner.getRootUI());
-    }
     final WeakReference<LynxContext> weakContext = new WeakReference<>(this);
     mExposure.setCallback(new UIExposure.ExposureCallback(weakContext));
   }
