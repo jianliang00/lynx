@@ -742,6 +742,9 @@ LYNX_NOT_IMPLEMENTED(-(instancetype)initWithCoder : (NSCoder*)aDecoder)
     _LogE(@"LynxTemplateRender loadTemplateFromURL url is empty! in render %p", self);
     return;
   }
+  // It is essential to execute onLoadFromURL before dispatchViewDidStartLoading
+  // so that the necessary information is available when the dispatchViewDidStartLoading callback
+  // occurs.
   [self onLoadFromURL:url initData:data];
   [self dispatchViewDidStartLoading];
   __weak LynxTemplateRender* weakSelf = self;
