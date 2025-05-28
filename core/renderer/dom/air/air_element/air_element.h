@@ -372,7 +372,7 @@ class AirElement {
   float top() const { return top_; }
   float left() const { return left_; }
 
-  inline const std::shared_ptr<PropBundle>& prop_bundle() const {
+  inline const fml::RefPtr<PropBundle>& prop_bundle() const {
     return prop_bundle_;
   }
 
@@ -486,7 +486,7 @@ class AirElement {
 
   bool has_layout_only_props_{true};
 
-  std::shared_ptr<PropBundle> prop_bundle_{nullptr};
+  fml::RefPtr<PropBundle> prop_bundle_{nullptr};
 
   // Save the keyframes of the Animate API.
   CSSKeyframesTokenMap keyframes_map_;

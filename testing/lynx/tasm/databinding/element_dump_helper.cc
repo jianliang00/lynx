@@ -50,8 +50,8 @@ rapidjson::Value ElementDumpHelper::DumpToJSON(Element* element,
   rapidjson::Value value;
   value.SetObject();
 
-  std::shared_ptr<PropBundleMock> prop_bundle_mock_ptr =
-      std::static_pointer_cast<PropBundleMock>(element->pre_prop_bundle_);
+  auto prop_bundle_mock_ptr =
+      fml::static_ref_ptr_cast<PropBundleMock>(element->pre_prop_bundle_);
   if (prop_bundle_mock_ptr) {
     const std::map<std::string, lepus::Value>& prop_bundle_mock_map =
         prop_bundle_mock_ptr->GetPropsMap();

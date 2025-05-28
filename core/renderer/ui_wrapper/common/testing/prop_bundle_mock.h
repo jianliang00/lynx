@@ -73,9 +73,9 @@ class PropBundleMock : public PropBundle {
                     size_t size) override;
   void SetPropsByID(CSSPropertyID id, const uint32_t* data,
                     size_t size) override;
-  std::unique_ptr<PropBundle> ShallowCopy() override { return nullptr; }
+  fml::RefPtr<PropBundle> ShallowCopy() override { return nullptr; }
 
-  static std::unique_ptr<PropBundle> CreateForMock();
+  static fml::RefPtr<PropBundle> CreateForMock();
 
   const std::map<std::string, lepus::Value>& GetPropsMap() const;
 

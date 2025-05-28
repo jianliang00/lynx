@@ -64,7 +64,7 @@ class NativeFacadeAndroid : public NativeFacade {
 
   void InvokeUIMethod(const tasm::LynxGetUIResult& ui_result,
                       const std::string& method,
-                      std::unique_ptr<tasm::PropBundle> params,
+                      fml::RefPtr<tasm::PropBundle> params,
                       piper::ApiCallBack callback) override;
 
   void OnTemplateBundleReady(tasm::LynxTemplateBundle bundle) override;

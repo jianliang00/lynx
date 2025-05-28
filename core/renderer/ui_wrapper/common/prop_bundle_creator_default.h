@@ -14,7 +14,7 @@ namespace tasm {
 
 class PropBundleCreatorDefault : public PropBundleCreator {
  public:
-  std::unique_ptr<PropBundle> CreatePropBundle() override;
+  fml::RefPtr<PropBundle> CreatePropBundle() override;
 };
 
 }  // namespace tasm

@@ -18,9 +18,9 @@ namespace lynx {
 namespace tasm {
 class PropBundleCreatorAndroid : public PropBundleCreator {
  public:
-  std::unique_ptr<PropBundle> CreatePropBundle() override;
+  fml::RefPtr<PropBundle> CreatePropBundle() override;
 
-  std::unique_ptr<PropBundle> CreatePropBundle(bool use_map_buffer) override;
+  fml::RefPtr<PropBundle> CreatePropBundle(bool use_map_buffer) override;
 };
 
 class PropBundleAndroid : public PropBundle {
@@ -53,7 +53,7 @@ class PropBundleAndroid : public PropBundle {
   void SetPropsByID(CSSPropertyID id, const uint32_t* data,
                     size_t size) override;
 
-  std::unique_ptr<PropBundle> ShallowCopy() override;
+  fml::RefPtr<PropBundle> ShallowCopy() override;
 
   void SetEventHandler(const pub::Value& event) override;
   void SetGestureDetector(const GestureDetector& detector) override;

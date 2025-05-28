@@ -308,8 +308,8 @@ void PropBundleDarwin::AssembleArray(NSMutableArray* array, const pub::Value& va
   }
 }
 
-std::unique_ptr<PropBundle> PropBundleDarwin::ShallowCopy() {
-  auto pda = std::unique_ptr<PropBundleDarwin>(new PropBundleDarwin());
+fml::RefPtr<PropBundle> PropBundleDarwin::ShallowCopy() {
+  auto pda = fml::AdoptRef(new PropBundleDarwin());
   pda->propMap = [propMap mutableCopy];
   if (eventSet) {
     pda->eventSet = [eventSet mutableCopy];
@@ -320,8 +320,8 @@ std::unique_ptr<PropBundle> PropBundleDarwin::ShallowCopy() {
   return pda;
 }
 
-std::unique_ptr<PropBundle> PropBundleCreatorDarwin::CreatePropBundle() {
-  return std::unique_ptr<PropBundleDarwin>(new PropBundleDarwin());
+fml::RefPtr<PropBundle> PropBundleCreatorDarwin::CreatePropBundle() {
+  return fml::AdoptRef(new PropBundleDarwin());
 }
 
 }  // namespace tasm

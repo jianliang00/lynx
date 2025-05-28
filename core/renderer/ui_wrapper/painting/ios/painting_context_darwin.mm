@@ -234,7 +234,7 @@ void PaintingContextDarwinRef::SetNeedMarkDrawEndTiming(
   });
 }
 
-void PaintingContextDarwin::SetKeyframes(std::unique_ptr<PropBundle> keyframes_data) {
+void PaintingContextDarwin::SetKeyframes(fml::RefPtr<PropBundle> keyframes_data) {
   __weak LynxUIOwner* uiOwner = uiOwner_;
   Enqueue([uiOwner,
            keyframesDict = static_cast<PropBundleDarwin*>(keyframes_data.get())->dictionary()]() {
@@ -270,7 +270,7 @@ PaintingContextDarwin::PaintingContextDarwin(LynxUIOwner* owner, bool enable_cre
 PaintingContextDarwin::~PaintingContextDarwin() {}
 
 void PaintingContextDarwin::CreatePaintingNode(int sign, const std::string& tag,
-                                               const std::shared_ptr<PropBundle>& painting_data,
+                                               const fml::RefPtr<PropBundle>& painting_data,
                                                bool flatten, bool create_node_async,
                                                uint32_t node_index) {
   PropBundleDarwin* pda = static_cast<PropBundleDarwin*>(painting_data.get());
@@ -358,7 +358,7 @@ void PaintingContextDarwin::CreatePaintingNode(int sign, const std::string& tag,
 }
 
 void PaintingContextDarwin::UpdatePaintingNode(int id, bool tend_to_flatten,
-                                               const std::shared_ptr<PropBundle>& painting_data) {
+                                               const fml::RefPtr<PropBundle>& painting_data) {
   PropBundleDarwin* pda = static_cast<PropBundleDarwin*>(painting_data.get());
   __weak LynxUIOwner* uiOwner = uiOwner_;
   Enqueue([uiOwner, id, props = pda->dictionary(), eventSet = pda->event_set(),

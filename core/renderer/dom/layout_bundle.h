@@ -27,8 +27,8 @@ struct LayoutBundle {
   // layout node dirty.
   bool is_dirty{false};
 
-  std::shared_ptr<PropBundle> shadownode_prop_bundle;
-  std::list<std::shared_ptr<PropBundle>> update_prop_bundles{};
+  fml::RefPtr<PropBundle> shadownode_prop_bundle;
+  std::list<fml::RefPtr<PropBundle>> update_prop_bundles{};
   std::list<CSSPropertyID> reset_styles{};
   std::list<std::pair<CSSPropertyID, CSSValue>> styles{};
   std::list<std::pair<starlight::LayoutAttribute, lepus::Value>> attrs{};

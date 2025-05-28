@@ -311,7 +311,7 @@ void PaintingContextAndroidRef::SetNeedMarkDrawEndTiming(
 }
 
 void PaintingContextAndroid::SetKeyframes(
-    std::unique_ptr<PropBundle> keyframes_data) {
+    fml::RefPtr<PropBundle> keyframes_data) {
   PropBundleAndroid* pda =
       static_cast<PropBundleAndroid*>(keyframes_data.get());
   JNIEnv* env = base::android::AttachCurrentThread();
@@ -384,7 +384,7 @@ void PaintingContextAndroid::InvokeNativeRunnable(
 
 std::tuple<PropBundleAndroid*, jobject, jobject, jobject>
 PaintingContextAndroid::GetArgsForCreatePaintingNode(
-    const std::shared_ptr<PropBundle>& painting_data) {
+    const fml::RefPtr<PropBundle>& painting_data) {
   PropBundleAndroid* pda = static_cast<PropBundleAndroid*>(painting_data.get());
   const auto props_object =
       pda->jni_map() ? pda->jni_map()->jni_object() : nullptr;
@@ -400,7 +400,7 @@ PaintingContextAndroid::GetArgsForCreatePaintingNode(
 
 void PaintingContextAndroid::CreatePaintingNode(
     int id, const std::string& tag,
-    const std::shared_ptr<PropBundle>& painting_data, bool flatten,
+    const fml::RefPtr<PropBundle>& painting_data, bool flatten,
     bool create_node_async, uint32_t node_index) {
   TRACE_EVENT(LYNX_TRACE_CATEGORY, PAINTING_CONTEXT_ANDROID_CREAT_NODE);
   if (!config_.enable_native_schedule_create_view_async) {
@@ -660,7 +660,7 @@ void PaintingContextAndroid::UpdateLayout(
 
 void PaintingContextAndroid::UpdatePaintingNode(
     int id, bool tend_to_flatten,
-    const std::shared_ptr<PropBundle>& painting_data) {
+    const fml::RefPtr<PropBundle>& painting_data) {
   PropBundleAndroid* pda = static_cast<PropBundleAndroid*>(painting_data.get());
   JNIEnv* env = base::android::AttachCurrentThread();
   base::android::ScopedGlobalJavaRef<jobject> props_ref(

@@ -311,7 +311,7 @@ LynxShell* LynxShellBuilder::build() {
       shell::InvokeUIMethodFunction invoke_ui_method_func =
           [painting_context](lynx::tasm::LynxGetUIResult ui_result,
                              const std::string& method,
-                             std::unique_ptr<lynx::tasm::PropBundle> params,
+                             fml::RefPtr<lynx::tasm::PropBundle> params,
                              lynx::piper::ApiCallBack callback) {
             painting_context->InvokeUIMethod(ui_result.UiImplIds()[0], method,
                                              std::move(params), callback.id());

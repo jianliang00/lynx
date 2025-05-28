@@ -168,7 +168,7 @@ static const void *applyRTLArrayKey = &applyRTLArrayKey;
 }
 
 - (void)testSetOpacity {
-  std::shared_ptr<lynx::tasm::PropBundle> prop_bundle = prop_bundle_creator_->CreatePropBundle();
+  auto prop_bundle = prop_bundle_creator_->CreatePropBundle();
   prop_bundle->SetProps("opacity", 0.5);
 
   async_painting_context_darwin_->CreatePaintingNode(12, "view", prop_bundle, false, false, 12);
@@ -194,7 +194,7 @@ static const void *applyRTLArrayKey = &applyRTLArrayKey;
 }
 
 - (void)testSetVisibility {
-  std::shared_ptr<lynx::tasm::PropBundle> prop_bundle = prop_bundle_creator_->CreatePropBundle();
+  auto prop_bundle = prop_bundle_creator_->CreatePropBundle();
   prop_bundle->SetProps("visibility", false);
 
   async_painting_context_darwin_->CreatePaintingNode(12, "view", prop_bundle, false, false, 12);
@@ -219,7 +219,7 @@ static const void *applyRTLArrayKey = &applyRTLArrayKey;
 }
 
 - (void)testSetDirection {
-  std::shared_ptr<lynx::tasm::PropBundle> prop_bundle = prop_bundle_creator_->CreatePropBundle();
+  auto prop_bundle = prop_bundle_creator_->CreatePropBundle();
   prop_bundle->SetProps("direction", 2);
 
   async_painting_context_darwin_->CreatePaintingNode(12, "view", prop_bundle, false, false, 12);
@@ -247,7 +247,7 @@ static const void *applyRTLArrayKey = &applyRTLArrayKey;
 }
 
 - (void)testSetAccessibilityLabel {
-  std::shared_ptr<lynx::tasm::PropBundle> prop_bundle = prop_bundle_creator_->CreatePropBundle();
+  auto prop_bundle = prop_bundle_creator_->CreatePropBundle();
   prop_bundle->SetProps("accessibility-label", "test");
 
   async_painting_context_darwin_->CreatePaintingNode(12, "view", prop_bundle, false, false, 12);
@@ -272,7 +272,7 @@ static const void *applyRTLArrayKey = &applyRTLArrayKey;
 }
 
 - (void)testOtherProps {
-  std::shared_ptr<lynx::tasm::PropBundle> prop_bundle = prop_bundle_creator_->CreatePropBundle();
+  auto prop_bundle = prop_bundle_creator_->CreatePropBundle();
   prop_bundle->SetProps("native-interaction-enabled", false);
   prop_bundle->SetProps("allow-edge-antialiasing", false);
 
@@ -301,7 +301,7 @@ static const void *applyRTLArrayKey = &applyRTLArrayKey;
 }
 
 - (void)testTagName {
-  std::shared_ptr<lynx::tasm::PropBundle> prop_bundle = prop_bundle_creator_->CreatePropBundle();
+  auto prop_bundle = prop_bundle_creator_->CreatePropBundle();
   prop_bundle->SetProps("opacity", 0.5);
 
   async_painting_context_darwin_->CreatePaintingNode(12, "scroll-view", prop_bundle, false, false,
@@ -330,7 +330,7 @@ static const void *applyRTLArrayKey = &applyRTLArrayKey;
 }
 
 - (void)testViewSign {
-  std::shared_ptr<lynx::tasm::PropBundle> prop_bundle = prop_bundle_creator_->CreatePropBundle();
+  auto prop_bundle = prop_bundle_creator_->CreatePropBundle();
   prop_bundle->SetProps("opacity", 0.5);
 
   async_painting_context_darwin_->CreatePaintingNode(12, "scroll-view", prop_bundle, false, false,
@@ -362,7 +362,7 @@ static const void *applyRTLArrayKey = &applyRTLArrayKey;
 }
 
 - (void)testListEvent {
-  std::shared_ptr<lynx::tasm::PropBundle> prop_bundle = prop_bundle_creator_->CreatePropBundle();
+  auto prop_bundle = prop_bundle_creator_->CreatePropBundle();
   prop_bundle->SetProps("opacity", 0.5);
 
   {
@@ -418,7 +418,7 @@ static const void *applyRTLArrayKey = &applyRTLArrayKey;
 }
 
 - (void)testImageAutoPlay {
-  std::shared_ptr<lynx::tasm::PropBundle> prop_bundle = prop_bundle_creator_->CreatePropBundle();
+  auto prop_bundle = prop_bundle_creator_->CreatePropBundle();
 
   async_painting_context_darwin_->CreatePaintingNode(12, "image", prop_bundle, false, false, 12);
   sync_painting_context_darwin_->CreatePaintingNode(11, "image", prop_bundle, false, false, 11);

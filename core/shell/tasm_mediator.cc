@@ -527,7 +527,7 @@ void TasmMediator::UpdateLayoutNodeByBundle(
 }
 
 void TasmMediator::UpdateLayoutNodeProps(
-    int32_t id, const std::shared_ptr<tasm::PropBundle>& props) {
+    int32_t id, const fml::RefPtr<tasm::PropBundle>& props) {
   layout_actor_->ActLite(
       [id, props](auto& layout) { layout->UpdateLayoutNodeProps(id, props); });
 }
@@ -538,7 +538,7 @@ void TasmMediator::MarkLayoutDirty(int32_t id) {
 
 void TasmMediator::AttachLayoutNodeType(
     int32_t id, const base::String& tag, bool allow_inline,
-    const std::shared_ptr<tasm::PropBundle>& props) {
+    const fml::RefPtr<tasm::PropBundle>& props) {
   layout_actor_->ActLite([id, tag, allow_inline, props](auto& layout) {
     layout->AttachLayoutNodeType(id, tag, allow_inline, props);
   });
@@ -546,7 +546,7 @@ void TasmMediator::AttachLayoutNodeType(
 
 void TasmMediator::InvokeUIMethod(tasm::LynxGetUIResult ui_result,
                                   const std::string& method,
-                                  std::unique_ptr<tasm::PropBundle> params,
+                                  fml::RefPtr<tasm::PropBundle> params,
                                   piper::ApiCallBack callback) {
   if (invoke_ui_method_func_ != nullptr) {
     invoke_ui_method_func_(std::move(ui_result), method, std::move(params),

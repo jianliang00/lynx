@@ -49,10 +49,9 @@ class RadonElement : public Element {
   bool InComponent() const override;
 
   virtual void MarkAsLayoutRoot() override;
-  virtual void AttachLayoutNode(
-      const std::shared_ptr<PropBundle>& props) override;
+  virtual void AttachLayoutNode(const fml::RefPtr<PropBundle>& props) override;
   virtual void UpdateLayoutNodeProps(
-      const std::shared_ptr<PropBundle>& props) override;
+      const fml::RefPtr<PropBundle>& props) override;
   virtual void UpdateLayoutNodeStyle(CSSPropertyID css_id,
                                      const tasm::CSSValue& value) override;
   virtual void ResetLayoutNodeStyle(tasm::CSSPropertyID css_id) override;

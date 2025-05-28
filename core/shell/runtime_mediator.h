@@ -88,7 +88,7 @@ class RuntimeMediator : public runtime::TemplateDelegate {
                        piper::ApiCallBack callBack) override;
   void InvokeUIMethod(tasm::NodeSelectRoot root,
                       tasm::NodeSelectOptions options, std::string method,
-                      std::unique_ptr<tasm::PropBundle> params,
+                      fml::RefPtr<tasm::PropBundle> params,
                       piper::ApiCallBack callback) override;
   void GetPathInfo(tasm::NodeSelectRoot root, tasm::NodeSelectOptions options,
                    piper::ApiCallBack call_back) override;
@@ -175,7 +175,7 @@ class RuntimeMediator : public runtime::TemplateDelegate {
   RuntimeMediator(RuntimeMediator&&) = delete;
   RuntimeMediator& operator=(RuntimeMediator&&) = delete;
 
-  std::unique_ptr<tasm::PropBundle> CreatePropBundle() override {
+  fml::RefPtr<tasm::PropBundle> CreatePropBundle() override {
     return prop_bundle_creator_->CreatePropBundle();
   }
 

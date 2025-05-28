@@ -400,7 +400,7 @@ void ElementContainer::UpdateLayoutWithoutChange() {
 }
 
 void ElementContainer::TransitionToNativeView(
-    std::shared_ptr<PropBundle> prop_bundle) {
+    fml::RefPtr<PropBundle> prop_bundle) {
   TRACE_EVENT(LYNX_TRACE_CATEGORY, ELEMENT_CONTAINER_TRANSITION);
   if (prop_bundle == nullptr) {
     return;

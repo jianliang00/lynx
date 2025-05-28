@@ -115,8 +115,7 @@ class LayoutContext : public std::enable_shared_from_this<LayoutContext>,
                                 std::unique_ptr<LayoutBundle> bundle);
 
   LayoutNode* CreateLayoutNode(int32_t id, const base::String& tag);
-  void UpdateLayoutNodeProps(int32_t id,
-                             const std::shared_ptr<PropBundle>& props);
+  void UpdateLayoutNodeProps(int32_t id, const fml::RefPtr<PropBundle>& props);
   void UpdateLayoutNodeFontSize(int32_t id, double cur_node_font_size,
                                 double root_node_font_size, double font_scale);
   void UpdateLayoutNodeStyle(int32_t id, CSSPropertyID css_id,
@@ -135,7 +134,7 @@ class LayoutContext : public std::enable_shared_from_this<LayoutContext>,
   void DestroyLayoutNode(int32_t id);
   void AttachLayoutNodeType(int32_t id, const base::String& tag,
                             bool allow_inline,
-                            const std::shared_ptr<PropBundle>& props);
+                            const fml::RefPtr<PropBundle>& props);
   void MarkDirty(int32_t id);
   void DispatchLayoutUpdates(const std::shared_ptr<PipelineOptions>& options);
   void SetPageConfigForLayoutThread(const std::shared_ptr<PageConfig>& config);
@@ -227,8 +226,8 @@ class LayoutContext : public std::enable_shared_from_this<LayoutContext>,
   void DestroyPlatformNodesIfNeeded();
   bool SetViewportSizeToRootNode();
   int GetIndexForChild(LayoutNode* parent, LayoutNode* child);
-  inline void UpdateLayoutNodePropsInner(
-      LayoutNode* node, const std::shared_ptr<PropBundle>& props);
+  inline void UpdateLayoutNodePropsInner(LayoutNode* node,
+                                         const fml::RefPtr<PropBundle>& props);
   inline void UpdateLayoutNodeFontSizeInner(LayoutNode* node,
                                             double cur_node_font_size,
                                             double root_node_font_size,
@@ -241,12 +240,13 @@ class LayoutContext : public std::enable_shared_from_this<LayoutContext>,
                                              const lepus::Value& value);
   inline void SetRootInner(LayoutNode* node);
 
-  inline bool NoNeedPlatformLayoutNode(
-      const base::String& tag, const std::shared_ptr<PropBundle>& props);
+  inline bool NoNeedPlatformLayoutNode(const base::String& tag,
+                                       const fml::RefPtr<PropBundle>& props);
 
-  inline void AttachLayoutNodeTypeInner(
-      LayoutNode* node, const base::String& tag, bool allow_inline,
-      const std::shared_ptr<PropBundle>& props);
+  inline void AttachLayoutNodeTypeInner(LayoutNode* node,
+                                        const base::String& tag,
+                                        bool allow_inline,
+                                        const fml::RefPtr<PropBundle>& props);
 
   inline LayoutNode* InitLayoutNodeWithBundle(int32_t id, LayoutBundle* bundle);
 

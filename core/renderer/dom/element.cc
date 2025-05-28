@@ -569,7 +569,7 @@ void Element::SetKeyframesByNames(const lepus::Value& names,
   SetKeyframesByNamesInner(std::move(bundle));
 }
 
-void Element::SetKeyframesByNamesInner(std::unique_ptr<PropBundle> bundle) {
+void Element::SetKeyframesByNamesInner(fml::RefPtr<PropBundle> bundle) {
   painting_context()->SetKeyframes(std::move(bundle));
 }
 
@@ -1466,7 +1466,7 @@ bool Element::FlushAnimatedStyle() {
       break;
     }
   }
-  std::shared_ptr<PropBundle> bundle;
+  fml::RefPtr<PropBundle> bundle;
   if (has_layout_style) {
     bundle = nullptr;
   } else if (prop_bundle_) {

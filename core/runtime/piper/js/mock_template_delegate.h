@@ -63,7 +63,7 @@ class MockTemplateDelegate : public runtime::TemplateDelegate {
   // for SelectorQuery
   void InvokeUIMethod(tasm::NodeSelectRoot root,
                       tasm::NodeSelectOptions options, std::string method,
-                      std::unique_ptr<tasm::PropBundle> params,
+                      fml::RefPtr<tasm::PropBundle> params,
                       piper::ApiCallBack call_back) override {}
   void GetPathInfo(tasm::NodeSelectRoot root, tasm::NodeSelectOptions options,
                    piper::ApiCallBack call_back) override {}
@@ -138,7 +138,7 @@ class MockTemplateDelegate : public runtime::TemplateDelegate {
     return {event::EventCancelType::kNotCanceled, false};
   }
 
-  std::unique_ptr<tasm::PropBundle> CreatePropBundle() override {
+  fml::RefPtr<tasm::PropBundle> CreatePropBundle() override {
     return prop_bundle_creator_->CreatePropBundle();
   }
 

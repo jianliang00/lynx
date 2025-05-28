@@ -179,7 +179,7 @@ class MockTasmDelegate : public TemplateAssembler::Delegate,
   MOCK_METHOD(void, UpdateLayoutNodeByBundle,
               (int32_t id, std::unique_ptr<LayoutBundle> bundle), (override));
   MOCK_METHOD(void, UpdateLayoutNodeProps,
-              (int32_t id, const std::shared_ptr<tasm::PropBundle>& props),
+              (int32_t id, const fml::RefPtr<tasm::PropBundle>& props),
               (override));
 
   MOCK_METHOD(void, MarkLayoutDirty, (int32_t id), (override));
@@ -202,7 +202,7 @@ class MockTasmDelegate : public TemplateAssembler::Delegate,
 
   MOCK_METHOD(void, AttachLayoutNodeType,
               (int32_t id, const base::String& tag, bool allow_inline,
-               const std::shared_ptr<tasm::PropBundle>& props),
+               const fml::RefPtr<tasm::PropBundle>& props),
               (override));
 
   MOCK_METHOD((std::unordered_map<int32_t, tasm::LayoutInfoArray>),
@@ -222,7 +222,7 @@ class MockTasmDelegate : public TemplateAssembler::Delegate,
       tasm::timing::TimestampUs pipeline_start_timestamp){};
   void InvokeUIMethod(tasm::LynxGetUIResult ui_result,
                       const std::string& method,
-                      std::unique_ptr<tasm::PropBundle> params,
+                      fml::RefPtr<tasm::PropBundle> params,
                       piper::ApiCallBack callback) override {}
 
   void LepusInvokeUIMethod(

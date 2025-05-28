@@ -82,17 +82,17 @@ class PaintingCtxPlatformImpl {
   virtual void SetUIOperationQueue(
       const std::shared_ptr<shell::DynamicUIOperationQueue>& queue){};
   virtual void SetInstanceId(const int32_t instance_id){};
-  virtual void CreatePaintingNode(
-      int id, const std::string& tag,
-      const std::shared_ptr<PropBundle>& painting_data, bool flatten,
-      bool create_node_async, uint32_t node_index = 0) = 0;
+  virtual void CreatePaintingNode(int id, const std::string& tag,
+                                  const fml::RefPtr<PropBundle>& painting_data,
+                                  bool flatten, bool create_node_async,
+                                  uint32_t node_index = 0) = 0;
   virtual void InsertPaintingNode(int parent, int child, int index){};
   virtual void RemovePaintingNode(int parent, int child, int index,
                                   bool is_move){};
   virtual void DestroyPaintingNode(int parent, int child, int index){};
   virtual void UpdatePaintingNode(
       int id, bool tend_to_flatten,
-      const std::shared_ptr<PropBundle>& painting_data) = 0;
+      const fml::RefPtr<PropBundle>& painting_data) = 0;
 
   virtual std::unique_ptr<pub::Value> GetTextInfo(const std::string& content,
                                                   const pub::Value& info) = 0;
@@ -105,7 +105,7 @@ class PaintingCtxPlatformImpl {
   virtual void UpdatePlatformExtraBundle(int32_t id,
                                          PlatformExtraBundle* bundle) {}
 
-  virtual void SetKeyframes(std::unique_ptr<PropBundle> keyframes_data) = 0;
+  virtual void SetKeyframes(fml::RefPtr<PropBundle> keyframes_data) = 0;
   virtual void Flush() = 0;
   virtual void FlushImmediately() { Flush(); };
   virtual void HandleValidate(int tag) = 0;
@@ -145,7 +145,7 @@ class PaintingCtxPlatformImpl {
   virtual void SetEnableVsyncAlignedFlush(bool enabled) {}
 
   virtual void InvokeUIMethod(int32_t view_id, const std::string& method,
-                              std::unique_ptr<tasm::PropBundle> args,
+                              fml::RefPtr<tasm::PropBundle> args,
                               int32_t callback_id) {}
   virtual void getAbsolutePosition(int id, float* position) {}
 

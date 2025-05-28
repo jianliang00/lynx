@@ -18,7 +18,7 @@ namespace tasm {
 
 class PropBundleCreatorDarwin : public PropBundleCreator {
  public:
-  std::unique_ptr<PropBundle> CreatePropBundle() override;
+  fml::RefPtr<PropBundle> CreatePropBundle() override;
 };
 
 class PropBundleDarwin : public PropBundle {
@@ -74,7 +74,7 @@ class PropBundleDarwin : public PropBundle {
   void SetPropsByID(CSSPropertyID id, const uint32_t* data, size_t size) override;
 
   void ResetEventHandler() override;
-  std::unique_ptr<PropBundle> ShallowCopy() override;
+  fml::RefPtr<PropBundle> ShallowCopy() override;
 
   inline NSDictionary* dictionary() { return [propMap copy]; }
   inline NSSet* event_set() { return eventSet; }

@@ -309,13 +309,13 @@ void LayoutContext::AlignmentByPlatform(int32_t id, float offset_top,
 }
 
 void LayoutContext::UpdateLayoutNodeProps(
-    int32_t id, const std::shared_ptr<PropBundle>& props) {
+    int32_t id, const fml::RefPtr<PropBundle>& props) {
   auto node = FindNodeById(id);
   UpdateLayoutNodePropsInner(node, props);
 }
 
 void LayoutContext::UpdateLayoutNodePropsInner(
-    LayoutNode* node, const std::shared_ptr<PropBundle>& props) {
+    LayoutNode* node, const fml::RefPtr<PropBundle>& props) {
   if (node->is_common() && !node->is_inline_view()) {
     return;
   }
@@ -564,15 +564,15 @@ int LayoutContext::GetIndexForChild(LayoutNode* parent, LayoutNode* child) {
   return -1;
 }
 
-void LayoutContext::AttachLayoutNodeType(
-    int32_t id, const base::String& tag, bool allow_inline,
-    const std::shared_ptr<PropBundle>& props) {
+void LayoutContext::AttachLayoutNodeType(int32_t id, const base::String& tag,
+                                         bool allow_inline,
+                                         const fml::RefPtr<PropBundle>& props) {
   auto node = FindNodeById(id);
   AttachLayoutNodeTypeInner(node, tag, allow_inline, props);
 }
 
 bool LayoutContext::NoNeedPlatformLayoutNode(
-    const base::String& tag, const std::shared_ptr<PropBundle>& props) {
+    const base::String& tag, const fml::RefPtr<PropBundle>& props) {
   // This map is used to store node tag names and props names without creating a
   // platform layer Layoutnode key: tag name value: props name
   const static base::NoDestructor<
@@ -597,7 +597,7 @@ bool LayoutContext::NoNeedPlatformLayoutNode(
 
 void LayoutContext::AttachLayoutNodeTypeInner(
     LayoutNode* node, const base::String& tag, bool allow_inline,
-    const std::shared_ptr<PropBundle>& props) {
+    const fml::RefPtr<PropBundle>& props) {
   if (node == nullptr) {
     return;
   }

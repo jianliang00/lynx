@@ -68,10 +68,10 @@ class MockPaintingContext : public PaintingContextPlatformImpl {
  private:
   std::mutex lock_;
 
-  virtual void CreatePaintingNode(
-      int id, const std::string& tag,
-      const std::shared_ptr<PropBundle>& painting_data, bool flatten,
-      bool create_node_async, uint32_t node_index) override {
+  virtual void CreatePaintingNode(int id, const std::string& tag,
+                                  const fml::RefPtr<PropBundle>& painting_data,
+                                  bool flatten, bool create_node_async,
+                                  uint32_t node_index) override {
     std::lock_guard guard(lock_);
 
     auto node = std::make_unique<MockNode>(id);
@@ -130,7 +130,7 @@ class MockPaintingContext : public PaintingContextPlatformImpl {
   }
   virtual void UpdatePaintingNode(
       int id, bool tend_to_flatten,
-      const std::shared_ptr<PropBundle>& painting_data) override {
+      const fml::RefPtr<PropBundle>& painting_data) override {
     std::lock_guard guard(lock_);
 
     if (!painting_data) {
@@ -159,7 +159,7 @@ class MockPaintingContext : public PaintingContextPlatformImpl {
     }
   }
 
-  void SetKeyframes(std::unique_ptr<PropBundle> keyframes_data) override {
+  void SetKeyframes(fml::RefPtr<PropBundle> keyframes_data) override {
     std::lock_guard guard(lock_);
 
     auto* keyframes = keyframes_data.get();

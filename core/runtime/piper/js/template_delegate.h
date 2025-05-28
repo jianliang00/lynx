@@ -112,7 +112,7 @@ class TemplateDelegate : public ContextProxy::Delegate {
   virtual void InvokeUIMethod(tasm::NodeSelectRoot root,
                               tasm::NodeSelectOptions options,
                               std::string method,
-                              std::unique_ptr<tasm::PropBundle> params,
+                              fml::RefPtr<tasm::PropBundle> params,
                               piper::ApiCallBack call_back) = 0;
   virtual void GetPathInfo(tasm::NodeSelectRoot root,
                            tasm::NodeSelectOptions options,
@@ -184,7 +184,7 @@ class TemplateDelegate : public ContextProxy::Delegate {
                                const piper::ApiCallBack& callback,
                                uint64_t trace_flow_id) = 0;
 
-  virtual std::unique_ptr<tasm::PropBundle> CreatePropBundle() = 0;
+  virtual fml::RefPtr<tasm::PropBundle> CreatePropBundle() = 0;
 
   virtual void SetPropBundleCreator(
       const std::shared_ptr<tasm::PropBundleCreator>& creator) = 0;

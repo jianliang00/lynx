@@ -797,7 +797,7 @@ void ElementManager::AddFontFace(const lepus::Value &font) {
 }
 
 void ElementManager::UpdateLayoutNodeProps(
-    int32_t id, const std::shared_ptr<tasm::PropBundle> &props) {
+    int32_t id, const fml::RefPtr<tasm::PropBundle> &props) {
   delegate_->UpdateLayoutNodeProps(id, props);
 }
 
@@ -826,7 +826,7 @@ void ElementManager::MarkLayoutDirty(int32_t id) {
 
 void ElementManager::AttachLayoutNodeType(
     int32_t id, const base::String &tag, bool allow_inline,
-    const std::shared_ptr<PropBundle> &props) {
+    const fml::RefPtr<PropBundle> &props) {
   delegate_->AttachLayoutNodeType(id, tag, allow_inline, props);
 }
 

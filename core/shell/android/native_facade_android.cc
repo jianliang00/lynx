@@ -233,9 +233,10 @@ void NativeFacadeAndroid::TriggerLepusMethodAsync(
   }
 }
 
-void NativeFacadeAndroid::InvokeUIMethod(
-    const tasm::LynxGetUIResult& ui_result, const std::string& method,
-    std::unique_ptr<tasm::PropBundle> params, piper::ApiCallBack callback) {
+void NativeFacadeAndroid::InvokeUIMethod(const tasm::LynxGetUIResult& ui_result,
+                                         const std::string& method,
+                                         fml::RefPtr<tasm::PropBundle> params,
+                                         piper::ApiCallBack callback) {
   JNIEnv* env = base::android::AttachCurrentThread();
   auto method_string = JNIConvertHelper::ConvertToJNIStringUTF(env, method);
   lynx::tasm::LynxGetUIResultAndroid result_android(ui_result);

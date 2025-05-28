@@ -108,7 +108,7 @@ void RadonElement::MarkAsLayoutRoot() {
   element_manager_->SetRootOnLayout(id_);
 }
 
-void RadonElement::AttachLayoutNode(const std::shared_ptr<PropBundle>& props) {
+void RadonElement::AttachLayoutNode(const fml::RefPtr<PropBundle>& props) {
   bool allow_inline = false;
   if (parent_) {
     allow_inline = parent_->IsShadowNodeCustom();
@@ -116,8 +116,7 @@ void RadonElement::AttachLayoutNode(const std::shared_ptr<PropBundle>& props) {
   element_manager()->AttachLayoutNodeType(impl_id(), tag_, allow_inline, props);
 }
 
-void RadonElement::UpdateLayoutNodeProps(
-    const std::shared_ptr<PropBundle>& props) {
+void RadonElement::UpdateLayoutNodeProps(const fml::RefPtr<PropBundle>& props) {
   element_manager()->UpdateLayoutNodeProps(id_, props);
 }
 

@@ -52,7 +52,7 @@ class ElementContainer {
    */
   void AttachChildToTargetContainer(Element* child, Element* ref = nullptr);
   void ReInsertChildForLayoutOnlyTransition(Element* child, int& index);
-  void TransitionToNativeView(std::shared_ptr<PropBundle> prop_bundle);
+  void TransitionToNativeView(fml::RefPtr<PropBundle> prop_bundle);
   void StyleChanged();
   void UpdateZIndexList();
   ElementContainer* EnclosingStackingContextNode();

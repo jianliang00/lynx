@@ -34,7 +34,7 @@ bool FiberMockPaintingContext::HasEnableUIOperationBatching() { return true; }
 
 void FiberMockPaintingContext::CreatePaintingNode(
     int id, const std::string& tag,
-    const std::shared_ptr<PropBundle>& painting_data, bool flatten,
+    const fml::RefPtr<PropBundle>& painting_data, bool flatten,
     bool create_node_async, uint32_t node_index) {
   EnqueueOperation(
       [this, id, tag_ = tag,
@@ -97,7 +97,7 @@ void FiberMockPaintingContext::DestroyPaintingNode(int parent, int child,
 }
 void FiberMockPaintingContext::UpdatePaintingNode(
     int id, bool tend_to_flatten,
-    const std::shared_ptr<PropBundle>& painting_data) {
+    const fml::RefPtr<PropBundle>& painting_data) {
   if (!painting_data) {
     return;
   }
@@ -127,7 +127,7 @@ void FiberMockPaintingContext::UpdateLayout(
 }
 
 void FiberMockPaintingContext::SetKeyframes(
-    std::unique_ptr<PropBundle> keyframes_data) {
+    fml::RefPtr<PropBundle> keyframes_data) {
   EnqueueOperation(
       [this, props_map =
                  static_cast<PropBundleMock*>(keyframes_data.get())->props_]() {

@@ -35,7 +35,7 @@ class FiberMockPaintingContext : public PaintingContextPlatformImpl {
 
  private:
   void CreatePaintingNode(int id, const std::string& tag,
-                          const std::shared_ptr<PropBundle>& painting_data,
+                          const fml::RefPtr<PropBundle>& painting_data,
                           bool flatten, bool create_node_async,
                           uint32_t node_index) override;
   void InsertPaintingNode(int parent, int child, int index) override;
@@ -44,14 +44,14 @@ class FiberMockPaintingContext : public PaintingContextPlatformImpl {
   void DestroyPaintingNode(int parent, int child, int index) override;
   void UpdatePaintingNode(
       int id, bool tend_to_flatten,
-      const std::shared_ptr<PropBundle>& painting_data) override;
+      const fml::RefPtr<PropBundle>& painting_data) override;
   void UpdateLayout(int tag, float x, float y, float width, float height,
                     const float* paddings, const float* margins,
                     const float* borders, const float* bounds,
                     const float* sticky, float max_height,
                     uint32_t node_index = 0) override;
 
-  void SetKeyframes(std::unique_ptr<PropBundle> keyframes_data) override;
+  void SetKeyframes(fml::RefPtr<PropBundle> keyframes_data) override;
 
   int32_t GetTagInfo(const std::string& tag_name) override;
 

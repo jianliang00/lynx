@@ -15,8 +15,8 @@ namespace tasm {
 
 PropBundleMock::PropBundleMock() : PropBundle() {}
 
-std::unique_ptr<PropBundle> PropBundleMock::CreateForMock() {
-  auto pda = std::make_unique<PropBundleMock>();
+fml::RefPtr<PropBundle> PropBundleMock::CreateForMock() {
+  auto pda = fml::MakeRefCounted<PropBundleMock>();
   return std::move(pda);
 }
 
@@ -92,8 +92,8 @@ const std::map<std::string, lepus::Value>& PropBundleMock::GetPropsMap() const {
   return props_;
 }
 
-std::unique_ptr<PropBundle> PropBundleCreatorDefault::CreatePropBundle() {
-  return std::make_unique<PropBundleMock>();
+fml::RefPtr<PropBundle> PropBundleCreatorDefault::CreatePropBundle() {
+  return fml::MakeRefCounted<PropBundleMock>();
 }
 
 }  // namespace tasm

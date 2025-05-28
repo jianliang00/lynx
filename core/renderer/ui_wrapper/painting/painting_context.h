@@ -52,10 +52,10 @@ class PaintingContext {
     platform_impl_->getAbsolutePosition(id, position);
   }
 
-  inline void CreatePaintingNode(
-      int id, const std::string& tag,
-      const std::shared_ptr<PropBundle>& painting_data, bool flatten,
-      bool create_node_async, uint32_t node_index = 0) {
+  inline void CreatePaintingNode(int id, const std::string& tag,
+                                 const fml::RefPtr<PropBundle>& painting_data,
+                                 bool flatten, bool create_node_async,
+                                 uint32_t node_index = 0) {
     TRACE_EVENT(LYNX_TRACE_CATEGORY, PAINTING_CONTEXT_CREATE_NODE, "tag", tag);
     platform_impl_->CreatePaintingNode(id, tag, painting_data, flatten,
                                        create_node_async, node_index);
@@ -77,9 +77,8 @@ class PaintingContext {
   void RemovePaintingNode(int parent, int child, int index, bool is_move);
   void DestroyPaintingNode(int parent, int child, int index);
 
-  inline void UpdatePaintingNode(
-      int id, bool tend_to_flatten,
-      const std::shared_ptr<PropBundle>& painting_data) {
+  inline void UpdatePaintingNode(int id, bool tend_to_flatten,
+                                 const fml::RefPtr<PropBundle>& painting_data) {
     platform_impl_->UpdatePaintingNode(id, tend_to_flatten, painting_data);
   }
 
@@ -93,7 +92,7 @@ class PaintingContext {
                                  node_index);
   }
 
-  inline void SetKeyframes(std::unique_ptr<PropBundle> keyframes_data) {
+  inline void SetKeyframes(fml::RefPtr<PropBundle> keyframes_data) {
     platform_impl_->SetKeyframes(std::move(keyframes_data));
   }
 
@@ -168,7 +167,7 @@ class PaintingContext {
   }
 
   inline void InvokeUIMethod(int32_t view_id, const std::string& method,
-                             std::unique_ptr<tasm::PropBundle> args,
+                             fml::RefPtr<tasm::PropBundle> args,
                              int32_t callback_id) {
     platform_impl_->InvokeUIMethod(view_id, method, std::move(args),
                                    callback_id);

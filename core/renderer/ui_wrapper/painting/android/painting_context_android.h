@@ -79,19 +79,19 @@ class PaintingContextAndroid : public PaintingCtxPlatformImpl {
     instance_id_ = instance_id;
   };
   void CreatePaintingNode(int id, const std::string& tag,
-                          const std::shared_ptr<PropBundle>& painting_data,
+                          const fml::RefPtr<PropBundle>& painting_data,
                           bool flatten, bool create_node_async,
                           uint32_t node_index) override;
   void InsertPaintingNode(int parent, int child, int index) override;
   void RemovePaintingNode(int parent, int child, int index,
                           bool is_move) override;
   void DestroyPaintingNode(int parent, int child, int index) override;
-  void SetKeyframes(std::unique_ptr<PropBundle> keyframes_data) override;
+  void SetKeyframes(fml::RefPtr<PropBundle> keyframes_data) override;
   std::unique_ptr<pub::Value> GetTextInfo(const std::string& content,
                                           const pub::Value& info) override;
   void UpdatePaintingNode(
       int id, bool tend_to_flatten,
-      const std::shared_ptr<PropBundle>& painting_data) override;
+      const fml::RefPtr<PropBundle>& painting_data) override;
   void UpdateLayout(int tag, float x, float y, float width, float height,
                     const float* paddings, const float* margins,
                     const float* borders, const float* bounds,
@@ -201,8 +201,7 @@ class PaintingContextAndroid : public PaintingCtxPlatformImpl {
       const base::android::ScopedGlobalJavaRef<jobject>& runnable_ref,
       JNIEnv* env);
   std::tuple<PropBundleAndroid*, jobject, jobject, jobject>
-  GetArgsForCreatePaintingNode(
-      const std::shared_ptr<PropBundle>& painting_data);
+  GetArgsForCreatePaintingNode(const fml::RefPtr<PropBundle>& painting_data);
   static_assert(static_cast<size_t>(IntValueIndex::SIZE) == 19,
                 "size has changed, make sure stay in sync with platform");
 

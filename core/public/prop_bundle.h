@@ -13,6 +13,7 @@
 #include <unordered_map>
 #include <vector>
 
+#include "base/include/fml/memory/ref_counted.h"
 #include "base/include/vector.h"
 #include "core/public/pub_value.h"
 
@@ -24,7 +25,7 @@ class GestureDetector;
 
 enum CSSPropertyID : int32_t;
 
-class PropBundle {
+class PropBundle : public fml::RefCountedThreadSafeStorage {
  public:
   PropBundle() = default;
 
@@ -77,7 +78,9 @@ class PropBundle {
   // This function is used to perform a shallow copy of the prop bundle. The
   // prop bundle is a map, and in this context, a shallow copy means that only
   // the first-level keys and values of the prop bundle are copied.
-  virtual std::unique_ptr<PropBundle> ShallowCopy() = 0;
+  virtual fml::RefPtr<PropBundle> ShallowCopy() = 0;
+
+  void ReleaseSelf() const override { delete this; }
 
  private:
   // TODO: remove the friend later
@@ -103,13 +106,13 @@ class PropBundleCreator {
   PropBundleCreator() = default;
   virtual ~PropBundleCreator() = default;
 
-  virtual std::unique_ptr<PropBundle> CreatePropBundle() = 0;
+  virtual fml::RefPtr<PropBundle> CreatePropBundle() = 0;
 
   /**
    * create prop bundle using mapBuffer or not. Only supported in Android by
    * now.
    */
-  virtual std::unique_ptr<PropBundle> CreatePropBundle(bool use_map_buffer) {
+  virtual fml::RefPtr<PropBundle> CreatePropBundle(bool use_map_buffer) {
     return CreatePropBundle();
   };
 };

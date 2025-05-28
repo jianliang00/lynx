@@ -186,7 +186,7 @@ class Element : public lepus::RefCounted {
   void SetKeyframesByNames(const lepus::Value& names,
                            const CSSKeyframesTokenMap&, bool force_flush);
 
-  virtual void SetKeyframesByNamesInner(std::unique_ptr<PropBundle> bundle);
+  virtual void SetKeyframesByNamesInner(fml::RefPtr<PropBundle> bundle);
 
   //  The first parameter names can be string type or array type of lepus value
   lepus::Value ResolveCSSKeyframesByNames(
@@ -484,9 +484,8 @@ class Element : public lepus::RefCounted {
                                         bool force_reset = false);
 
   virtual void MarkAsLayoutRoot() = 0;
-  virtual void AttachLayoutNode(const std::shared_ptr<PropBundle>& props) = 0;
-  virtual void UpdateLayoutNodeProps(
-      const std::shared_ptr<PropBundle>& props) = 0;
+  virtual void AttachLayoutNode(const fml::RefPtr<PropBundle>& props) = 0;
+  virtual void UpdateLayoutNodeProps(const fml::RefPtr<PropBundle>& props) = 0;
   virtual void UpdateLayoutNodeStyle(CSSPropertyID css_id,
                                      const tasm::CSSValue& value) = 0;
   virtual void ResetLayoutNodeStyle(tasm::CSSPropertyID css_id) = 0;
@@ -795,9 +794,9 @@ class Element : public lepus::RefCounted {
 
   Catalyzer* catalyzer_;
 
-  std::shared_ptr<PropBundle> prop_bundle_;
+  fml::RefPtr<PropBundle> prop_bundle_;
   // just for unit test now.
-  std::shared_ptr<PropBundle> pre_prop_bundle_;
+  fml::RefPtr<PropBundle> pre_prop_bundle_;
 
   // relevant to hierarchy
   Element* parent_{nullptr};

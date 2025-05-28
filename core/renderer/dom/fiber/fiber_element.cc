@@ -265,8 +265,7 @@ bool FiberElement::NeedFastFlushPath(
          style.first == kPropertyIDColor || style.first == kPropertyIDFilter;
 }
 
-void FiberElement::SetKeyframesByNamesInner(
-    std::unique_ptr<PropBundle> bundle) {
+void FiberElement::SetKeyframesByNamesInner(fml::RefPtr<PropBundle> bundle) {
   painting_context()->SetKeyframes(std::move(bundle));
 }
 
@@ -2544,14 +2543,13 @@ void FiberElement::MarkLayoutDirty() {
   layout_bundle_->is_dirty = true;
 }
 
-void FiberElement::AttachLayoutNode(const std::shared_ptr<PropBundle> &props) {
+void FiberElement::AttachLayoutNode(const fml::RefPtr<PropBundle> &props) {
   EnsureLayoutBundle();
   layout_bundle_->shadownode_prop_bundle = props;
   layout_bundle_->allow_inline = allow_layoutnode_inline_;
 }
 
-void FiberElement::UpdateLayoutNodeProps(
-    const std::shared_ptr<PropBundle> &props) {
+void FiberElement::UpdateLayoutNodeProps(const fml::RefPtr<PropBundle> &props) {
   EnsureLayoutBundle();
   layout_bundle_->update_prop_bundles.emplace_back(props);
 }

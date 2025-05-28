@@ -32,8 +32,7 @@ namespace shell {
 
 using InvokeUIMethodFunction =
     base::MoveOnlyClosure<void, tasm::LynxGetUIResult, const std::string&,
-                          std::unique_ptr<tasm::PropBundle>,
-                          piper::ApiCallBack>;
+                          fml::RefPtr<tasm::PropBundle>, piper::ApiCallBack>;
 
 // ensure run on tasm thread, lifecycle manage by LynxEngine
 class TasmMediator : public LynxEngine::Delegate {
@@ -203,15 +202,15 @@ class TasmMediator : public LynxEngine::Delegate {
       int32_t id, std::unique_ptr<tasm::LayoutBundle> bundle) override;
 
   void UpdateLayoutNodeProps(
-      int32_t id, const std::shared_ptr<tasm::PropBundle>& props) override;
+      int32_t id, const fml::RefPtr<tasm::PropBundle>& props) override;
   void MarkLayoutDirty(int32_t id) override;
   void AttachLayoutNodeType(
       int32_t id, const base::String& tag, bool allow_inline,
-      const std::shared_ptr<tasm::PropBundle>& props) override;
+      const fml::RefPtr<tasm::PropBundle>& props) override;
 
   void InvokeUIMethod(tasm::LynxGetUIResult ui_result,
                       const std::string& method,
-                      std::unique_ptr<tasm::PropBundle> params,
+                      fml::RefPtr<tasm::PropBundle> params,
                       piper::ApiCallBack callback) override;
 
   void SetPageConfigForLayoutThread(

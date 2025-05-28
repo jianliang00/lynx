@@ -7,7 +7,7 @@
 namespace lynx {
 namespace tasm {
 
-std::unique_ptr<PropBundle> PropBundleCreatorDefault::CreatePropBundle() {
+fml::RefPtr<PropBundle> PropBundleCreatorDefault::CreatePropBundle() {
   return nullptr;
 }
 

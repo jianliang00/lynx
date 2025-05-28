@@ -456,9 +456,9 @@ void PropBundleAndroid::AssembleMapBuffer(
 // function does not actually copy the JNI map inside, but marks it as const.
 // When a real write operation is performed on the prop bundle on Android, the
 // JNI map inside will be modified.
-std::unique_ptr<PropBundle> PropBundleAndroid::ShallowCopy() {
+fml::RefPtr<PropBundle> PropBundleAndroid::ShallowCopy() {
   auto prop_bundle =
-      std::make_unique<PropBundleAndroid>(jni_map_, jni_event_handler_map_);
+      fml::MakeRefCounted<PropBundleAndroid>(jni_map_, jni_event_handler_map_);
   MarkConst();
   prop_bundle->MarkConst();
   return prop_bundle;
@@ -477,13 +477,13 @@ void PropBundleAndroid::CopyIfConst() {
   is_const_ = false;
 }
 
-std::unique_ptr<PropBundle> PropBundleCreatorAndroid::CreatePropBundle() {
-  return std::unique_ptr<PropBundle>(new PropBundleAndroid());
+fml::RefPtr<PropBundle> PropBundleCreatorAndroid::CreatePropBundle() {
+  return fml::AdoptRef(new PropBundleAndroid());
 }
 
-std::unique_ptr<PropBundle> PropBundleCreatorAndroid::CreatePropBundle(
+fml::RefPtr<PropBundle> PropBundleCreatorAndroid::CreatePropBundle(
     bool use_map_buffer) {
-  return std::unique_ptr<PropBundle>(new PropBundleAndroid(use_map_buffer));
+  return fml::AdoptRef(new PropBundleAndroid(use_map_buffer));
 }
 
 base::android::ScopedLocalJavaRef<jobject>

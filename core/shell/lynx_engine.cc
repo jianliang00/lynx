@@ -613,7 +613,7 @@ void LynxEngine::AddFont(const lepus::Value& font,
 void LynxEngine::InvokeUIMethod(const tasm::NodeSelectRoot& root,
                                 const tasm::NodeSelectOptions& options,
                                 const std::string& method,
-                                std::unique_ptr<tasm::PropBundle> params,
+                                fml::RefPtr<tasm::PropBundle> params,
                                 piper::ApiCallBack callback) {
   auto result = tasm_->page_proxy()->GetLynxUI(root, options);
   if (!result.Success()) {

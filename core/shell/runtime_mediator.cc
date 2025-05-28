@@ -196,7 +196,7 @@ void RuntimeMediator::SelectComponent(const std::string& component_id,
 void RuntimeMediator::InvokeUIMethod(tasm::NodeSelectRoot root,
                                      tasm::NodeSelectOptions options,
                                      std::string method,
-                                     std::unique_ptr<tasm::PropBundle> params,
+                                     fml::RefPtr<tasm::PropBundle> params,
                                      piper::ApiCallBack callback) {
   if (runtime_standalone_mode_) {
     REPORT_JSI_NATIVE_EXCEPTION(

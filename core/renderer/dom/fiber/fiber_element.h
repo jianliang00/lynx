@@ -193,7 +193,7 @@ class FiberElement : public Element, public SelectorItem {
   const InheritedProperty GetParentInheritedProperty();
 
   virtual void SetKeyframesByNamesInner(
-      std::unique_ptr<PropBundle> keyframes_data) override;
+      fml::RefPtr<PropBundle> keyframes_data) override;
 
   virtual bool NeedFastFlushPath(
       const std::pair<CSSPropertyID, tasm::CSSValue>& style) override;
@@ -613,10 +613,9 @@ class FiberElement : public Element, public SelectorItem {
   void UpdateTagToLayoutBundle();
   virtual void MarkAsLayoutRoot() override;
   virtual void MarkLayoutDirty() override;
-  virtual void AttachLayoutNode(
-      const std::shared_ptr<PropBundle>& props) override;
+  virtual void AttachLayoutNode(const fml::RefPtr<PropBundle>& props) override;
   virtual void UpdateLayoutNodeProps(
-      const std::shared_ptr<PropBundle>& props) override;
+      const fml::RefPtr<PropBundle>& props) override;
   virtual void UpdateLayoutNodeStyle(CSSPropertyID css_id,
                                      const tasm::CSSValue& value) override;
   virtual void ResetLayoutNodeStyle(tasm::CSSPropertyID css_id) override;

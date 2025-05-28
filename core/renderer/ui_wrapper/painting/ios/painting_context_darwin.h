@@ -70,14 +70,14 @@ class PaintingContextDarwin : public PaintingCtxPlatformImpl {
       const std::shared_ptr<shell::DynamicUIOperationQueue>& queue) override;
   void SetInstanceId(const int32_t instance_id) override;
   void CreatePaintingNode(int sign, const std::string& tag,
-                          const std::shared_ptr<PropBundle>& painting_data,
+                          const fml::RefPtr<PropBundle>& painting_data,
                           bool flatten, bool create_node_async,
                           uint32_t node_index) override;
 
-  void SetKeyframes(std::unique_ptr<PropBundle> keyframes_data) override;
+  void SetKeyframes(fml::RefPtr<PropBundle> keyframes_data) override;
   void UpdatePaintingNode(
       int id, bool tend_to_flatten,
-      const std::shared_ptr<PropBundle>& painting_data) override;
+      const fml::RefPtr<PropBundle>& painting_data) override;
   void UpdateLayout(int sign, float x, float y, float width, float height,
                     const float* paddings, const float* margins,
                     const float* borders, const float* flatten_bounds,

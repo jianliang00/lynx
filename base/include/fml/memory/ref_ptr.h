@@ -280,6 +280,16 @@ bool operator==(std::nullptr_t null, const RefPtr<T>& rhs) {
   return !static_cast<bool>(rhs);
 }
 
+template <typename T>
+bool operator!=(const RefPtr<T>& lhs, std::nullptr_t null) {
+  return static_cast<bool>(lhs);
+}
+
+template <typename T>
+bool operator!=(std::nullptr_t null, const RefPtr<T>& rhs) {
+  return static_cast<bool>(rhs);
+}
+
 // WeakRefPtr does not strongly reference the internal RefCounted object. It is
 // mainly used in synchronous call scenarios to avoid modifying the reference
 // count and improve efficiency. It can be implicitly converted to the

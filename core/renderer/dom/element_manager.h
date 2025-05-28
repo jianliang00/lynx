@@ -252,11 +252,11 @@ class ElementManager : public ElementContextDelegate {
         int32_t id, std::unique_ptr<LayoutBundle> bundle) = 0;
 
     virtual void UpdateLayoutNodeProps(
-        int32_t id, const std::shared_ptr<PropBundle> &props) = 0;
+        int32_t id, const fml::RefPtr<PropBundle> &props) = 0;
     virtual void MarkLayoutDirty(int32_t id) = 0;
-    virtual void AttachLayoutNodeType(
-        int32_t id, const base::String &tag, bool allow_inline,
-        const std::shared_ptr<PropBundle> &props) = 0;
+    virtual void AttachLayoutNodeType(int32_t id, const base::String &tag,
+                                      bool allow_inline,
+                                      const fml::RefPtr<PropBundle> &props) = 0;
     virtual void UpdateLynxEnvForLayoutThread(LynxEnvConfig env) = 0;
     virtual void OnUpdateViewport(float width, int width_mode, float height,
                                   int height_mode, bool need_layout) = 0;
@@ -371,14 +371,14 @@ class ElementManager : public ElementContextDelegate {
   void UpdateLayoutNodeByBundle(int32_t id,
                                 std::unique_ptr<LayoutBundle> bundle);
   void UpdateLayoutNodeProps(int32_t id,
-                             const std::shared_ptr<tasm::PropBundle> &props);
+                             const fml::RefPtr<tasm::PropBundle> &props);
   int32_t GetNodeInfoByTag(const base::String &tag_name);
   bool IsShadowNodeVirtual(const base::String &tag_name);
 
   void MarkLayoutDirty(int32_t id);
   void AttachLayoutNodeType(int32_t id, const base::String &tag,
                             bool allow_inline,
-                            const std::shared_ptr<PropBundle> &props);
+                            const fml::RefPtr<PropBundle> &props);
 
   void UpdateTouchPseudoStatus(bool value);
   std::unordered_map<int32_t, LayoutInfoArray> GetSubTreeLayoutInfo(
