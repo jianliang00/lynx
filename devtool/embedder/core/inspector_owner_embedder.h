@@ -63,6 +63,8 @@ class InspectorOwnerEmbedder
 
   std::string GetTemplateUrl();
 
+  int32_t GetSessionId();
+
   // LynxInspectorOwner
   void OnTemplateAssemblerCreated(intptr_t prt) override;
   void OnLoaded(const std::string& url) override;

@@ -114,6 +114,12 @@ std::string InspectorOwnerEmbedder::GetTemplateUrl() {
   return platform_embedder_->GetTemplateUrl();
 }
 
+int32_t InspectorOwnerEmbedder::GetSessionId() {
+  CHECK_NULL_AND_LOG_RETURN_VALUE(devtoolng_delegate_,
+                                  "devtoolng_delegate_ is null", -1);
+  return devtoolng_delegate_->getSessionId();
+}
+
 void InspectorOwnerEmbedder::SendResponse(const std::string& response) {
   CHECK_NULL_AND_LOG_RETURN(devtoolng_delegate_, "devtoolng_delegate_ is null");
   devtoolng_delegate_->sendMessageToDebugPlatform("CDP", response);
