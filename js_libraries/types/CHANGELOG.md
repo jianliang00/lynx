@@ -3,6 +3,8 @@
 ## 3.3.1
 
 - [Infra][Types] Codegen csstype.d.ts from css_defines
+- Rename `visibleCellsAfterUpdate` to `visibleItemAfterUpdate` for `list`
+- Rename `visibleCellsBeforeUpdate` to `visibleItemBeforeUpdate` for `list`
 
 ## 3.3.0
 

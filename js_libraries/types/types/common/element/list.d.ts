@@ -338,14 +338,14 @@ export interface LayoutCompleteEvent extends BaseEvent<'layoutcomplete', {}> {
      * @Android
      * @H
      */
-    visibleCellsAfterUpdate?: ListItemInfo[];
+    visibleItemAfterUpdate?: ListItemInfo[];
     /**
      * Cell info of the list before layout.
      * @iOS
      * @Android
      * @H
      */
-    visibleCellsBeforeUpdate?: ListItemInfo[];
+    visibleItemBeforeUpdate?: ListItemInfo[];
     /**
      * The scroll info after layout.
      * @iOS
@@ -785,7 +785,7 @@ export interface ListProps extends StandardProps {
    */
   'enable-nested-scroll'?: boolean;
 
-   
+
   /**
    * NestedScrollOptions for scrollForward
    * @since 3.0
