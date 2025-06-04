@@ -183,7 +183,7 @@ void LayoutMediator::OnLayoutAfter(
   // trigger twice. Therefore, updated_list_elements_ has to be cleared after
   // the first call.
   options->updated_list_elements_.clear();
-  if (is_first_layout && runtime_actor_) {
+  if (is_first_layout) {
     runtime_actor_->ActAsync([](auto &runtime) {
       runtime::MessageEvent event(
           runtime::kMessageEventTypeOnAppFirstScreen,
@@ -221,11 +221,9 @@ void LayoutMediator::OnCalculatedViewportChanged(
 
   auto arguments_value = lepus_value(std::move(arguments));
 
-  if (runtime_actor_) {
-    runtime_actor_->ActAsync([arguments_value](auto &runtime) {
-      runtime->CallJSFunction("GlobalEventEmitter", "emit", arguments_value);
-    });
-  }
+  runtime_actor_->ActAsync([arguments_value](auto &runtime) {
+    runtime->CallJSFunction("GlobalEventEmitter", "emit", arguments_value);
+  });
 
   // trigger page onResize
   engine_actor_->Act([arguments_value, tag](auto &engine) {

@@ -196,9 +196,6 @@ void TasmMediator::LepusInvokeUIMethod(
 }
 
 void TasmMediator::NotifyJSUpdatePageData() {
-  if (!runtime_actor_) {
-    return;
-  }
   // if there also has a "UpdateDataByJS" task pending in tasm thread, do
   // nothing,  "UpdateNativeData" will call "NotifyJSUpdatePageData" again
   runtime_actor_->ActAsync(
@@ -210,9 +207,6 @@ void TasmMediator::NotifyJSUpdatePageData() {
 }
 
 void TasmMediator::OnCardConfigDataChanged(const lepus::Value& data) {
-  if (!runtime_actor_) {
-    return;
-  }
   runtime_actor_->ActAsync(
       [safe_data = lepus_value::ShallowCopy(data)](auto& runtime) {
         runtime->OnCardConfigDataChanged(safe_data);
@@ -244,9 +238,6 @@ void TasmMediator::OnJSSourcePrepared(
     tasm::PackageInstanceBundleModuleMode bundle_module_mode,
     const std::string& url,
     const std::shared_ptr<tasm::PipelineOptions>& pipeline_options) {
-  if (!runtime_actor_) {
-    return;
-  }
   runtime_actor_->ActAsync([bundle = std::move(bundle), global_props, page_name,
                             dsl, bundle_module_mode, url,
                             pipeline_options](auto& runtime) mutable {
@@ -256,9 +247,6 @@ void TasmMediator::OnJSSourcePrepared(
 }
 
 void TasmMediator::CallJSApiCallback(piper::ApiCallBack callback) {
-  if (!runtime_actor_) {
-    return;
-  }
   // We should use TRACE_EVENT_FLOW_BEGIN0 instead of TRACE_EVENT here, because
   // we want to trace the whole flow of the ApiCallBack, not just the begin and
   // end of the ApiCallBack.
@@ -276,9 +264,6 @@ void TasmMediator::CallJSApiCallback(piper::ApiCallBack callback) {
 void TasmMediator::CallJSApiCallbackWithValue(piper::ApiCallBack callback,
                                               const lepus::Value& value,
                                               bool persist) {
-  if (!runtime_actor_) {
-    return;
-  }
   TRACE_EVENT(LYNX_TRACE_CATEGORY,
               TASM_MEDIATOR_CALL_JS_API_CALLBACK_WITH_VALUE,
               [=](lynx::perfetto::EventContext ctx) {
@@ -294,9 +279,6 @@ void TasmMediator::CallJSApiCallbackWithValue(piper::ApiCallBack callback,
 }
 
 void TasmMediator::RemoveJSApiCallback(piper::ApiCallBack callback) {
-  if (!runtime_actor_) {
-    return;
-  }
   runtime_actor_->Act([callback = std::move(callback)](auto& runtime) mutable {
     runtime->EraseJSApiCallback(std::move(callback));
   });
@@ -305,9 +287,6 @@ void TasmMediator::RemoveJSApiCallback(piper::ApiCallBack callback) {
 void TasmMediator::CallJSFunction(const std::string& module_id,
                                   const std::string& method_id,
                                   const lepus::Value& arguments) {
-  if (!runtime_actor_) {
-    return;
-  }
   runtime_actor_->ActAsync(
       [module_id, method_id,
        safe_value = lepus_value::ShallowCopy(arguments)](auto& runtime) {
@@ -318,9 +297,6 @@ void TasmMediator::CallJSFunction(const std::string& module_id,
 void TasmMediator::OnJSAppReload(
     tasm::TemplateData data,
     const std::shared_ptr<tasm::PipelineOptions>& pipeline_options) {
-  if (!runtime_actor_) {
-    return;
-  }
   runtime_actor_->ActAsync(
       [data = std::move(data), pipeline_options](auto& runtime) mutable {
         runtime->OnAppReload(std::move(data), pipeline_options);
@@ -344,17 +320,11 @@ void TasmMediator::OnDataUpdatedByNative(tasm::TemplateData data,
 }
 
 void TasmMediator::OnI18nResourceChanged(const std::string& msg) {
-  if (!runtime_actor_) {
-    return;
-  }
   runtime_actor_->ActAsync(
       [msg](auto& runtime) { runtime->I18nResourceChanged(msg); });
 }
 
 void TasmMediator::OnComponentDecoded(tasm::TasmRuntimeBundle bundle) {
-  if (!runtime_actor_) {
-    return;
-  }
   runtime_actor_->ActAsync([bundle = std::move(bundle)](auto& runtime) mutable {
     runtime->OnComponentDecoded(std::move(bundle));
   });
@@ -585,12 +555,10 @@ event::DispatchEventResult TasmMediator::DispatchMessageEvent(
     runtime::MessageEvent event) {
   auto copy_event = runtime::MessageEvent::ShallowCopy(event);
   if (event.IsSendingToJSThread()) {
-    if (runtime_actor_) {
-      runtime_actor_->Act(
-          [message_event = std::move(copy_event)](auto& runtime) mutable {
-            runtime->OnReceiveMessageEvent(std::move(message_event));
-          });
-    }
+    runtime_actor_->Act(
+        [message_event = std::move(copy_event)](auto& runtime) mutable {
+          runtime->OnReceiveMessageEvent(std::move(message_event));
+        });
   } else if (event.IsSendingToUIThread()) {
     facade_actor_->Act(
         [message_event = std::move(copy_event)](auto& facade) mutable {
@@ -603,9 +571,6 @@ event::DispatchEventResult TasmMediator::DispatchMessageEvent(
 }
 
 void TasmMediator::OnGlobalPropsUpdated(const lepus::Value& props) {
-  if (!runtime_actor_) {
-    return;
-  }
   runtime_actor_->Act(
       [props = lepus::Value::ShallowCopy(props)](auto& runtime) {
         runtime->OnGlobalPropsUpdated(props);
