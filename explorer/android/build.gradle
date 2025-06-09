@@ -73,6 +73,12 @@ ext.getFlavorNamesAndBuildTypes = { Project project ->
         buildTypes << buildType.name
     }
     def runTasks = gradle.startParameter.taskNames.toString().toLowerCase()
+    // For composite build scenario, we need to get the tasks from the parent project.
+    if (runTasks == "[]") {
+        if (gradle.parent != null) {
+            runTasks = gradle.parent.startParameter.taskNames.toString().toLowerCase()
+        }
+    }
     if (runTasks.contains("generateAllGnCmakeTargets".toLowerCase()) || runTasks.contains("clean")) {
         return [flavorNames, buildTypes]
     }
@@ -122,7 +128,7 @@ task generateAllGnCmakeTargets {
     // force Gradle to evaluate the child build.gradle files before the parent
     evaluationDependsOnChildren()
 
-    rootProject.allprojects { Project project -> 
+    rootProject.allprojects { Project project ->
         if(project.tasks.findByName('configGnCompileParas')) {
             println project.name + " has configGnCompileParas task."
             dependsOn project.configGnCompileParas
