@@ -88,22 +88,18 @@ lepus_value RecursiveLynxConvertToLepusValue(id data, NSMutableSet* allObjects,
         return lepus_value([data boolValue]);
       }
     }
-
-    if (strcmp([data objCType], @encode(char)) == 0 ||
-        strcmp([data objCType], @encode(unsigned char)) == 0) {
+    const char* type = [data objCType];
+    if (strcmp(type, @encode(char)) == 0 || strcmp(type, @encode(unsigned char)) == 0) {
       return lepus_value([data charValue]);
-    } else if (strcmp([data objCType], @encode(int)) == 0 ||
-               strcmp([data objCType], @encode(short)) == 0 ||
-               strcmp([data objCType], @encode(unsigned int)) == 0 ||
-               strcmp([data objCType], @encode(unsigned short)) == 0) {
+    } else if (strcmp(type, @encode(int)) == 0 || strcmp(type, @encode(short)) == 0 ||
+               strcmp(type, @encode(unsigned int)) == 0 ||
+               strcmp(type, @encode(unsigned short)) == 0) {
       return lepus_value([data intValue]);
-    } else if (strcmp([data objCType], @encode(long)) == 0 ||
-               strcmp([data objCType], @encode(long long)) == 0 ||
-               strcmp([data objCType], @encode(unsigned long)) == 0 ||
-               strcmp([data objCType], @encode(unsigned long long)) == 0) {
+    } else if (strcmp(type, @encode(long)) == 0 || strcmp(type, @encode(long long)) == 0 ||
+               strcmp(type, @encode(unsigned long)) == 0 ||
+               strcmp(type, @encode(unsigned long long)) == 0) {
       return lepus_value([data longLongValue]);
-    } else if (strcmp([data objCType], @encode(float)) == 0 ||
-               strcmp([data objCType], @encode(double)) == 0) {
+    } else if (strcmp(type, @encode(float)) == 0 || strcmp(type, @encode(double)) == 0) {
       return lepus_value([data doubleValue]);
     } else {
       return lepus_value([data doubleValue]);
