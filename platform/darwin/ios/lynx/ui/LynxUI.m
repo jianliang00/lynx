@@ -475,17 +475,17 @@ static const CGFloat OFFSET_ROTATE_AUTO = -1024.f;
 
 - (void)onNodeReadyForUIOwner {
   if (_readyBlockArray) {
-    NSArray* blockArray = [_readyBlockArray copy];
+    NSArray* blockArray = _readyBlockArray;
+    _readyBlockArray = nil;
     for (dispatch_block_t ready in blockArray) {
       ready();
     }
   }
-  [_readyBlockArray removeAllObjects];
   // to override if need to watch onNodeReady and remember to call super after override
 
   if (_nodeReadyBlockArray) {
-    NSArray* blockArray = [_nodeReadyBlockArray copy];
-    [_nodeReadyBlockArray removeAllObjects];
+    NSArray* blockArray = _nodeReadyBlockArray;
+    _nodeReadyBlockArray = nil;
     for (LynxNodeReadyBlock ready in blockArray) {
       ready(self);
     }
@@ -509,8 +509,8 @@ static const CGFloat OFFSET_ROTATE_AUTO = -1024.f;
 
 - (void)propsDidUpdateForUIOwner {
   if (_propsDidUpdateBlockArray) {
-    NSArray* array = [_propsDidUpdateBlockArray copy];
-    [_propsDidUpdateBlockArray removeAllObjects];
+    NSArray* array = _propsDidUpdateBlockArray;
+    _propsDidUpdateBlockArray = nil;
     for (LynxPropsDidUpdateBlockReadyBlock block in array) {
       block(self);
     }
