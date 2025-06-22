@@ -8,7 +8,12 @@
 #include <memory>
 #include <string>
 
+#include "base/include/lynx_actor.h"
+
 namespace lynx {
+namespace shell {
+class LynxEngine;
+}
 namespace tasm {
 
 class ListNode;
@@ -77,7 +82,8 @@ class DataUpdateReplayer {
   static constexpr const char* kFuncLoadComponentWithCallback =
       "LoadComponentWithCallback";
 
-  DataUpdateReplayer(std::shared_ptr<TemplateAssembler> tasm);
+  DataUpdateReplayer(
+      std::shared_ptr<shell::LynxActor<shell::LynxEngine>> engine_actor);
   void DataUpdateReplay(const std::string& replay_data, bool use_ark_source);
 
   static bool CaseInsensitiveStringComparison(const std::string& left,
@@ -85,8 +91,9 @@ class DataUpdateReplayer {
   static bool CharComparison(const char* c1, const char* c2);
 
  private:
-  std::weak_ptr<TemplateAssembler> weak_tasm_;
+  std::weak_ptr<shell::LynxActor<shell::LynxEngine>> weak_engine_actor_;
   ListNode* GetListNode(int32_t tag);
+  TemplateAssembler* tasm_{nullptr};
 };
 
 }  // namespace test

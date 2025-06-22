@@ -28,8 +28,7 @@ class LepusAnimationFrameTaskHandler {
   ~LepusAnimationFrameTaskHandler();
   int64_t RequestAnimationFrame(std::unique_ptr<NapiFrameCallback> callback);
   void CancelAnimationFrame(int64_t id);
-  void DoFrame(int64_t time_stamp,
-               std::shared_ptr<tasm::TemplateAssembler> tasm);
+  void DoFrame(int64_t time_stamp, tasm::TemplateAssembler* tasm);
   void Destroy();
   bool HasPendingRequest();
 
@@ -38,8 +37,7 @@ class LepusAnimationFrameTaskHandler {
    public:
     FrameTask(std::unique_ptr<NapiFrameCallback> callback);
 
-    void Execute(int64_t time_stamp,
-                 std::shared_ptr<tasm::TemplateAssembler> tasm);
+    void Execute(int64_t time_stamp, tasm::TemplateAssembler* tasm);
     void Cancel();
 
    private:

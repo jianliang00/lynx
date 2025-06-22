@@ -50,11 +50,10 @@ tasm::BaseComponent* GetComponentWithID(tasm::TemplateAssembler* tasm,
 }  // namespace
 
 LepusComponent::LepusComponent(
-    const std::string& component_id,
-    const std::shared_ptr<tasm::TemplateAssembler>& assembler,
+    const std::string& component_id, tasm::TemplateAssembler* assembler,
     std::weak_ptr<worklet::LepusApiHandler> task_handler)
     : component_id_(component_id),
-      weak_tasm_(assembler),
+      tasm_(assembler),
       raf_handler_(std::make_unique<LepusAnimationFrameTaskHandler>()),
       task_handler_(task_handler) {}
 
@@ -72,8 +71,7 @@ LepusElement* LepusComponent::QuerySelector(const std::string& selector) {
 
 void LepusComponent::HandleJSCallbackLepus(const int64_t callback_id,
                                            const lepus::Value& data) {
-  auto tasm = weak_tasm_.lock();
-  if (tasm == nullptr) {
+  if (tasm_ == nullptr) {
     LOGE("LepusComponent::HandleJSCallbackLepus failed since tasm is null.");
     return;
   }
@@ -86,8 +84,7 @@ void LepusComponent::HandleJSCallbackLepus(const int64_t callback_id,
   }
   task->InvokeWithTaskID(
       callback_id,
-      ValueConverter::ConvertLepusValueToNapiValue(NapiEnv(), data),
-      tasm.get());
+      ValueConverter::ConvertLepusValueToNapiValue(NapiEnv(), data), tasm_);
 }
 
 std::vector<LepusElement*> LepusComponent::QuerySelectorAll(
@@ -100,14 +97,13 @@ std::vector<LepusElement*> LepusComponent::QuerySelectorAll(
 int64_t LepusComponent::RequestAnimationFrame(
     std::unique_ptr<NapiFrameCallback> callback) {
   TRACE_EVENT(LYNX_TRACE_CATEGORY, LEPUS_COMPONENT_REQUEST_ANIMATION_FRAME);
-  auto tasm = weak_tasm_.lock();
-  if (tasm == nullptr) {
-    LOGE("LepusComponent::RequestAnimationFrame failed since tasm is null.");
+  if (tasm_ == nullptr || tasm_->destroyed()) {
+    LOGE("LepusComponent::RequestAnimationFrame failed since tasm is invalid.");
     constexpr static int64_t sFailInt = -1;
     return sFailInt;
   }
 
-  tasm->GetDelegate().RequestVsync(
+  tasm_->GetDelegate().RequestVsync(
       reinterpret_cast<uintptr_t>(this),
       fml::MakeCopyable([this, weak = Napi::Weak(NapiObject())](
                             int64_t frame_start, int64_t frame_end) {
@@ -129,8 +125,7 @@ void LepusComponent::TriggerEvent(const std::string& event_name,
                                   Napi::Object event_option) {
   TRACE_EVENT(LYNX_TRACE_CATEGORY, LEPUS_COMPONENT_TRIGGER_EVENT, "event_name",
               event_name);
-  auto tasm = weak_tasm_.lock();
-  if (tasm == nullptr) {
+  if (tasm_ == nullptr) {
     LOGE("LepusComponent::TriggerEvent failed since tasm is null.");
     return;
   }
@@ -161,7 +156,7 @@ void LepusComponent::TriggerEvent(const std::string& event_name,
   para.Set(kEventComponentId, Napi::String::New(NapiEnv(), component_id_));
   const auto& lepus_para = ValueConverter::ConvertNapiValueToLepusValue(para);
 
-  tasm->TriggerComponentEvent(event_name, lepus_para);
+  tasm_->TriggerComponentEvent(event_name, lepus_para);
 }
 
 void LepusComponent::CallJSFunction(const std::string& func_name,
@@ -174,13 +169,12 @@ void LepusComponent::CallJSFunction(
     std::unique_ptr<NapiFuncCallback> callback) {
   TRACE_EVENT(LYNX_TRACE_CATEGORY, LEPUS_COMPONENT_CALL_JS_FUNCTION,
               "func_name", func_name);
-  auto tasm = weak_tasm_.lock();
-  if (tasm == nullptr) {
+  if (tasm_ == nullptr) {
     LOGE("LepusComponent::CallJSFunctionAsync failed since tasm is null. ");
     return;
   }
 
-  auto* component = GetComponentWithID(tasm.get(), component_id_);
+  auto* component = GetComponentWithID(tasm_, component_id_);
   if (component == nullptr) {
     LOGE(
         "LepusComponent::CallJSFunctionAsync failed since can not find "
@@ -208,8 +202,8 @@ void LepusComponent::CallJSFunction(
 
   const auto& lepus_para =
       ValueConverter::ConvertNapiValueToLepusValue(func_param);
-  tasm->CallJSFunctionInLepusEvent(component_id_, std::move(func_name),
-                                   lepus_para);
+  tasm_->CallJSFunctionInLepusEvent(component_id_, std::move(func_name),
+                                    lepus_para);
   return;
 }
 
@@ -218,12 +212,11 @@ std::vector<LepusElement*> LepusComponent::QuerySelector(
   TRACE_EVENT(LYNX_TRACE_CATEGORY, LEPUS_COMPONENT_QUERY_SELECTOR, "selector",
               selector, "single", single);
   std::vector<LepusElement*> res;
-  auto tasm = weak_tasm_.lock();
-  if (tasm == nullptr) {
+  if (tasm_ == nullptr) {
     LOGE("LepusComponent::QuerySelectorInner failed since tasm is null.");
     return res;
   }
-  auto* component = GetComponentWithID(tasm.get(), component_id_);
+  auto* component = GetComponentWithID(tasm_, component_id_);
   if (component == nullptr) {
     LOGE(
         "LepusComponent::QuerySelectorInner failed since can not find "
@@ -235,13 +228,13 @@ std::vector<LepusElement*> LepusComponent::QuerySelector(
       tasm::NodeSelectOptions::IdentifierType::CSS_SELECTOR, selector);
   options.first_only = single;
   options.only_current_component = false;
-  if (tasm->GetPageConfig()->GetEnableFiberArch()) {
+  if (tasm_->GetPageConfig()->GetEnableFiberArch()) {
     const auto& targets =
         tasm::FiberElementSelector::Select(
             static_cast<tasm::ComponentElement*>(component), options)
             .nodes;
     res.resize(targets.size());
-    auto unary_op = [tasm, task_handler](tasm::Element* base) {
+    auto unary_op = [tasm = tasm_, task_handler](tasm::Element* base) {
       return LepusElement::Create(base->impl_id(), tasm, task_handler);
     };
     std::transform(targets.begin(), targets.end(), res.begin(), unary_op);
@@ -262,8 +255,8 @@ std::vector<LepusElement*> LepusComponent::QuerySelector(
       if (node == nullptr || node->element() == nullptr) {
         continue;
       }
-      res.emplace_back(
-          LepusElement::Create(node->element()->impl_id(), tasm, task_handler));
+      res.emplace_back(LepusElement::Create(node->element()->impl_id(), tasm_,
+                                            task_handler));
     }
   }
 
@@ -272,9 +265,8 @@ std::vector<LepusElement*> LepusComponent::QuerySelector(
 
 void LepusComponent::DoFrame(int64_t start_time, int64_t end_time) {
   TRACE_EVENT(LYNX_TRACE_CATEGORY, LEPUS_COMPONENT_DO_FRAME);
-  auto tasm = weak_tasm_.lock();
-  if (tasm == nullptr) {
-    LOGE("LepusComponent::DoFrame failed since tasm is null.");
+  if (tasm_ == nullptr || tasm_->destroyed()) {
+    LOGE("LepusComponent::DoFrame failed since tasm is invalid.");
     return;
   }
 
@@ -284,42 +276,41 @@ void LepusComponent::DoFrame(int64_t start_time, int64_t end_time) {
                     .count();
 
   // for fiber arch, exec lepus raf task and return.
-  if (tasm->GetPageConfig()->GetEnableFiberArch()) {
-    raf_handler_->DoFrame(cur, tasm);
+  if (tasm_->GetPageConfig()->GetEnableFiberArch()) {
+    raf_handler_->DoFrame(cur, tasm_);
     return;
   }
 
   // first, update data from last tick
-  auto* component = GetComponentWithID(tasm.get(), component_id_);
+  auto* component = GetComponentWithID(tasm_, component_id_);
   if (component != nullptr) {
     if (component->IsPageForBaseComponent()) {
       tasm::UpdatePageOption update_page_option;
       update_page_option.from_native = true;
       auto pipeline_options = std::make_shared<tasm::PipelineOptions>();
-      tasm->UpdateDataByPreParsedData(
+      tasm_->UpdateDataByPreParsedData(
           std::make_shared<tasm::TemplateData>(data_updated_, true),
           update_page_option, pipeline_options);
     } else {
       auto pipeline_options = std::make_shared<tasm::PipelineOptions>();
-      tasm->page_proxy()->UpdateComponentData(component->ComponentStrId(),
-                                              data_updated_, pipeline_options);
+      tasm_->page_proxy()->UpdateComponentData(component->ComponentStrId(),
+                                               data_updated_, pipeline_options);
     }
   }
   data_updated_ = lepus::Value();
 
   // second, exec lepus raf task
-  raf_handler_->DoFrame(cur, tasm);
+  raf_handler_->DoFrame(cur, tasm_);
 }
 
 Napi::Object LepusComponent::GetStore() {
   TRACE_EVENT(LYNX_TRACE_CATEGORY, LEPUS_COMPONENT_GET_STORE);
-  auto tasm = weak_tasm_.lock();
-  if (tasm == nullptr) {
+  if (tasm_ == nullptr) {
     LOGE("LepusComponent::GetStore failed since tasm is null.");
     return Napi::Object::New(NapiEnv());
   }
 
-  auto* component = GetComponentWithID(tasm.get(), component_id_);
+  auto* component = GetComponentWithID(tasm_, component_id_);
   if (component == nullptr) {
     LOGE("LepusComponent::GetStore failed since can not find component.");
     return Napi::Object::New(NapiEnv());
@@ -331,13 +322,12 @@ Napi::Object LepusComponent::GetStore() {
 
 void LepusComponent::SetStore(const Napi::Object& value) {
   TRACE_EVENT(LYNX_TRACE_CATEGORY, LEPUS_COMPONENT_SET_STORE);
-  auto tasm = weak_tasm_.lock();
-  if (tasm == nullptr) {
+  if (tasm_ == nullptr) {
     LOGE("LepusComponent::SetStore failed since tasm is null.");
     return;
   }
 
-  auto* component = GetComponentWithID(tasm.get(), component_id_);
+  auto* component = GetComponentWithID(tasm_, component_id_);
   if (component == nullptr) {
     LOGE("LepusComponent::SetStore failed since can not find component.");
     return;
@@ -349,13 +339,12 @@ void LepusComponent::SetStore(const Napi::Object& value) {
 
 Napi::Object LepusComponent::GetData() {
   TRACE_EVENT(LYNX_TRACE_CATEGORY, LEPUS_COMPONENT_GET_DATA);
-  auto tasm = weak_tasm_.lock();
-  if (tasm == nullptr) {
+  if (tasm_ == nullptr) {
     LOGE("LepusComponent::GetData failed since tasm is null.");
     return Napi::Object::New(NapiEnv());
   }
 
-  auto* component = GetComponentWithID(tasm.get(), component_id_);
+  auto* component = GetComponentWithID(tasm_, component_id_);
   if (component == nullptr) {
     LOGE("LepusComponent::GetData failed since can not find component.");
     return Napi::Object::New(NapiEnv());
@@ -367,14 +356,13 @@ Napi::Object LepusComponent::GetData() {
 
 void LepusComponent::SetData(const Napi::Object& value) {
   TRACE_EVENT(LYNX_TRACE_CATEGORY, LEPUS_COMPONENT_SET_DATA);
-  auto tasm = weak_tasm_.lock();
-  if (tasm == nullptr) {
-    LOGE("LepusComponent::SetData failed since tasm is null.");
+  if (tasm_ == nullptr || tasm_->destroyed()) {
+    LOGE("LepusComponent::SetData failed since tasm is invalid.");
     return;
   }
 
   // request vsync, merge data to data_updated_ and update it in next tick.
-  tasm->GetDelegate().RequestVsync(
+  tasm_->GetDelegate().RequestVsync(
       reinterpret_cast<uintptr_t>(this),
       fml::MakeCopyable([this, strong{Napi::Persistent(NapiObject())}](
                             int64_t frame_start, int64_t frame_end) {
@@ -393,13 +381,12 @@ void LepusComponent::SetData(const Napi::Object& value) {
 
 Napi::Object LepusComponent::GetProperties() {
   TRACE_EVENT(LYNX_TRACE_CATEGORY, LEPUS_COMPONENT_GET_PROPERTIES);
-  auto tasm = weak_tasm_.lock();
-  if (tasm == nullptr) {
+  if (tasm_ == nullptr) {
     LOGE("LepusComponent::GetProperties failed since tasm is null.");
     return Napi::Object::New(NapiEnv());
   }
 
-  auto* component = GetComponentWithID(tasm.get(), component_id_);
+  auto* component = GetComponentWithID(tasm_, component_id_);
   if (component == nullptr) {
     LOGE("LepusComponent::GetProperties failed since can not find component.");
     return Napi::Object::New(NapiEnv());

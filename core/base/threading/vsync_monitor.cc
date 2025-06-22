@@ -62,8 +62,16 @@ void VSyncMonitor::ScheduleVSyncSecondaryCallback(uintptr_t id,
   }
 }
 
+void VSyncMonitor::StopVSync() { stop_vsync_ = true; }
+
 void VSyncMonitor::OnVSync(int64_t frame_start_time,
                            int64_t frame_target_time) {
+  if (stop_vsync_) {
+    callback_ = nullptr;
+    secondary_callbacks_.clear();
+    return;
+  }
+
   if (runner_->RunsTasksOnCurrentThread()) {
     OnVSyncInternal(frame_start_time, frame_target_time);
     return;

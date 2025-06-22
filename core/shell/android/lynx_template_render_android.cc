@@ -1208,7 +1208,8 @@ void Flush(JNIEnv* env, jclass jcaller, jlong ptr, jlong lifecycle) {
 void SyncPackageExternalPath(JNIEnv* env, jclass jcaller, jlong ptr,
                              jstring path) {
   auto* shell = reinterpret_cast<LynxShell*>(ptr);
-  std::shared_ptr<lynx::tasm::TemplateAssembler> tasm = shell->GetTasm();
+  lynx::tasm::TemplateAssembler* tasm =
+      shell->GetEngineActor()->Impl()->GetTasm();
   tasm->SyncAndroidPackageExternalPath(
       JNIConvertHelper::ConvertToString(env, path));
 }

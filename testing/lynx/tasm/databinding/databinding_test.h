@@ -13,6 +13,7 @@
 #include <vector>
 
 #include "base/include/fml/message_loop_impl.h"
+#include "base/include/lynx_actor.h"
 #include "base/include/value/base_value.h"
 #include "core/renderer/dom/element_manager.h"
 #include "core/renderer/dom/vdom/radon/node_select_options.h"
@@ -260,8 +261,8 @@ class DataBindingShell {
   const std::shared_ptr<WhiteBoardDelegate>& GetWhiteBoardDelegate();
 
   std::unique_ptr<MockTasmDelegate> delegate_;
-  std::shared_ptr<TemplateAssembler> tasm_;
-  std::shared_ptr<shell::LynxEngine> engine_;
+  TemplateAssembler* tasm_;
+  std::shared_ptr<shell::LynxActor<shell::LynxEngine>> engine_actor_;
 
  protected:
   virtual void TasmLoadTemplate(
@@ -283,7 +284,6 @@ class DataBindingShell {
    * For dynamic component loader.
    * In order to prevent circular references, it must be actively released.
    */
-  std::shared_ptr<shell::LynxActor<shell::LynxEngine>> engine_actor_;
   std::shared_ptr<DataBindingComponentLoader> dynamic_component_loader_;
 };
 

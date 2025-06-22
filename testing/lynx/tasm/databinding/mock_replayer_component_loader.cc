@@ -9,6 +9,7 @@
 
 #include "base/include/value/base_value.h"
 #include "core/renderer/template_assembler.h"
+#include "core/shell/lynx_engine.h"
 #include "testing/lynx/tasm/databinding/data_update_replayer.h"
 #include "third_party/googletest/googletest/include/gtest/gtest.h"
 #include "third_party/modp_b64/modp_b64.h"
@@ -18,10 +19,10 @@ namespace tasm {
 namespace test {
 
 MockReplayerComponentLoader::MockReplayerComponentLoader(
-    std::weak_ptr<TemplateAssembler> tasm)
-    : tasm_(tasm) {
+    std::weak_ptr<shell::LynxActor<shell::LynxEngine>> engine_actor)
+    : weak_engine_actor_(engine_actor) {
   list_header_ = require_info_list_.begin();
-};
+}
 
 void MockReplayerComponentLoader::RequireTemplate(
     RadonLazyComponent* dynamic_component, const std::string& url,
@@ -39,8 +40,9 @@ void MockReplayerComponentLoader::RequireTemplate(
     auto component = component_map_.find(url);
     EXPECT_TRUE(component != component_map_.end());
 
-    auto tasm = tasm_.lock();
-    EXPECT_TRUE(tasm != nullptr);
+    auto engine_actor = weak_engine_actor_.lock();
+    EXPECT_TRUE(engine_actor != nullptr);
+    auto tasm = engine_actor->Impl()->GetTasm();
     std::vector<std::string> ids;
     auto pipeline_options = std::make_shared<PipelineOptions>();
     auto callback_info = tasm::LazyBundleLoader::CallBackInfo{

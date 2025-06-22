@@ -1057,7 +1057,7 @@ std::unordered_map<std::string, std::string> LynxShell::GetAllJsSource() {
       [](auto& engine) { return engine->GetAllJsSource(); });
 }
 
-std::shared_ptr<tasm::TemplateAssembler> LynxShell::GetTasm() {
+tasm::TemplateAssembler* LynxShell::GetTasm() {
   return engine_actor_->Impl()->GetTasm();
 }
 
@@ -1136,7 +1136,6 @@ void LynxShell::EnsureTemplateDataThreadSafe(
     const std::shared_ptr<tasm::TemplateData>& template_data) {
   // need clone template data if consumed by tasm thread
   if (template_data != nullptr && !(engine_actor_->CanRunNow())) {
-    LOGI("EnsureTemplateDataThreadSafe CloneValue." << this);
     template_data->CloneValue();
   }
 }
@@ -1146,7 +1145,6 @@ lepus::Value LynxShell::EnsureGlobalPropsThreadSafe(
   // need clone global props if consumed by tasm thread
   TRACE_EVENT(LYNX_TRACE_CATEGORY, LYNX_SHELL_ENSURE_GLOBAL_PROPS_THREAD_SAFE);
   if (!(engine_actor_->CanRunNow())) {
-    LOGI("EnsureGlobalPropsThreadSafe CloneValue." << this);
     return lynx::lepus::Value::Clone(global_props);
   } else {
     return global_props;

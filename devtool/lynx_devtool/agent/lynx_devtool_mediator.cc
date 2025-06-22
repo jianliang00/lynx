@@ -30,13 +30,13 @@ void LynxDevToolMediator::Init(
     const std::shared_ptr<LynxDevToolNG>& lynx_devtool_ng) {
   devtool_wp_ = lynx_devtool_ng;
   auto* runners = shell->GetRunners();
-  std::shared_ptr<tasm::TemplateAssembler> tasm_sp = shell->GetTasm();
+  tasm::TemplateAssembler* tasm = shell->GetTasm();
   tasm_task_runner_ = runners->GetTASMTaskRunner();
   js_task_runner_ = runners->GetJSTaskRunner();
 
   ui_task_runner_ = runners->GetUITaskRunner();
   element_executor_ =
-      std::make_shared<InspectorTasmExecutor>(shared_from_this(), tasm_sp);
+      std::make_shared<InspectorTasmExecutor>(shared_from_this(), tasm);
   ui_executor_ = std::make_shared<InspectorUIExecutor>(shared_from_this());
   ui_executor_->SetShell(shell);
   if (!devtool_executor_) {
@@ -63,7 +63,6 @@ void LynxDevToolMediator::Init(
   auto runtime_observer = js_debugger_->GetInspectorRuntimeObserver();
   runtime_observer->SetDevToolMediator(shared_from_this());
   shell->SetInspectorRuntimeObserver(runtime_observer);
-  auto tasm = shell->GetTasm();
   auto lepus_observer = lepus_debugger_->GetInspectorLepusObserver();
   lepus_observer->SetConsolePostNeeded(!shell->IsRuntimeEnabled());
   lepus_observer->SetDevToolMediator(shared_from_this());

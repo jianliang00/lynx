@@ -45,6 +45,8 @@ class VSyncMonitor : public std::enable_shared_from_this<VSyncMonitor> {
 
   void BindTaskRunner(const fml::RefPtr<fml::TaskRunner> &runner);
 
+  void StopVSync();
+
   virtual void RequestVSyncOnUIThread(Callback callback){};
 
  protected:
@@ -59,6 +61,7 @@ class VSyncMonitor : public std::enable_shared_from_this<VSyncMonitor> {
 
   bool is_vsync_post_task_by_emergency_{false};
   bool requested_{false};
+  bool stop_vsync_{false};
   // additional callbacks required to invoke when VSync is requested
   std::unordered_map<uintptr_t, Callback> secondary_callbacks_;
 

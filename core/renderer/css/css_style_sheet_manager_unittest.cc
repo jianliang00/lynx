@@ -35,12 +35,12 @@ class CSSStyleSheetManagerTest : public ::testing::Test {
     auto manager = std::make_unique<lynx::tasm::ElementManager>(
         std::make_unique<MockPaintingContext>(), delegate.get(),
         lynx_env_config);
-    tasm = std::make_shared<lynx::tasm::TemplateAssembler>(
+    tasm = std::make_unique<lynx::tasm::TemplateAssembler>(
         *delegate.get(), std::move(manager), 0);
   }
 
   std::unique_ptr<::testing::NiceMock<test::MockTasmDelegate>> delegate;
-  std::shared_ptr<TemplateAssembler> tasm;
+  std::unique_ptr<TemplateAssembler> tasm;
 };
 
 TEST_F(CSSStyleSheetManagerTest, LoadTemplate) {

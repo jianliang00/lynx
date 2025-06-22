@@ -209,7 +209,7 @@ class TemplateBinaryReaderTest : public test::DataBindingShell,
                            bool is_lepusng_binary)
       : TemplateEntry{lepus::Context::CreateContext(is_lepusng_binary),
                       target_sdk_version},
-        TemplateBinaryReader(test::DataBindingShell::tasm_.get(),
+        TemplateBinaryReader(test::DataBindingShell::tasm_,
                              static_cast<TemplateEntry*>(this),
                              std::move(stream)) {
     TemplateBinaryReader::compile_options_.target_sdk_version_ =

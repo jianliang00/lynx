@@ -47,11 +47,11 @@ class LynxEngine {
   };
 
   explicit LynxEngine(
-      const std::shared_ptr<tasm::TemplateAssembler>& tasm,
+      std::unique_ptr<tasm::TemplateAssembler> tasm,
       std::unique_ptr<Delegate> delegate,
       const std::shared_ptr<LynxCardCacheDataManager>& card_cached_data_mgr,
       int32_t instance_id)
-      : tasm_(tasm),
+      : tasm_(std::move(tasm)),
         delegate_(std::move(delegate)),
         card_cached_data_mgr_(card_cached_data_mgr),
         instance_id_(instance_id) {}
@@ -231,7 +231,7 @@ class LynxEngine {
                                     const std::string& key,
                                     piper::ApiCallBack callBack);
 
-  std::shared_ptr<tasm::TemplateAssembler> GetTasm();
+  tasm::TemplateAssembler* GetTasm();
 
   void SetCSSVariables(const std::string& component_id,
                        const std::string& id_selector,
@@ -315,7 +315,7 @@ class LynxEngine {
                                        double callback_id);
 
  private:
-  std::shared_ptr<tasm::TemplateAssembler> tasm_;
+  std::unique_ptr<tasm::TemplateAssembler> tasm_;
   std::unique_ptr<Delegate> delegate_;
   std::shared_ptr<LynxCardCacheDataManager> card_cached_data_mgr_;
   // tasm thread and layout thread is same one

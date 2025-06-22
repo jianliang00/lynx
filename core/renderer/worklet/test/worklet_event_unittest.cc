@@ -58,7 +58,7 @@ class WorkletEventTest : public ::testing::Test {
     manager_ = manager.get();
 
     // Init tasm
-    tasm_ = std::make_shared<lynx::tasm::TemplateAssembler>(
+    tasm_ = std::make_unique<lynx::tasm::TemplateAssembler>(
         *delegate_.get(), std::move(manager), 0);
     ctx_->delegate_ = tasm_.get();
     tasm_->EnsureTouchEventHandler();
@@ -112,7 +112,7 @@ class WorkletEventTest : public ::testing::Test {
   lynx::tasm::ElementManager* manager_;  // Not Owned
   std::unique_ptr<::testing::NiceMock<tasm::test::MockTasmDelegate>> delegate_;
   std::unique_ptr<piper::NapiEnvironment> napi_environment_;
-  std::shared_ptr<tasm::TemplateAssembler> tasm_;
+  std::unique_ptr<tasm::TemplateAssembler> tasm_;
   std::shared_ptr<lynx::tasm::LayoutContext> layout_context_;
 };
 

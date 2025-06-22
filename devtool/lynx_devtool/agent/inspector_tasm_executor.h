@@ -35,7 +35,7 @@ class InspectorTasmExecutor
       const std::shared_ptr<LynxDevToolMediator>& devtool_mediator);
   InspectorTasmExecutor(
       const std::shared_ptr<LynxDevToolMediator>& devtool_mediator,
-      const std::shared_ptr<tasm::TemplateAssembler> tasm);
+      tasm::TemplateAssembler* tasm);
 
   void SetDevToolPlatformFacade(
       const std::shared_ptr<DevToolPlatformFacade>& devtool_platform_facade);
@@ -187,7 +187,10 @@ class InspectorTasmExecutor
   bool rule_usage_tracking_;
   bool layer_tree_enabled_ = false;
   lynx::tasm::Element* element_root_;
-  std::weak_ptr<tasm::TemplateAssembler> tasm_;
+
+  // In DevTool, tasm is a raw pointer reference. It can only be accessed on the
+  // tasm thread, and its alive state needs to be ensured.
+  tasm::TemplateAssembler* tasm_;
   std::unordered_map<int32_t, lynx::tasm::LayoutNode*> layout_nodes_;
   std::weak_ptr<LynxDevToolMediator> devtool_mediator_wp_;
   std::unordered_map<uint64_t, std::vector<int>> search_results_;

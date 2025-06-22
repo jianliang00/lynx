@@ -21,8 +21,11 @@ namespace lynx {
 namespace tasm {
 namespace test {
 
-DataUpdateReplayer::DataUpdateReplayer(std::shared_ptr<TemplateAssembler> tasm)
-    : weak_tasm_(tasm) {}
+DataUpdateReplayer::DataUpdateReplayer(
+    std::shared_ptr<shell::LynxActor<shell::LynxEngine>> engine_actor)
+    : weak_engine_actor_(engine_actor),
+      tasm_(engine_actor != nullptr ? engine_actor->Impl()->GetTasm()
+                                    : nullptr) {}
 
 bool DataUpdateReplayer::CaseInsensitiveStringComparison(
     const std::string& left, const char* right) {
@@ -54,10 +57,11 @@ bool DataUpdateReplayer::CharComparison(const char* c1, const char* c2) {
 
 void DataUpdateReplayer::DataUpdateReplay(const std::string& replay_data,
                                           bool use_ark_source) {
-  auto tasm = weak_tasm_.lock();
-  if (tasm == nullptr) {
+  auto engine_actor = weak_engine_actor_.lock();
+  if (engine_actor == nullptr) {
     return;
   }
+  auto tasm = engine_actor->Impl()->GetTasm();
   rapidjson::Document replay_doc;
   replay_doc.Parse(replay_data.c_str());
   rapidjson::Value func_list;
@@ -68,13 +72,9 @@ void DataUpdateReplayer::DataUpdateReplay(const std::string& replay_data,
   }
   EXPECT_TRUE(func_list.IsArray());
 
-  auto loader = std::make_shared<MockReplayerComponentLoader>(weak_tasm_);
+  auto loader = std::make_shared<MockReplayerComponentLoader>(engine_actor);
   loader->InitWithActionList(func_list);
-  auto engine_actor_ = std::make_shared<shell::LynxActor<shell::LynxEngine>>(
-      std::make_unique<shell::LynxEngine>(tasm, nullptr, nullptr,
-                                          shell::kUnknownInstanceId),
-      fml::MakeRefCounted<MockTasmRunner>());
-  loader->SetEngineActor(engine_actor_);
+  loader->SetEngineActor(engine_actor);
 
   tasm->SetLazyBundleLoader(loader);
 
@@ -360,10 +360,11 @@ void DataUpdateReplayer::DataUpdateReplay(const std::string& replay_data,
 }
 
 ListNode* DataUpdateReplayer::GetListNode(int32_t tag) {
-  auto tasm = weak_tasm_.lock();
-  if (tasm == nullptr) {
+  auto engine_actor = weak_engine_actor_.lock();
+  if (engine_actor == nullptr) {
     return nullptr;
   }
+  auto tasm = engine_actor->Impl()->GetTasm();
   // client maybe nullptr
   auto& client = tasm->page_proxy()->element_manager();
   if (client == nullptr || tasm == nullptr) {

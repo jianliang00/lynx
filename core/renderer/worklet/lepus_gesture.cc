@@ -8,9 +8,8 @@ namespace lynx {
 namespace worklet {
 
 // Constructor
-LepusGesture::LepusGesture(int32_t element_id,
-                           const std::shared_ptr<tasm::TemplateAssembler>& tasm)
-    : element_id_(element_id), weak_tasm_(tasm) {}
+LepusGesture::LepusGesture(int32_t element_id, tasm::TemplateAssembler* tasm)
+    : element_id_(element_id), tasm_(tasm) {}
 
 // Set the gesture state to ACTIVE
 void LepusGesture::Active(Napi::Number gesture_id) {
@@ -97,14 +96,13 @@ Napi::Value LepusGesture::ScrollBy(float width, float height) {
 
 // Get the associated Element from the TemplateAssembler
 tasm::Element* LepusGesture::GetElement() {
-  auto tasm = weak_tasm_.lock();
-  if (tasm == nullptr) {
+  if (tasm_ == nullptr) {
     return nullptr;
   }
-  if (tasm->destroyed()) {
+  if (tasm_->destroyed()) {
     return nullptr;
   }
-  return tasm->page_proxy()->element_manager()->node_manager()->Get(
+  return tasm_->page_proxy()->element_manager()->node_manager()->Get(
       element_id_);
 }
 

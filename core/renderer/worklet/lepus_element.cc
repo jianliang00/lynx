@@ -90,8 +90,8 @@ static void WrapEventTarget(
     const char* name, tasm::TemplateAssembler* tasm,
     const std::shared_ptr<worklet::LepusApiHandler>& task_handler) {
   auto wrapper =
-      NapiLepusElement::Wrap(std::unique_ptr<LepusElement>(LepusElement::Create(
-                                 id, tasm->shared_from_this(), task_handler)),
+      NapiLepusElement::Wrap(std::unique_ptr<LepusElement>(
+                                 LepusElement::Create(id, tasm, task_handler)),
                              env);
   LEPUSValue target = LEPUS_GetPropertyStr(ctx, js_value, name);
 #ifdef USE_PRIMJS_NAPI
@@ -112,9 +112,9 @@ static void WrapEventTarget(
 }
 
 LepusElement::LepusElement(
-    int32_t element_id, const std::shared_ptr<tasm::TemplateAssembler>& tasm,
+    int32_t element_id, tasm::TemplateAssembler* tasm,
     const std::shared_ptr<worklet::LepusApiHandler>& task_handler)
-    : element_id_(element_id), weak_tasm_(tasm) {
+    : element_id_(element_id), tasm_(tasm) {
   if (task_handler != nullptr) {
     task_handler_ = task_handler;
   } else {
@@ -123,14 +123,13 @@ LepusElement::LepusElement(
 }
 
 tasm::Element* LepusElement::GetElement() {
-  auto tasm = weak_tasm_.lock();
-  if (tasm == nullptr) {
+  if (tasm_ == nullptr) {
     return nullptr;
   }
-  if (tasm->destroyed()) {
+  if (tasm_->destroyed()) {
     return nullptr;
   }
-  return tasm->page_proxy()->element_manager()->node_manager()->Get(
+  return tasm_->page_proxy()->element_manager()->node_manager()->Get(
       element_id_);
 }
 
@@ -175,7 +174,7 @@ tasm::EventResult LepusElement::FireElementWorklet(
 #endif  // USE_PRIMJS_NAPI
 
   auto lepus_component = worklet::LepusComponent::Create(
-      component_id, tasm->shared_from_this(),
+      component_id, tasm,
       std::weak_ptr<worklet::LepusApiHandler>(task_handler));
   auto component_ins = worklet::NapiLepusComponent::Wrap(
       std::unique_ptr<LepusComponent>(lepus_component), env);
@@ -189,8 +188,8 @@ tasm::EventResult LepusElement::FireElementWorklet(
   std::unique_ptr<LEPUSValue> gesture_obj = nullptr;
   if (type == tasm::EventType::kGesture) {
     auto gesture_ins = worklet::NapiLepusGesture::Wrap(
-        std::unique_ptr<LepusGesture>(worklet::LepusGesture::Create(
-            element_id, tasm->shared_from_this())),
+        std::unique_ptr<LepusGesture>(
+            worklet::LepusGesture::Create(element_id, tasm)),
         env);
 #ifdef USE_PRIMJS_NAPI
     gesture_obj = std::make_unique<LEPUSValue>(*reinterpret_cast<LEPUSValue*>(
@@ -301,7 +300,7 @@ std::optional<lepus::Value> LepusElement::TriggerWorkletFunction(
 
   auto component_ins = worklet::NapiLepusComponent::Wrap(
       std::unique_ptr<LepusComponent>(LepusComponent::Create(
-          component->ComponentStrId(), tasm->shared_from_this(), task_handler)),
+          component->ComponentStrId(), tasm, task_handler)),
       env);
 
 #ifdef USE_PRIMJS_NAPI
@@ -705,7 +704,6 @@ void LepusElement::Invoke(const Napi::Object& object) {
   auto success_p = get_func_persistent(NapiEnv(), object.Get(sKeySuccess));
   auto fail_p = get_func_persistent(NapiEnv(), object.Get(sKeyFail));
   auto weak_handler = task_handler_;
-  auto weak_tasm = weak_tasm_;
 
   int64_t success_callback_id = handler->StoreTask(
       std::unique_ptr<NapiFuncCallback>(std::move(success_p)));
@@ -716,10 +714,9 @@ void LepusElement::Invoke(const Napi::Object& object) {
       object.Get(sKeyMethod).ToString().Utf8Value(),
       pub::ValueImplLepus(
           ValueConverter::ConvertNapiValueToLepusValue(object.Get(sKeyParams))),
-      [env = NapiEnv(), weak_handler, weak_tasm, success_callback_id,
+      [env = NapiEnv(), weak_handler, tasm = tasm_, success_callback_id,
        fail_callback_id](int32_t code, const pub::Value& data) {
         auto handler = weak_handler.lock();
-        auto tasm = weak_tasm.lock();
         if (handler == nullptr) {
           LOGE(
               "LepusElement::Invoke not callback since task_handler is "
@@ -738,12 +735,11 @@ void LepusElement::Invoke(const Napi::Object& object) {
                         ValueConverter::ConvertPubValueToNapiObject(env, data));
 
         if (code == 0) {
-          handler->InvokeWithTaskID(success_callback_id, result_data,
-                                    tasm.get());
+          handler->InvokeWithTaskID(success_callback_id, result_data, tasm);
           // remove fail callback when calling invoke success avoid memory leak
           handler->RemoveTimeTask(fail_callback_id);
         } else {
-          handler->InvokeWithTaskID(fail_callback_id, result_data, tasm.get());
+          handler->InvokeWithTaskID(fail_callback_id, result_data, tasm);
           // remove success callback when calling invoke fail avoid memory leak
           handler->RemoveTimeTask(success_callback_id);
         }

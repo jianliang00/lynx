@@ -204,10 +204,11 @@ void DataBindingShell::ResetTasm() {
   auto manager =
       std::make_unique<ElementManager>(std::make_unique<MockPaintingContext>(),
                                        delegate_.get(), lynx_env_config);
-  tasm_ = std::make_shared<lynx::tasm::TemplateAssembler>(
+  auto tasm = std::make_unique<lynx::tasm::TemplateAssembler>(
       *delegate_.get(), std::move(manager), instance_id);
+  tasm_ = tasm.get();
   engine_actor_ = std::make_shared<shell::LynxActor<shell::LynxEngine>>(
-      std::make_unique<shell::LynxEngine>(tasm_, nullptr, nullptr,
+      std::make_unique<shell::LynxEngine>(std::move(tasm), nullptr, nullptr,
                                           shell::kUnknownInstanceId),
       fml::MakeRefCounted<MockTasmRunner>());
 
@@ -220,7 +221,7 @@ void DataBindingShell::Replay(std::string replay_file_name,
   int fd = Utils::SupressStdout();
   std::string replay_string =
       Utils::ReadStringFromPath(REPLAY_TEST_REPLAY_FOLDER, replay_file_name);
-  auto replayer = std::make_shared<DataUpdateReplayer>(tasm_);
+  auto replayer = std::make_shared<DataUpdateReplayer>(engine_actor_);
   replayer->DataUpdateReplay(replay_string, use_ark_source);
   Utils::ResumeStdout(fd);
 }

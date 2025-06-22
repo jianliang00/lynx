@@ -33,9 +33,8 @@ class NapiFuncCallback;
 class LepusGesture : public ImplBase {
  public:
   // Factory method to create a new LepusGesture instance
-  static LepusGesture* Create(
-      int32_t element_id,
-      const std::shared_ptr<tasm::TemplateAssembler>& tasm) {
+  static LepusGesture* Create(int32_t element_id,
+                              tasm::TemplateAssembler* tasm) {
     return new LepusGesture(element_id, tasm);
   }
 
@@ -68,14 +67,13 @@ class LepusGesture : public ImplBase {
   Napi::Value ScrollBy(float delta_x, float delta_y);
 
  private:
-  LepusGesture(int32_t element_id,
-               const std::shared_ptr<tasm::TemplateAssembler>& tasm);
+  LepusGesture(int32_t element_id, tasm::TemplateAssembler* tasm);
 
   tasm::Element* GetElement();
 
   int32_t element_id_{-1};
 
-  std::weak_ptr<tasm::TemplateAssembler> weak_tasm_;
+  tasm::TemplateAssembler* tasm_{nullptr};
 };
 
 }  // namespace worklet

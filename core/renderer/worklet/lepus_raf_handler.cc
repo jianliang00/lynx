@@ -23,7 +23,7 @@ LepusAnimationFrameTaskHandler::FrameTask::FrameTask(
     : callback_(std::move(callback)), cancelled_(false) {}
 
 void LepusAnimationFrameTaskHandler::FrameTask::Execute(
-    int64_t time_stamp, std::shared_ptr<tasm::TemplateAssembler> tasm) {
+    int64_t time_stamp, tasm::TemplateAssembler* tasm) {
   TRACE_EVENT(LYNX_TRACE_CATEGORY, LEPUS_ANIMATION_FRAME_TASK_EXECUTE);
   if (cancelled_ || tasm == nullptr) {
     return;
@@ -94,9 +94,12 @@ void LepusAnimationFrameTaskHandler::CancelAnimationFrame(int64_t id) {
   }
 }
 
-void LepusAnimationFrameTaskHandler::DoFrame(
-    int64_t time_stamp, std::shared_ptr<tasm::TemplateAssembler> tasm) {
+void LepusAnimationFrameTaskHandler::DoFrame(int64_t time_stamp,
+                                             tasm::TemplateAssembler* tasm) {
   TRACE_EVENT(LYNX_TRACE_CATEGORY, LEPUS_ANIMATION_FRAME_DO_FRAME);
+  if (tasm == nullptr) {
+    return;
+  }
   doing_frame_ = true;
   TaskMap& task_map = CurrentFrameTaskMap();
   for (auto& itr : task_map) {

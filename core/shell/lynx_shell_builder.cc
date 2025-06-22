@@ -372,7 +372,7 @@ std::unique_ptr<lynx::shell::LynxEngine> LynxShellBuilder::CreateLynxEngine(
   auto element_manager = std::make_unique<lynx::tasm::ElementManager>(
       std::move(painting_context_), tasm_mediator.get(), this->lynx_env_config_,
       instance_id, this->element_manager_vsync_monitor_);
-  auto tasm = std::make_shared<lynx::tasm::TemplateAssembler>(
+  auto tasm = std::make_unique<lynx::tasm::TemplateAssembler>(
       *tasm_mediator, std::move(element_manager), instance_id,
       this->enable_unified_pipeline_);
   tasm->SetEnableLayoutOnly(this->enable_layout_only_);
@@ -391,7 +391,8 @@ std::unique_ptr<lynx::shell::LynxEngine> LynxShellBuilder::CreateLynxEngine(
   tasm->EnablePreUpdateData(this->enable_pre_update_data_);
 
   auto lynx_engine = std::make_unique<lynx::shell::LynxEngine>(
-      tasm, std::move(tasm_mediator), card_cached_data_mgr, instance_id);
+      std::move(tasm), std::move(tasm_mediator), card_cached_data_mgr,
+      instance_id);
   return lynx_engine;
 }
 

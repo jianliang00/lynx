@@ -81,7 +81,7 @@ class BaseSignalTest : public ::testing::TestWithParam<std::tuple<bool>> {
 
   std::unique_ptr<BaseSignalTestMockTasmDelegate> delegate_;
   std::shared_ptr<lynx::tasm::LayoutContext> layout_context_;
-  std::shared_ptr<TemplateAssembler> tasm_;
+  std::unique_ptr<TemplateAssembler> tasm_;
 
   std::shared_ptr<lepus::Context> ctx_;
 

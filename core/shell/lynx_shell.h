@@ -250,8 +250,8 @@ class LynxShell {
   // TODO(heshan):will be deleted, pass when ReportError
   std::unordered_map<std::string, std::string> GetAllJsSource();
 
-  // TODO(heshan):will be deleted when js thread ready
-  BASE_EXPORT_FOR_DEVTOOL std::shared_ptr<tasm::TemplateAssembler> GetTasm();
+  // TODO(huangweiwu): Delete this after adding a delegate for the devtool.
+  BASE_EXPORT_FOR_DEVTOOL tasm::TemplateAssembler* GetTasm();
 
   BASE_EXPORT_FOR_DEVTOOL void SetInspectorElementObserver(
       const std::shared_ptr<tasm::InspectorElementObserver>&

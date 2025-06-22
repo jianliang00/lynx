@@ -31,7 +31,7 @@ using binding::ImplBase;
 class LepusElement : public ImplBase {
  public:
   static LepusElement* Create(
-      int32_t element_id, const std::shared_ptr<tasm::TemplateAssembler>& tasm,
+      int32_t element_id, tasm::TemplateAssembler* tasm,
       const std::shared_ptr<worklet::LepusApiHandler>& task_handler) {
     return new LepusElement(element_id, tasm, task_handler);
   }
@@ -75,11 +75,10 @@ class LepusElement : public ImplBase {
   static void ReportPendingJobException(lynx::tasm::TemplateAssembler* tasm,
                                         LEPUSContext* ctx, bool is_ur);
 
-  LepusElement(int32_t element_id,
-               const std::shared_ptr<tasm::TemplateAssembler>& tasm,
+  LepusElement(int32_t element_id, tasm::TemplateAssembler* tasm,
                const std::shared_ptr<worklet::LepusApiHandler>& task_handler);
   int32_t element_id_{-1};
-  std::weak_ptr<tasm::TemplateAssembler> weak_tasm_;
+  tasm::TemplateAssembler* tasm_{nullptr};
   std::weak_ptr<LepusApiHandler> task_handler_;
 };
 }  // namespace worklet

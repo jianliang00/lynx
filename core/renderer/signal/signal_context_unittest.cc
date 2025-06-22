@@ -65,7 +65,7 @@ BaseSignalTest::BaseSignalTest() {
       std::make_unique<ElementManager>(std::make_unique<MockPaintingContext>(),
                                        delegate_.get(), lynx_env_config);
 
-  tasm_ = std::make_shared<lynx::tasm::TemplateAssembler>(
+  tasm_ = std::make_unique<lynx::tasm::TemplateAssembler>(
       *delegate_.get(), std::move(manager), 0);
 
   CompileOptions options;

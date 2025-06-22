@@ -28,7 +28,7 @@ class TouchEventHandlerTest : public ::testing::Test {
 
   std::unique_ptr<MockTasmDelegate> delegate_;
   std::unique_ptr<TouchEventHandler> touch_event_handler_;
-  std::shared_ptr<TemplateAssembler> tasm_;
+  std::unique_ptr<TemplateAssembler> tasm_;
 };
 
 TouchEventHandlerTest::TouchEventHandlerTest() {}
@@ -50,7 +50,7 @@ void TouchEventHandlerTest::SetUp() {
 
   touch_event_handler_ = std::make_unique<TouchEventHandler>(
       manager->node_manager(), *delegate_, true, true, false, "2.12");
-  tasm_ = std::make_shared<lynx::tasm::TemplateAssembler>(
+  tasm_ = std::make_unique<lynx::tasm::TemplateAssembler>(
       *delegate_, std::move(manager), 0);
 }
 

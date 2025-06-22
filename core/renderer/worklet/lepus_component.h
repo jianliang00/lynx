@@ -30,10 +30,9 @@ class NapiFuncCallback;
 
 class LepusComponent : public ImplBase {
  public:
-  static LepusComponent* Create(
-      const std::string& component_id,
-      const std::shared_ptr<tasm::TemplateAssembler>& assembler,
-      std::weak_ptr<LepusApiHandler> task_handler) {
+  static LepusComponent* Create(const std::string& component_id,
+                                tasm::TemplateAssembler* assembler,
+                                std::weak_ptr<LepusApiHandler> task_handler) {
     return new LepusComponent(component_id, assembler, task_handler);
   }
   LepusComponent(const LepusComponent&) = delete;
@@ -66,7 +65,7 @@ class LepusComponent : public ImplBase {
 
  private:
   LepusComponent(const std::string& component_id,
-                 const std::shared_ptr<tasm::TemplateAssembler>& assembler,
+                 tasm::TemplateAssembler* assembler,
                  std::weak_ptr<worklet::LepusApiHandler> task_handler);
   std::vector<LepusElement*> QuerySelector(const std::string& selector,
                                            bool single);
@@ -74,7 +73,7 @@ class LepusComponent : public ImplBase {
   void DoFrame(int64_t frame_start, int64_t frame_end);
 
   std::string component_id_;
-  std::weak_ptr<tasm::TemplateAssembler> weak_tasm_;
+  tasm::TemplateAssembler* tasm_{nullptr};
   std::unique_ptr<LepusAnimationFrameTaskHandler> raf_handler_;
   std::weak_ptr<LepusApiHandler> task_handler_;
   lepus::Value data_updated_;

@@ -118,12 +118,10 @@ class AirTouchEventHandlerBase {
                                        const lepus::Value& data) = 0;
 };
 
-class TemplateAssembler final
-    : public std::enable_shared_from_this<TemplateAssembler>,
-      public TemplateEntryHolder,
-      public TemplateBinaryReader::PageConfigger,
-      public PageProxy::TasmDelegate,
-      public lepus::Context::Delegate {
+class TemplateAssembler final : public TemplateEntryHolder,
+                                public TemplateBinaryReader::PageConfigger,
+                                public PageProxy::TasmDelegate,
+                                public lepus::Context::Delegate {
  public:
   class Delegate : public runtime::ContextProxy::Delegate {
    public:

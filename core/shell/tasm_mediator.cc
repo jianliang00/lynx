@@ -36,7 +36,13 @@ TasmMediator::TasmMediator(
       card_cached_data_mgr_(card_cached_data_mgr),
       tasm_platform_invoker_(std::move(tasm_platform_invoker)) {}
 
-TasmMediator::~TasmMediator() = default;
+TasmMediator::~TasmMediator() {
+  // After the Tasm-related objects are destroyed, actively turn off VSync to
+  // avoid unexpected calls to task parameters from the Worklet.
+  if (vsync_monitor_) {
+    vsync_monitor_->StopVSync();
+  }
+}
 
 void TasmMediator::OnDataUpdated() {
   facade_actor_->Act([](auto& facade) { facade->OnDataUpdated(); });

@@ -577,7 +577,7 @@ void LynxEngine::Flush() {
   }
 }
 
-std::shared_ptr<tasm::TemplateAssembler> LynxEngine::GetTasm() { return tasm_; }
+tasm::TemplateAssembler* LynxEngine::GetTasm() { return tasm_.get(); }
 
 void LynxEngine::SetCSSVariables(
     const std::string& component_id, const std::string& id_selector,

@@ -27,7 +27,7 @@ InspectorTasmExecutor::InspectorTasmExecutor(
       devtool_mediator_wp_(devtool_mediator) {}
 InspectorTasmExecutor::InspectorTasmExecutor(
     const std::shared_ptr<LynxDevToolMediator>& devtool_mediator,
-    const std::shared_ptr<tasm::TemplateAssembler> tasm)
+    tasm::TemplateAssembler* tasm)
     : dom_use_compression_(false),
       dom_compression_threshold_(10240),
       element_root_(nullptr),
@@ -216,6 +216,7 @@ void InspectorTasmExecutor::OnElementDataModelSet(lynx::tasm::Element* ptr) {
 }
 
 void InspectorTasmExecutor::OnElementManagerWillDestroy() {
+  tasm_ = nullptr;
   element_root_ = nullptr;
 }
 
@@ -1432,12 +1433,11 @@ void InspectorTasmExecutor::TemplateGetTemplateApiInfo(
     const Json::Value& message) {
   Json::Value response(Json::ValueType::objectValue);
   Json::Value result(Json::ValueType::objectValue);
-  std::shared_ptr<tasm::TemplateAssembler> tasm = tasm_.lock();
-  if (tasm) {
-    lynx::lepus::Value default_processor_value = tasm->GetDefaultProcessor();
+  if (tasm_) {
+    lynx::lepus::Value default_processor_value = tasm_->GetDefaultProcessor();
     result["useDefault"] = default_processor_value.IsClosure();
     std::unordered_map<std::string, lynx::lepus::Value> processor_map =
-        tasm->GetProcessorMap();
+        tasm_->GetProcessorMap();
     if (!processor_map.empty()) {
       Json::Value keys(Json::ValueType::arrayValue);
       for (auto& element : processor_map) {
