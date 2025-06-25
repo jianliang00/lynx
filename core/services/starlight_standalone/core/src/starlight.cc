@@ -207,9 +207,9 @@ bool SLNodeIsRTL(const SLNodeRef node) {
 
 static void SLNodeHandleRTLRecursive(lynx::starlight::LayoutObject *const node,
                                      bool is_rtl) {
-  const auto style = node->GetCSSMutableStyle();
-  if (style->GetDirection() == lynx::starlight::DirectionType::kNormal ||
-      !style->HasExplicitDirectionStyle()) {
+  lynx::starlight::LayoutComputedStyle *const style =
+      node->GetCSSMutableStyle();
+  if (style->GetDirection() == lynx::starlight::DirectionType::kNormal) {
     auto direction = is_rtl ? lynx::starlight::DirectionType::kRtl
                             : lynx::starlight::DirectionType::kLtr;
     style->SetDirection(direction);
@@ -245,8 +245,10 @@ void SLNodeCalculateLayout(const SLNodeRef node, float owner_width,
 
   // handle RTL, if the direction of node is not setting, set the
   // owner_direction to the node.
-  SLNodeHandleRTLRecursive(inner_node,
-                           owner_direction == SLDirection::SLDirectionRTL);
+  if (owner_direction == SLDirection::SLDirectionRTL) {
+    SLNodeHandleRTLRecursive(inner_node,
+                             owner_direction == SLDirection::SLDirectionRTL);
+  }
 
   inner_node->ReLayoutWithConstraints(constraints);
   SLNodeMarkNotDirtyRecursive(inner_node);
@@ -284,10 +286,21 @@ void SLNodeSetMeasureFunc(const SLNodeRef node,
               height_mode == SLNodeMeasureMode::SLNodeMeasureModeUndefined
                   ? 0.f
                   : constraints[SLVertical].Size();
-          const struct StarlightSize size = measure_delegate->measure_func_(
-              measure_delegate->instance_, width, width_mode, height,
-              height_mode);
+          StarlightSize size;
           float baseline = 0.f;
+          if (measure_delegate->measure_func_) {
+            // If width and height are both exact, use the width and height
+            // from the constraints, and don't call the measure_func_.
+            if (width_mode == SLNodeMeasureMode::SLNodeMeasureModeExactly &&
+                height_mode == SLNodeMeasureMode::SLNodeMeasureModeExactly) {
+              size.width_ = width;
+              size.height_ = height;
+            } else {
+              size = measure_delegate->measure_func_(
+                  measure_delegate->instance_, width, width_mode, height,
+                  height_mode);
+            }
+          }
           if (measure_delegate->baseline_func_) {
             baseline = measure_delegate->baseline_func_(
                 measure_delegate->instance_, width, width_mode, height,
@@ -309,7 +322,6 @@ void SLNodeStyleSetDirection(const SLNodeRef node, SLDirection type) {
   lynx::starlight::LayoutObject *const inner_node = GET_INNER_LAYOUT_NODE(node);
   if (inner_node->GetCSSMutableStyle()->SetDirection(
           static_cast<lynx::starlight::DirectionType>(type))) {
-    inner_node->GetCSSMutableStyle()->SetHasExplicitDirectionStyle(true);
     inner_node->MarkDirty();
   }
 }

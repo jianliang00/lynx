@@ -45,13 +45,6 @@ class LayoutComputedStyle {
   PositionType GetPosition() const { return position_; }
   DisplayType GetDisplay(const LayoutConfigs& configs,
                          const AttributesMap& attributes) const;
-  BASE_EXPORT bool HasExplicitDirectionStyle() const {
-    return has_explicit_direction_style_;
-  }
-  BASE_EXPORT void SetHasExplicitDirectionStyle(
-      bool has_explicit_direction_style) {
-    has_explicit_direction_style_ = has_explicit_direction_style;
-  }
 
   DataRef<BoxData> box_data_;
   DataRef<FlexData> flex_data_;
@@ -60,15 +53,10 @@ class LayoutComputedStyle {
   DataRef<RelativeData> relative_data_;
   SurroundData surround_data_;
 
-  // a 'list-version' grid-row-gap & grid-column-gap
-  NLength list_main_axis_gap_{DefaultLayoutStyle::SL_DEFAULT_ZEROLENGTH()};
-  NLength list_cross_axis_gap_{DefaultLayoutStyle::SL_DEFAULT_ZEROLENGTH()};
-
   BoxSizingType box_sizing_{DefaultLayoutStyle::SL_DEFAULT_BOX_SIZING};
   DisplayType display_{DefaultLayoutStyle::SL_DEFAULT_DISPLAY};
   PositionType position_{DefaultLayoutStyle::SL_DEFAULT_POSITION};
   DirectionType direction_{DefaultLayoutStyle::SL_DEFAULT_DIRECTION};
-  bool has_explicit_direction_style_{false};
 
   // BoxData
   const NLength& GetWidth() const { return box_data_->width_; }
@@ -218,44 +206,42 @@ class LayoutComputedStyle {
   BorderStyleType GetBorderLeftStyle() const {
     return surround_data_.border_data_
                ? surround_data_.border_data_->style_left
-               : DEFAULT_CSS_VALUE(css_align_with_legacy_w3c_, BORDER_STYLE);
+               : DefaultLayoutStyle::SL_DEFAULT_BORDER_STYLE;
   }
   BorderStyleType GetBorderRightStyle() const {
     return surround_data_.border_data_
                ? surround_data_.border_data_->style_right
-               : DEFAULT_CSS_VALUE(css_align_with_legacy_w3c_, BORDER_STYLE);
+               : DefaultLayoutStyle::SL_DEFAULT_BORDER_STYLE;
   }
   BorderStyleType GetBorderTopStyle() const {
     return surround_data_.border_data_
                ? surround_data_.border_data_->style_top
-               : DEFAULT_CSS_VALUE(css_align_with_legacy_w3c_, BORDER_STYLE);
+               : DefaultLayoutStyle::SL_DEFAULT_BORDER_STYLE;
   }
   BorderStyleType GetBorderBottomStyle() const {
     return surround_data_.border_data_
                ? surround_data_.border_data_->style_bottom
-               : DEFAULT_CSS_VALUE(css_align_with_legacy_w3c_, BORDER_STYLE);
+               : DefaultLayoutStyle::SL_DEFAULT_BORDER_STYLE;
   }
 
   // BorderWidth
   float GetBorderLeftWidth() const {
-    return surround_data_.border_data_
-               ? surround_data_.border_data_->width_left
-               : DEFAULT_CSS_VALUE(css_align_with_legacy_w3c_, BORDER);
+    return surround_data_.border_data_ ? surround_data_.border_data_->width_left
+                                       : DefaultLayoutStyle::SL_DEFAULT_BORDER;
   }
   float GetBorderTopWidth() const {
-    return surround_data_.border_data_
-               ? surround_data_.border_data_->width_top
-               : DEFAULT_CSS_VALUE(css_align_with_legacy_w3c_, BORDER);
+    return surround_data_.border_data_ ? surround_data_.border_data_->width_top
+                                       : DefaultLayoutStyle::SL_DEFAULT_BORDER;
   }
   float GetBorderRightWidth() const {
     return surround_data_.border_data_
                ? surround_data_.border_data_->width_right
-               : DEFAULT_CSS_VALUE(css_align_with_legacy_w3c_, BORDER);
+               : DefaultLayoutStyle::SL_DEFAULT_BORDER;
   }
   float GetBorderBottomWidth() const {
     return surround_data_.border_data_
                ? surround_data_.border_data_->width_bottom
-               : DEFAULT_CSS_VALUE(css_align_with_legacy_w3c_, BORDER);
+               : DefaultLayoutStyle::SL_DEFAULT_BORDER;
   }
 
   float GetBorderWidthHorizontal() const {
@@ -287,12 +273,14 @@ class LayoutComputedStyle {
 
   float GetListMainAxisGap() const {
     return LayoutStyleUtils::RoundValueToPixelGrid(
-        list_main_axis_gap_.GetRawValue(), physical_pixels_per_layout_unit_);
+        linear_data_->list_main_axis_gap_.GetRawValue(),
+        physical_pixels_per_layout_unit_);
   }
 
   float GetListCrossAxisGap() const {
     return LayoutStyleUtils::RoundValueToPixelGrid(
-        list_cross_axis_gap_.GetRawValue(), physical_pixels_per_layout_unit_);
+        linear_data_->list_cross_axis_gap_.GetRawValue(),
+        physical_pixels_per_layout_unit_);
   }
 
 #define SUPPORTED_LAYOUT_PROPERTY(V)                                     \
@@ -374,14 +362,6 @@ class LayoutComputedStyle {
     physical_pixels_per_layout_unit_ = physical_pixels_per_layout_unit;
   }
 
-  float GetScreenWidth() const { return screen_width_; }
-
-  void SetScreenWidth(float value) { screen_width_ = value; }
-
-  void SetCssAlignLegacyWithW3c(bool value) {
-    css_align_with_legacy_w3c_ = value;
-  }
-
   // Only for Starlight standalone, and supports setting floating-point values
   // only.
 #define SET_BORDER_WIDTH_PROPERTY(direction, field)                   \
@@ -406,8 +386,6 @@ class LayoutComputedStyle {
 
  private:
   float physical_pixels_per_layout_unit_;
-  float screen_width_;
-  bool css_align_with_legacy_w3c_ = false;
   float GetBorderFinalWidth(float width, BorderStyleType style) const {
     return (style != BorderStyleType::kNone && style != BorderStyleType::kHide)
                ? width

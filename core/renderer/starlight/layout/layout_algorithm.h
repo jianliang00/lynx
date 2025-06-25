@@ -51,9 +51,6 @@ class LayoutAlgorithm : public DirectionSelector {
   void UpdateAvailableSizeAndMode(const Constraints& constraints);
   FloatSize PostLayoutProcessingAndResultBorderBoxSize();
   virtual void AfterResultBorderBoxSize();
-  float ScreenWidth() {
-    return container_->GetCSSMutableStyle()->GetScreenWidth();
-  }
 
   virtual BoxPositions GetAbsoluteOrFixedItemInitialPosition(
       LayoutObject* absolute_or_fixed_item) {

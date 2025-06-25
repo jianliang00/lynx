@@ -416,10 +416,9 @@ TEST_F(PropBundleStyleWriterTest, TestStyleWriter) {
 
   style_.image_rendering_ = starlight::ImageRenderingType::kCrispEdges;
   FOREACH_PLATFORM_PROPERTY(TEST_SPECIFIC_STYLE_WRITER);
-
-  style_.layout_computed_style_.list_main_axis_gap_ =
+  style_.layout_computed_style_.linear_data_.Access()->list_main_axis_gap_ =
       starlight::NLength::MakeMaxContentNLength();
-  style_.layout_computed_style_.list_cross_axis_gap_ =
+  style_.layout_computed_style_.linear_data_.Access()->list_cross_axis_gap_ =
       starlight::NLength::MakeUnitNLength(108);
   TEST_SPECIFIC_STYLE_WRITER(ListMainAxisGap);
   TEST_SPECIFIC_STYLE_WRITER(ListCrossAxisGap);

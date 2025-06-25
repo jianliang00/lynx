@@ -96,7 +96,6 @@ class ComputedCSSStyle {
 
   void SetScreenWidth(float screen_width) {
     length_context_.screen_width_ = screen_width;
-    layout_computed_style_.SetScreenWidth(screen_width);
   }
 
   bool SetFontScale(float font_scale);

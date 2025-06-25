@@ -91,6 +91,15 @@ StarlightSize StarlightMeasureFuncForAndroid(void* instance, float width,
   return delegate->Measure(width, width_mode, height, height_mode);
 }
 
+StarlightSize StarlightBaselineFuncForAndroid(void* instance, float width,
+                                              SLNodeMeasureMode width_mode,
+                                              float height,
+                                              SLNodeMeasureMode height_mode) {
+  starlight::SLMeasureDelegateAndroid* delegate =
+      static_cast<starlight::SLMeasureDelegateAndroid*>(instance);
+  return delegate->Measure(width, width_mode, height, height_mode);
+}
+
 // transfer C++'s StarlightValue to java long, and will be transfered to Java's
 // StarlightValue in java
 struct JNIStarlightValue {
@@ -109,17 +118,29 @@ jlong CreateMeasureDelegate(JNIEnv* env, jobject jcaller, jlong ptr) {
   starlight::SLMeasureDelegateAndroid* const delegate_android =
       new starlight::SLMeasureDelegateAndroid(env, jcaller);
   StarlightMeasureDelegate* const delegate = new StarlightMeasureDelegate();
+  delegate->instance_ = delegate_android;
+  const SLNodeRef node = reinterpret_cast<SLNodeRef>(ptr);
+  SLNodeSetMeasureFunc(node, delegate);
+  return reinterpret_cast<jlong>(delegate);
+}
+
+jlong CreateMeasureDelegateAndSetMeasureFunc(JNIEnv* env, jobject jcaller,
+                                             jlong ptr) {
+  starlight::SLMeasureDelegateAndroid* const delegate_android =
+      new starlight::SLMeasureDelegateAndroid(env, jcaller);
+  StarlightMeasureDelegate* const delegate = new StarlightMeasureDelegate();
   delegate->measure_func_ = StarlightMeasureFuncForAndroid;
   delegate->instance_ = delegate_android;
+  const SLNodeRef node = reinterpret_cast<SLNodeRef>(ptr);
+  SLNodeSetMeasureFunc(node, delegate);
   return reinterpret_cast<jlong>(delegate);
 }
 
 void SetMeasureFunction(JNIEnv* env, jobject jcaller, jlong ptr,
                         jlong delegatePtr) {
-  const SLNodeRef node = reinterpret_cast<SLNodeRef>(ptr);
   StarlightMeasureDelegate* const delegate =
       reinterpret_cast<StarlightMeasureDelegate*>(delegatePtr);
-  SLNodeSetMeasureFunc(node, delegate);
+  delegate->measure_func_ = StarlightMeasureFuncForAndroid;
 }
 
 void Reset(JNIEnv* env, jobject jcaller, jlong nativePtr) {

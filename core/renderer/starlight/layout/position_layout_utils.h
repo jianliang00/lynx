@@ -38,7 +38,7 @@ void CalcStartOffset(LayoutObject* absolute_or_fixed_item,
                      const Constraints& containing_block, Dimension dimension,
                      Direction direction, float offset = 0.f);
 
-void UpdateStickyItemPosition(LayoutObject* sticky_item, float screen_width,
+void UpdateStickyItemPosition(LayoutObject* sticky_item,
                               const Constraints& content_constraints);
 
 Position ReversePosition(Position pos);

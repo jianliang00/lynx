@@ -7,6 +7,8 @@
 
 #include "base/include/fml/memory/ref_counted.h"
 #include "core/renderer/starlight/style/css_type.h"
+#include "core/renderer/starlight/style/default_layout_style.h"
+#include "core/renderer/starlight/types/nlength.h"
 
 namespace lynx {
 namespace starlight {
@@ -32,6 +34,9 @@ class LinearData : public fml::RefCountedThreadSafeStorage {
   LinearLayoutGravityType linear_layout_gravity_;
   LinearGravityType linear_gravity_;
   LinearCrossGravityType linear_cross_gravity_;
+  // a 'list-version' grid-row-gap & grid-column-gap
+  NLength list_main_axis_gap_{DefaultLayoutStyle::SL_DEFAULT_ZEROLENGTH()};
+  NLength list_cross_axis_gap_{DefaultLayoutStyle::SL_DEFAULT_ZEROLENGTH()};
 };
 
 }  // namespace starlight

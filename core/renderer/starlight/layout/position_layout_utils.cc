@@ -26,8 +26,8 @@ float CalcInitialOffset(float container_size, float absolute_item_size,
   return offset;
 }
 
-float CalcLengthValue(const NLength& length, float screen_width,
-                      const Constraints& constraints, Dimension dimension) {
+float CalcLengthValue(const NLength& length, const Constraints& constraints,
+                      Dimension dimension) {
   const auto offset =
       NLengthToLayoutUnit(length, constraints[dimension].ToPercentBase());
   return offset.IsIndefinite() ? -1e+10 : offset.ToFloat();
@@ -223,18 +223,18 @@ void CalcStartOffset(LayoutObject* absolute_or_fixed_item,
   }
 }
 
-void UpdateStickyItemPosition(LayoutObject* sticky_item, float screen_width,
+void UpdateStickyItemPosition(LayoutObject* sticky_item,
                               const Constraints& constraints) {
   auto item_style = sticky_item->GetCSSStyle();
 
-  const float left = CalcLengthValue(item_style->GetLeft(), screen_width,
-                                     constraints, kHorizontal);
-  const float right = CalcLengthValue(item_style->GetRight(), screen_width,
-                                      constraints, kHorizontal);
-  const float top = CalcLengthValue(item_style->GetTop(), screen_width,
-                                    constraints, kVertical);
-  const float bottom = CalcLengthValue(item_style->GetBottom(), screen_width,
-                                       constraints, kVertical);
+  const float left =
+      CalcLengthValue(item_style->GetLeft(), constraints, kHorizontal);
+  const float right =
+      CalcLengthValue(item_style->GetRight(), constraints, kHorizontal);
+  const float top =
+      CalcLengthValue(item_style->GetTop(), constraints, kVertical);
+  const float bottom =
+      CalcLengthValue(item_style->GetBottom(), constraints, kVertical);
 
   sticky_item->UpdatePositions(left, top, right, bottom);
 }

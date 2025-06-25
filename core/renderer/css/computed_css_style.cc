@@ -2820,7 +2820,8 @@ bool ComputedCSSStyle::SetContent(const tasm::CSSValue& value,
 bool ComputedCSSStyle::SetListMainAxisGap(const tasm::CSSValue& value,
                                           const bool reset) {
   return CSSStyleUtils::ComputeLengthStyle(
-      value, reset, length_context_, layout_computed_style_.list_main_axis_gap_,
+      value, reset, length_context_,
+      layout_computed_style_.linear_data_.Access()->list_main_axis_gap_,
       DefaultLayoutStyle::SL_DEFAULT_ZEROLENGTH(), parser_configs_);
 }
 
@@ -2828,7 +2829,7 @@ bool ComputedCSSStyle::SetListCrossAxisGap(const tasm::CSSValue& value,
                                            const bool reset) {
   return CSSStyleUtils::ComputeLengthStyle(
       value, reset, length_context_,
-      layout_computed_style_.list_cross_axis_gap_,
+      layout_computed_style_.linear_data_.Access()->list_cross_axis_gap_,
       DefaultLayoutStyle::SL_DEFAULT_ZEROLENGTH(), parser_configs_);
 }
 

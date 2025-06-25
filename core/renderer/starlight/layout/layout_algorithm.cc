@@ -223,8 +223,7 @@ void LayoutAlgorithm::ItemsUpdateAlignment() {
   }
 
   for (LayoutObject* item : sticky_items) {
-    position_utils::UpdateStickyItemPosition(item, ScreenWidth(),
-                                             container_constraints_);
+    position_utils::UpdateStickyItemPosition(item, container_constraints_);
   }
 }
 
