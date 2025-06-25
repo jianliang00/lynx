@@ -264,25 +264,19 @@ public class LynxUIOwner {
 
   private void addShadowProxy(LynxBaseUI ui) {
     LynxBaseUI parent = ui.getParentBaseUI();
-    if (parent == null) {
-      LLog.e(TAG, "addShadowProxy failed, parent is null.");
-      return;
+    int index = 0;
+    if (parent != null) {
+      index = parent.getIndex(ui);
+      remove(parent.getSign(), ui.getSign());
     }
 
-    int index = parent.getIndex(ui);
-    remove(parent.getSign(), ui.getSign());
     mContext.removeUIFromExposedMap(ui);
     UIShadowProxy shadowProxy = new UIShadowProxy(mContext, ui);
     mUIHolder.put(ui.getSign(), shadowProxy);
-    insert(parent.getSign(), shadowProxy.getSign(), index);
-  }
 
-  private void handleShadowOrOutlineStyle(LynxBaseUI ui) {
-    if (ui instanceof UIShadowProxy || ui.getParent() == null
-        || ui.getParent() instanceof UIShadowProxy) {
-      return;
+    if (parent != null) {
+      insert(parent.getSign(), shadowProxy.getSign(), index);
     }
-    addShadowProxy(ui);
   }
 
   private void checkShadowOrOutline(StylesDiffMap props, LynxBaseUI ui) {
@@ -295,8 +289,7 @@ public class LynxUIOwner {
       return;
     }
 
-    if (ui instanceof UIShadowProxy || ui.getParent() == null
-        || ui.getParent() instanceof UIShadowProxy) {
+    if (ui instanceof UIShadowProxy || ui.getParent() instanceof UIShadowProxy) {
       return;
     }
     addShadowProxy(ui);
