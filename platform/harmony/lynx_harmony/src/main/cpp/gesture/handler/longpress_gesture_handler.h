@@ -12,7 +12,7 @@
 #include <unordered_map>
 #include <utility>
 
-#include "core/runtime/vm/lepus/lepus_value.h"
+#include "base/include/value/base_value.h"
 #include "platform/harmony/lynx_harmony/src/main/cpp/gesture/handler/base_gesture_handler.h"
 
 namespace lynx {

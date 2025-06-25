@@ -7,7 +7,7 @@
 
 #include <string>
 
-#include "core/runtime/vm/lepus/lepus_value.h"
+#include "base/include/value/base_value.h"
 #include "lynx/core/public/pub_value.h"
 #include "platform/harmony/lynx_harmony/src/main/cpp/lynx_context.h"
 

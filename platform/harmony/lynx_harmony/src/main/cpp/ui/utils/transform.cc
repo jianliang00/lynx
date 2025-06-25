@@ -6,8 +6,8 @@
 
 #include <limits>
 
+#include "base/include/value/array.h"
 #include "core/base/harmony/napi_convert_helper.h"
-#include "core/runtime/vm/lepus/array.h"
 
 namespace lynx {
 namespace tasm {

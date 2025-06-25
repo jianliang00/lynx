@@ -18,10 +18,10 @@
 
 #include "base/include/base_export.h"
 #include "base/include/fml/memory/ref_ptr.h"
+#include "base/include/value/base_value.h"
 #include "core/base/harmony/harmony_function_loader.h"
 #include "core/public/prop_bundle.h"
 #include "core/renderer/ui_wrapper/common/harmony/platform_extra_bundle_harmony.h"
-#include "core/runtime/vm/lepus/lepus_value.h"
 #include "platform/harmony/lynx_harmony/src/main/cpp/event/custom_event.h"
 #include "platform/harmony/lynx_harmony/src/main/cpp/event/event_target.h"
 #include "platform/harmony/lynx_harmony/src/main/cpp/gesture/gesture_arena_member.h"

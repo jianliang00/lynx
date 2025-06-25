@@ -7,12 +7,12 @@
 #include <utility>
 
 #include "base/include/platform/harmony/napi_util.h"
+#include "base/include/value/array.h"
+#include "base/include/value/base_value.h"
 #include "base/trace/native/trace_event.h"
 #include "core/base/harmony/harmony_napi_env_holder.h"
 #include "core/base/harmony/harmony_trace_event_def.h"
 #include "core/base/harmony/napi_convert_helper.h"
-#include "core/runtime/vm/lepus/array.h"
-#include "core/runtime/vm/lepus/lepus_value.h"
 #include "core/value_wrapper/value_impl_lepus.h"
 
 namespace lynx {

@@ -11,8 +11,8 @@
 #include <memory>
 #include <string>
 
+#include "base/include/value/base_value.h"
 #include "core/renderer/starlight/style/css_type.h"
-#include "core/runtime/vm/lepus/lepus_value.h"
 #include "platform/harmony/lynx_harmony/src/main/cpp/ui/background/box_shadow_layer.h"
 #include "platform/harmony/lynx_harmony/src/main/cpp/ui/background/layer_manager.h"
 #include "platform/harmony/lynx_harmony/src/main/cpp/ui/utils/border_radius.h"

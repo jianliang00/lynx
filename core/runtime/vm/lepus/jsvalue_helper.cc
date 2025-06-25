@@ -9,11 +9,11 @@
 #include <utility>
 #include <vector>
 
-#include "core/runtime/vm/lepus/array.h"
-#include "core/runtime/vm/lepus/lepus_value.h"
+#include "base/include/value/array.h"
+#include "base/include/value/base_value.h"
+#include "base/include/value/ref_counted_class.h"
+#include "base/include/value/table.h"
 #include "core/runtime/vm/lepus/quick_context.h"
-#include "core/runtime/vm/lepus/ref_counted_class.h"
-#include "core/runtime/vm/lepus/table.h"
 
 namespace lynx {
 namespace lepus {

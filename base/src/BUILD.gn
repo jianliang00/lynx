@@ -36,6 +36,11 @@ config("base_public") {
       "_CRT_SECURE_NO_WARNINGS=1",
     ]
   }
+
+  # TODO(chenyouhui): Remove it later
+  if (enable_inspector) {
+    defines += [ "EXPORT_SYMBOLS_FOR_DEVTOOL=1" ]
+  }
 }
 
 config("base_log_public") {
@@ -111,6 +116,7 @@ source_set("base") {
     "../include/algorithm.h",
     "../include/auto_create_optional.h",
     "../include/auto_reset.h",
+    "../include/base_defines.h",
     "../include/base_export.h",
     "../include/boost/unordered.h",
     "../include/cast_util.h",
@@ -371,6 +377,9 @@ if (enable_unittests) {
       "timer/time_utils_unittest.cc",
       "to_underlying_unittest.cc",
       "type_traits_addon_unittest.cc",
+      "value/base_value_unittest.cc",
+      "value/lynx_value_extended_empty.cc",
+      "value/path_parser_unittest.cc",
       "vector_unittest.cc",
       "version_unittest.cc",
     ]
@@ -380,6 +389,7 @@ if (enable_unittests) {
     deps = [
       ":base",
       ":base_log",
+      ":base_values",
       "//third_party/googletest:gtest",
     ]
   }
@@ -394,6 +404,26 @@ source_set("string_utils") {
     "string/string_number_convert.cc",
     "string/string_utils.cc",
   ]
+}
+
+# TODO(chenyouhui): Merge 'values' into 'base_values' target
+source_set("base_values") {
+  sources = [
+    "../include/value/array.h",
+    "../include/value/base_value.h",
+    "../include/value/byte_array.h",
+    "../include/value/lynx_value_extended.h",
+    "../include/value/path_parser.h",
+    "../include/value/ref_counted_class.h",
+    "../include/value/ref_type.h",
+    "../include/value/table.h",
+    "value/base_value.cc",
+    "value/byte_array.cc",
+    "value/path_parser.cc",
+    "value/table.cc",
+  ]
+
+  public_deps = [ ":values" ]
 }
 
 source_set("values") {

@@ -8,10 +8,10 @@
 #include <utility>
 
 #include "base/include/platform/harmony/napi_util.h"
+#include "base/include/value/byte_array.h"
 #include "core/base/harmony/harmony_trace_event_def.h"
 #include "core/base/js_constants.h"
 #include "core/renderer/utils/value_utils.h"
-#include "core/runtime/vm/lepus/byte_array.h"
 #include "core/runtime/vm/lepus/json_parser.h"
 #include "lynx/base/trace/native/trace_event.h"
 

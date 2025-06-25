@@ -11,9 +11,9 @@
 #include <string>
 
 #include "base/include/fml/memory/ref_ptr.h"
+#include "base/include/value/base_value.h"
 #include "core/base/thread/once_task.h"
 #include "core/renderer/data/template_data.h"
-#include "core/runtime/vm/lepus/lepus_value.h"
 
 namespace lynx {
 namespace tasm {

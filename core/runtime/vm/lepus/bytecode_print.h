@@ -9,7 +9,7 @@
 #include <vector>
 
 #include "base/include/log/logging.h"
-#include "core/runtime/vm/lepus/lepus_value.h"
+#include "base/include/value/base_value.h"
 #include "core/runtime/vm/lepus/vm_context.h"
 namespace lynx {
 namespace lepus {

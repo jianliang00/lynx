@@ -11,8 +11,8 @@
 #include <string>
 #include <utility>
 
+#include "base/include/value/base_value.h"
 #include "core/public/lynx_resource_loader.h"
-#include "core/runtime/vm/lepus/lepus_value.h"
 #include "platform/harmony/lynx_harmony/src/main/cpp/lynx_context.h"
 #include "platform/harmony/lynx_harmony/src/main/cpp/ui/background/background_layer.h"
 #include "platform/harmony/lynx_harmony/src/main/cpp/ui/base/lynx_image_helper.h"

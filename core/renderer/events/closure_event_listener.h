@@ -8,8 +8,8 @@
 #include <memory>
 
 #include "base/include/closure.h"
+#include "base/include/value/base_value.h"
 #include "core/event/event_listener.h"
-#include "core/runtime/vm/lepus/lepus_value.h"
 
 namespace lynx {
 namespace event {

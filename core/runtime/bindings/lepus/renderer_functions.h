@@ -7,8 +7,8 @@
 #include <memory>
 #include <string>
 
+#include "base/include/value/base_value.h"
 #include "core/runtime/bindings/lepus/renderer_functions_def.h"
-#include "core/runtime/vm/lepus/lepus_value.h"
 
 namespace lynx {
 namespace tasm {

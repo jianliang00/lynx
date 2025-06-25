@@ -10,8 +10,8 @@
 #include <utility>
 #include <vector>
 
+#include "base/include/value/base_value.h"
 #include "core/public/pipeline_option.h"
-#include "core/runtime/vm/lepus/lepus_value.h"
 
 namespace lynx {
 namespace tasm {

@@ -524,8 +524,8 @@ def genAutoGenCSSDecoderSource(path, source):
 #include <utility>
 
 #include "core/renderer/css/css_color.h"
-#include "core/runtime/vm/lepus/array.h"
-#include "core/runtime/vm/lepus/table.h"
+#include "base/include/value/array.h"
+#include "base/include/value/table.h"
 #include "core/style/timing_function_data.h"
 #include "core/style/transform_raw_data.h"
 #include "base/include/debug/lynx_assert.h"

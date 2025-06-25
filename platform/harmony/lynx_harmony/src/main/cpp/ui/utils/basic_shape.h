@@ -7,8 +7,8 @@
 
 #include <string>
 
+#include "base/include/value/base_value.h"
 #include "core/renderer/starlight/style/css_type.h"
-#include "core/runtime/vm/lepus/lepus_value.h"
 
 namespace lynx {
 namespace tasm {

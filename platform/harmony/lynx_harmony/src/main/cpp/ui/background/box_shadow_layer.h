@@ -11,8 +11,8 @@
 #include <utility>
 #include <vector>
 
+#include "base/include/value/base_value.h"
 #include "core/renderer/starlight/style/css_type.h"
-#include "core/runtime/vm/lepus/lepus_value.h"
 #include "platform/harmony/lynx_harmony/src/main/cpp/ui/utils/border_radius.h"
 
 namespace lynx {

@@ -5,8 +5,8 @@
 #ifndef PLATFORM_HARMONY_LYNX_HARMONY_SRC_MAIN_CPP_UI_UTILS_PLATFORM_LENGTH_H_
 #define PLATFORM_HARMONY_LYNX_HARMONY_SRC_MAIN_CPP_UI_UTILS_PLATFORM_LENGTH_H_
 
-#include "core/runtime/vm/lepus/array.h"
-#include "core/runtime/vm/lepus/lepus_value.h"
+#include "base/include/value/array.h"
+#include "base/include/value/base_value.h"
 
 namespace lynx {
 namespace tasm {

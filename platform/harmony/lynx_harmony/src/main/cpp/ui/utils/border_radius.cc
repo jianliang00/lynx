@@ -5,7 +5,7 @@
 #include "platform/harmony/lynx_harmony/src/main/cpp/ui/utils/border_radius.h"
 
 #include "base/include/float_comparison.h"
-#include "core/runtime/vm/lepus/array.h"
+#include "base/include/value/array.h"
 
 namespace lynx {
 namespace tasm {

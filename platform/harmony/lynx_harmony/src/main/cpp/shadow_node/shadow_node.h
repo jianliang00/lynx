@@ -13,10 +13,10 @@
 #include <vector>
 
 #include "base/include/fml/memory/ref_counted.h"
+#include "base/include/value/base_value.h"
 #include "core/public/layout_node_manager.h"
 #include "core/public/layout_node_value.h"
 #include "core/renderer/ui_wrapper/common/harmony/prop_bundle_harmony.h"
-#include "core/runtime/vm/lepus/lepus_value.h"
 #include "platform/harmony/lynx_harmony/src/main/cpp/event/event_target.h"
 #include "platform/harmony/lynx_harmony/src/main/cpp/shadow_node/measure_mode.h"
 

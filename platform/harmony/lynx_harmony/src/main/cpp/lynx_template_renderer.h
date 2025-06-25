@@ -13,6 +13,7 @@
 #include <vector>
 
 #include "base/include/fml/memory/weak_ptr.h"
+#include "base/include/value/base_value.h"
 #include "core/public/devtool/lynx_devtool_proxy.h"
 #include "core/public/devtool/lynx_inspector_owner.h"
 #include "core/public/lynx_extension_delegate.h"
@@ -21,7 +22,6 @@
 #include "core/resource/lynx_resource_loader_harmony.h"
 #include "core/runtime/bindings/jsi/modules/harmony/module_factory_harmony.h"
 #include "core/runtime/bindings/jsi/modules/lynx_module_manager.h"
-#include "core/runtime/vm/lepus/lepus_value.h"
 #include "core/services/performance/harmony/performance_controller_harmony.h"
 #include "core/template_bundle/lynx_template_bundle.h"
 

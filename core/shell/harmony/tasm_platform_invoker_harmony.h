@@ -8,7 +8,7 @@
 #include <memory>
 #include <string>
 
-#include "core/runtime/vm/lepus/lepus_value.h"
+#include "base/include/value/base_value.h"
 #include "core/shell/tasm_platform_invoker.h"
 #include "platform/harmony/lynx_harmony/src/main/cpp/lynx_template_renderer.h"
 

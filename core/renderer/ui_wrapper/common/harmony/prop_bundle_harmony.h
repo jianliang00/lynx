@@ -14,10 +14,10 @@
 #include <unordered_set>
 #include <vector>
 
+#include "base/include/value/base_value.h"
 #include "core/public/prop_bundle.h"
 #include "core/renderer/css/css_property.h"
 #include "core/renderer/utils/base/base_def.h"
-#include "core/runtime/vm/lepus/lepus_value.h"
 #include "core/value_wrapper/value_impl_lepus.h"
 
 namespace lynx {
