@@ -1803,13 +1803,13 @@ RENDERER_FUNCTION_CC(CreateSlot) {
 }
 
 RENDERER_FUNCTION_CC(SetProp) {
-  TRACE_EVENT(LYNX_TRACE_CATEGORY, SET_PROP);
   CHECK_ARGC_EQ(SetProp, 3);
   CONVERT_ARG_AND_CHECK(arg0, 0, CPointer, SetProp);
   CONVERT_ARG_AND_CHECK(arg1, 1, String, SetProp);
   CONVERT_ARG(arg2, 2);
 
   base::String key = arg1->String();
+  TRACE_EVENT(LYNX_TRACE_CATEGORY, SET_PROP, "key", key.c_str());
   auto* component = GetRadonComponent(LEPUS_CONTEXT(), arg0);
   if (!component) {
     RETURN_UNDEFINED();

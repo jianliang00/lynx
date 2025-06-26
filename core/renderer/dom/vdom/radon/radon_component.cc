@@ -182,6 +182,11 @@ void RadonComponent::SetProperties(const base::String& key,
     bool use_default_value = strict_prop_type && !v.IsNil() && !same_type;
     lepus::Value new_value = use_default_value ? GetDefaultValue(v) : value;
     if (!(v == new_value)) {
+      TRACE_EVENT(LYNX_TRACE_CATEGORY, RADON_COMPONENT_UPDATE_PROP,
+                  [this, &key](lynx::perfetto::EventContext ctx) {
+                    ctx.event()->add_debug_annotations("key", key.c_str());
+                    UpdateTraceDebugInfo(ctx.event());
+                  });
       properties_.SetProperty(key, new_value);
       properties_dirty_ = true;
     }

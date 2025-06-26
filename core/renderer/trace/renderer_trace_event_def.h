@@ -633,6 +633,8 @@ inline constexpr const char* const RADON_BASE_MODIFY_SUBTREE_COMPONENT =
     "RadonBase::NeedModifySubTreeComponent";
 inline constexpr const char* const RADON_COMPONENT_PREPARE_ROOT_CSS =
     "RadonComponent::PrepareRootCSSVariables";
+inline constexpr const char* const RADON_COMPONENT_UPDATE_PROP =
+    "RadonComponent::UpdateProperty";
 inline constexpr const char* const RADON_PREPROCESS_DATA = "PreprocessData";
 inline constexpr const char* const RADON_PRERENDER_REACT = "PreRenderReact";
 inline constexpr const char* const RADON_PRERENDER_TT = "PreRenderTT";
