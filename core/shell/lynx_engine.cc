@@ -572,7 +572,9 @@ void LynxEngine::UpdateI18nResource(const std::string& key,
 }
 
 void LynxEngine::Flush() {
-  if (tasm_ != nullptr) {  // for unittest, judge null
+  if (tasm_ != nullptr &&
+      !tasm_->GetPageOptions()
+           .IsEmbeddedModeOn()) {  // for unittest, judge null
     tasm_->page_proxy()->element_manager()->painting_context()->Flush();
   }
 }

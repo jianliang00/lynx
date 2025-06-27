@@ -36,6 +36,10 @@ public class TraceEventDef {
    */
   public static final String IMAGE_SHOULD_REDIRECT_IMAGE_URL = "Interceptor.shouldRedirectImageUrl";
 
+  public static final String UI_BODY_ATTACH_UI_BODY_VIEW = "UIBody.attachUIBodyView";
+  public static final String UI_BODY_DETACH_UI_BODY_VIEW = "UIBody.detachUIBodyView";
+  public static final String UI_BODY_REBUILD_VIEW_TREE = "UIBody.rebuildViewTree";
+
   public static final String DEVTOOL_INIT = "LynxDevtool initialized";
 
   public static final String CANCEL_RESOURCE_PREFETCH = "cancelResourcePrefetch";

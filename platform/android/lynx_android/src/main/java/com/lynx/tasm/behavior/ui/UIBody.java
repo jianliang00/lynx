@@ -19,17 +19,20 @@ import androidx.annotation.RestrictTo;
 import com.lynx.tasm.LynxBooleanOption;
 import com.lynx.tasm.PageConfig;
 import com.lynx.tasm.base.LLog;
+import com.lynx.tasm.base.OnceTask;
 import com.lynx.tasm.base.TraceEvent;
 import com.lynx.tasm.base.trace.TraceEventDef;
 import com.lynx.tasm.behavior.LynxContext;
 import com.lynx.tasm.behavior.event.EventTarget;
 import com.lynx.tasm.behavior.ui.UIBody.UIBodyView;
 import com.lynx.tasm.behavior.ui.accessibility.LynxAccessibilityWrapper;
+import com.lynx.tasm.core.LynxThreadPool;
 import com.lynx.tasm.performance.longtasktiming.LynxLongTaskMonitor;
 import com.lynx.tasm.performance.timing.ITimingCollector;
 import java.lang.ref.WeakReference;
 import java.util.ArrayList;
 import java.util.HashMap;
+import java.util.concurrent.Callable;
 
 public class UIBody extends UIGroup<UIBodyView> {
   private final static String TAG = "UIBody";
@@ -41,6 +44,10 @@ public class UIBody extends UIGroup<UIBodyView> {
   private ArrayList<LynxUI> mCreateViewUI;
 
   private LynxAccessibilityWrapper mA11yWrapper;
+
+  private OnceTask<Void> mDetachTask = null;
+
+  private OnceTask<Void> mAttachTask = null;
 
   public UIBody(LynxContext context, final UIBodyView view) {
     super(context);
@@ -55,45 +62,89 @@ public class UIBody extends UIGroup<UIBodyView> {
    * when async render, we should attach LynxView
    * @param view
    */
-  public void attachUIBodyView(UIBodyView view) {
-    if (mContext.isEnginePoolEnabled()) {
-      if (mBodyView == view) {
-        return;
+  synchronized public void attachUIBodyView(UIBodyView view) {
+    mAttachTask = new OnceTask<>(new Callable<Void>() {
+      @Override
+      public Void call() throws Exception {
+        if (mContext.isEnginePoolEnabled()) {
+          if (mBodyView == view) {
+            return null;
+          }
+
+          if (mBodyView != null) {
+            detachUIBodyView();
+          }
+        }
+
+        mBodyView = view;
+        initialize();
+
+        if (!mContext.isEnginePoolEnabled()) {
+          return null;
+        }
+
+        if (mBodyView == null) {
+          LLog.e(TAG, "attachUIBodyView failed since mBodyView is null.");
+          return null;
+        }
+
+        TraceEvent.beginSection(TraceEventDef.UI_BODY_ATTACH_UI_BODY_VIEW);
+
+        mCreateViewUI = new ArrayList<>();
+        attachToView();
+        mBodyView.removeExistingViews();
+
+        TraceEvent.endSection(TraceEventDef.UI_BODY_ATTACH_UI_BODY_VIEW);
+        return null;
       }
+    });
 
-      if (mBodyView != null) {
-        detachUIBodyView();
-      }
+    if (mDetachTask == null) {
+      mAttachTask.run();
     }
-
-    mBodyView = view;
-    initialize();
-
-    if (!mContext.isEnginePoolEnabled()) {
-      return;
-    }
-
-    if (mBodyView == null) {
-      LLog.e(TAG, "attachUIBodyView failed since mBodyView is null.");
-      return;
-    }
-
-    mCreateViewUI = new ArrayList<>();
-    attachToView();
-    mBodyView.removeExistingViews();
   }
 
   @Override
   protected void attachToView() {
-    mContext.getLynxView().obtainViewAccordingToNodeIndex(mNodeIndex);
+    if (mBodyView != null) {
+      mBodyView.obtainViewAccordingToNodeIndex(mNodeIndex);
+    }
     super.attachToView();
   }
 
-  public void detachUIBodyView() {
-    // process view info
-    processViewInfo();
-    // detach
-    detachWithViewInfo(mViewInfo);
+  synchronized public void detachUIBodyView() {
+    if (!mContext.isEnginePoolEnabled()) {
+      LLog.w(
+          TAG, "UIBody.detachUIBodyView should not be called when isEnginePoolEnabled == false.");
+      return;
+    }
+
+    if (mBodyView == null) {
+      return;
+    }
+
+    mDetachTask = new OnceTask<>(new Callable<Void>() {
+      @Override
+      public Void call() throws Exception {
+        TraceEvent.beginSection(TraceEventDef.UI_BODY_DETACH_UI_BODY_VIEW);
+
+        // process view info
+        processViewInfo();
+        // detach
+        detachWithViewInfo(mViewInfo);
+
+        TraceEvent.endSection(TraceEventDef.UI_BODY_DETACH_UI_BODY_VIEW);
+
+        synchronized (this) {
+          if (mAttachTask != null) {
+            mAttachTask.run();
+          }
+        }
+        return null;
+      }
+    });
+
+    LynxThreadPool.postUIOperationTask(mDetachTask);
   }
 
   @Override
@@ -103,11 +154,36 @@ public class UIBody extends UIGroup<UIBodyView> {
   }
 
   public void appendUIWithCreateViewAsync(LynxUI ui) {
+    if (mCreateViewUI == null) {
+      LLog.w(TAG, "UIBody.appendUIWithCreateViewAsync failed since mCreateViewUI is null.");
+      return;
+    }
     mCreateViewUI.add(ui);
   }
 
   public void rebuildViewTree() {
+    if (!mContext.isEnginePoolEnabled()) {
+      return;
+    }
+
+    TraceEvent.beginSection(TraceEventDef.UI_BODY_REBUILD_VIEW_TREE);
+
+    synchronized (this) {
+      if (mDetachTask != null) {
+        mDetachTask.run();
+        mDetachTask.get();
+        mDetachTask = null;
+      }
+
+      if (mAttachTask != null) {
+        mAttachTask.run();
+        mAttachTask.get();
+        mAttachTask = null;
+      }
+    }
+
     if (mCreateViewUI == null) {
+      TraceEvent.endSection(TraceEventDef.UI_BODY_REBUILD_VIEW_TREE);
       return;
     }
 
@@ -115,6 +191,8 @@ public class UIBody extends UIGroup<UIBodyView> {
       ui.ensureCreateView();
     }
     mCreateViewUI.clear();
+
+    TraceEvent.endSection(TraceEventDef.UI_BODY_REBUILD_VIEW_TREE);
   }
 
   @Override

@@ -242,18 +242,14 @@ public class LynxImageManager implements Drawable.Callback {
       mRunnableList.clear();
     }
 
-    private void handleCallback(Runnable runnable) {
-      if (Looper.getMainLooper().getThread() == Thread.currentThread()) {
-        runnable.run();
-      } else {
-        mRunnableList.add(runnable);
-        UIThreadUtils.runOnUiThread(new Runnable() {
-          @Override
-          public void run() {
-            tryHandleResult();
-          }
-        });
-      }
+    synchronized private void handleCallback(Runnable runnable) {
+      mRunnableList.add(runnable);
+      UIThreadUtils.runOnUiThreadImmediately(new Runnable() {
+        @Override
+        public void run() {
+          tryHandleResult();
+        }
+      });
     }
 
     @Override
@@ -305,7 +301,8 @@ public class LynxImageManager implements Drawable.Callback {
     @Override
     public void onSuccess(
         @Nullable ImageContent imageContent, ImageRequestInfo requestInfo, ImageInfo imageInfo) {
-      if (!TextUtils.equals(requestInfo.getUrl(), mCurImageRequest.getUrl())) {
+      if (!TextUtils.equals(
+              requestInfo.getUrl(), mCurImageRequest != null ? mCurImageRequest.getUrl() : null)) {
         return;
       }
       if (imageContent != null) {

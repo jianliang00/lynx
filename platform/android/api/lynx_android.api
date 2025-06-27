@@ -8733,6 +8733,9 @@ public class com::lynx::tasm::base::trace::TraceEventDef :  {
   public final String com.lynx.tasm.base.trace.TraceEventDef.LYNX_TEMPLATE_RENDER_MEASURE LYNX_TEMPLATE_RENDER_MEASURE;
   public final String com.lynx.tasm.base.trace.TraceEventDef.TEXT_SHADOW_NODE_MEASURE TEXT_SHADOW_NODE_MEASURE;
   public final String com.lynx.tasm.base.trace.TraceEventDef.IMAGE_SHOULD_REDIRECT_IMAGE_URL IMAGE_SHOULD_REDIRECT_IMAGE_URL;
+  public final String com.lynx.tasm.base.trace.TraceEventDef.UI_BODY_ATTACH_UI_BODY_VIEW UI_BODY_ATTACH_UI_BODY_VIEW;
+  public final String com.lynx.tasm.base.trace.TraceEventDef.UI_BODY_DETACH_UI_BODY_VIEW UI_BODY_DETACH_UI_BODY_VIEW;
+  public final String com.lynx.tasm.base.trace.TraceEventDef.UI_BODY_REBUILD_VIEW_TREE UI_BODY_REBUILD_VIEW_TREE;
   public final String com.lynx.tasm.base.trace.TraceEventDef.DEVTOOL_INIT DEVTOOL_INIT;
   public final String com.lynx.tasm.base.trace.TraceEventDef.CANCEL_RESOURCE_PREFETCH CANCEL_RESOURCE_PREFETCH;
   public final String com.lynx.tasm.base.trace.TraceEventDef.REQUEST_RESOURCE_PREFETCH REQUEST_RESOURCE_PREFETCH;
@@ -8972,8 +8975,8 @@ public class com::lynx::tasm::utils::TypefaceUtils :  {
 public class com::lynx::tasm::behavior::ui::UIBody : com.lynx.tasm.behavior.ui.UIGroup< UIBodyView > {
   public com.lynx.tasm.behavior.ui.UIBody.UIBody(LynxContext context, final UIBodyView view);
   public UIBodyView com.lynx.tasm.behavior.ui.UIBody.getBodyView();
-  public void com.lynx.tasm.behavior.ui.UIBody.attachUIBodyView(UIBodyView view);
-  public void com.lynx.tasm.behavior.ui.UIBody.detachUIBodyView();
+  public synchronized void com.lynx.tasm.behavior.ui.UIBody.attachUIBodyView(UIBodyView view);
+  public synchronized void com.lynx.tasm.behavior.ui.UIBody.detachUIBodyView();
   public void com.lynx.tasm.behavior.ui.UIBody.appendUIWithCreateViewAsync(LynxUI ui);
   public void com.lynx.tasm.behavior.ui.UIBody.rebuildViewTree();
   public void com.lynx.tasm.behavior.ui.UIBody.initialize();
