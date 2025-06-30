@@ -680,6 +680,17 @@ void TemplateAssembler::RenderTemplateForFiber(
     // to make element do full CSS resolving when the classes is updated after
     // hydrated.
     page_proxy()->element_manager()->ClearExtremeParsedStyles();
+    if (page_proxy()->HydrateByRootPage()) {
+      auto& context = card->GetVm();
+
+      auto page_ref = page_proxy()->element_manager()->GetPageElementRef();
+      render_options.SetProperty(BASE_STATIC_STRING(kInitPage),
+                                 lepus::Value(page_ref));
+
+      DispatchEventFromEngineToCoreContext(
+          context, kRenderPage, runtime::kMessageEventTypeRenderPage,
+          data.GetValue(), std::move(render_options));
+    }
   }
 
   tasm::TimingCollector::Instance()->Mark(tasm::timing::kCreateVdomEnd);

@@ -1039,6 +1039,8 @@ class ElementManager : public ElementContextDelegate {
 
   PageElement *GetPageElement() const { return fiber_page_.get(); }
 
+  fml::RefPtr<PageElement> GetPageElementRef() const { return fiber_page_; }
+
   bool CheckResolvedKeyframes(const std::string &unique_id) {
     return resolved_keyframes_set_.find(unique_id) !=
            resolved_keyframes_set_.end();

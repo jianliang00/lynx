@@ -386,6 +386,8 @@ class PageProxy {
     return hydrate_info_.waiting_for_hydrating_ || HasSSRRadonPage();
   }
 
+  bool HydrateByRootPage() { return hydrate_info_.hydrate_by_root_page_; }
+
   void OnSsrScriptReady(std::string script);
 
   // used for unified pipeline;

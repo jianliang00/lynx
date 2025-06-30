@@ -20,6 +20,8 @@ struct SSRHydrateInfo {
 
   // Not applicable for Radon TTML now.
   bool waiting_for_hydrating_ = false;
+  // Only use for TTML Nodiff now.
+  bool hydrate_by_root_page_ = false;
   // hydrate info only for reactlynx ssr now.
   std::string custom_hydrate_info_ = "";
   // ssr list element.

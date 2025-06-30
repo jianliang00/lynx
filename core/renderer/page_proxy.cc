@@ -1191,7 +1191,7 @@ void PageProxy::HydrateOnFirstScreenIfPossible(
     return;
   }
 
-  // fiber hydrate?
+  // fiber hydrate
   if (hydrate_info_.waiting_for_hydrating_) {
     // find list item ids.
     auto list_ids = lepus::CArray::Create();
@@ -1210,11 +1210,13 @@ void PageProxy::HydrateOnFirstScreenIfPossible(
 
     // Call the function to hydrate in lepus.
     // Bind fiber elements with lepus by custom_hydrate_info_.
-    BASE_STATIC_STRING_DECL(kSsrHydrate, "ssrHydrate");
-    tasm->FindEntry(DEFAULT_ENTRY_NAME)
-        ->GetVm()
-        ->Call(kSsrHydrate, lepus::Value(hydrate_info_.custom_hydrate_info_),
-               lepus::Value(list_ids));
+    if (!HydrateByRootPage()) {
+      BASE_STATIC_STRING_DECL(kSsrHydrate, "ssrHydrate");
+      tasm->FindEntry(DEFAULT_ENTRY_NAME)
+          ->GetVm()
+          ->Call(kSsrHydrate, lepus::Value(hydrate_info_.custom_hydrate_info_),
+                 lepus::Value(list_ids));
+    }
 
     ResetHydrateInfo();
 
