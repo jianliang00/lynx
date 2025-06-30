@@ -454,7 +454,7 @@ LYNX_PROP_SETTER("experimental-max-fling-distance-ratio", setMaxFlingDistanceRat
 }
 
 LYNX_PROP_SETTER("item-snap", setPagingAlignment, NSDictionary *) {
-  if (value.count) {
+  if ([value isKindOfClass:NSDictionary.class] && value.count) {
     CGFloat factor = [value[@"factor"] doubleValue];
     if (factor < 0 || factor > 1) {
       [NSException raise:@"item-snap arguments invalid!"
