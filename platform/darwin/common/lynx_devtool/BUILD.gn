@@ -32,38 +32,37 @@ config("public_config") {
 # These public headers will be added to the public_header_files variable in the podspec
 devtool_public_headers = [
   "Helper/LynxBaseDeviceInfo.h",
-  "Helper/LynxScreenCastHelper.h",
   "LynxDebugBridge.h",
-  "LynxDevMenu.h",
   "LynxDevtoolEnv.h",
-  "LynxDevToolFrameCapturer.h",
   "LynxInspectorConsoleDelegate.h",
-  "LynxInspectorOwner+Internal.h",
-  "Memory/LynxMemoryController.h",
   "Module/LynxDevToolSetModule.h",
   "Module/LynxTrailModule.h",
   "Module/LynxWebSocketModule.h",
-  "Tracing/LynxFPSTrace.h",
-  "Tracing/LynxFrameTraceService.h",
-  "Tracing/LynxFrameViewTrace.h",
-  "Tracing/LynxInstanceTrace.h",
 ]
 
 subspec_target("devtool") {
   sources = [
-    "DevToolOverlayDelegate.mm",
+    "Helper/LynxScreenCastHelper.h",
     "Helper/LynxScreenCastHelper.mm",
     "LynxDebugBridge.mm",
+    "LynxDevMenu.h",
     "LynxDevMenu.mm",
+    "LynxDevToolFrameCapturer.h",
     "LynxDevToolFrameCapturer.mm",
     "LynxDevtoolEnv.mm",
+    "LynxInspectorOwner+Internal.h",
+    "Memory/LynxMemoryController.h",
     "Memory/LynxMemoryController.mm",
     "Module/LynxDevToolSetModule.mm",
     "Module/LynxTrailModule.mm",
     "Module/LynxWebSocketModule.mm",
+    "Tracing/LynxFPSTrace.h",
     "Tracing/LynxFPSTrace.mm",
+    "Tracing/LynxFrameTraceService.h",
     "Tracing/LynxFrameTraceService.mm",
+    "Tracing/LynxFrameViewTrace.h",
     "Tracing/LynxFrameViewTrace.mm",
+    "Tracing/LynxInstanceTrace.h",
     "Tracing/LynxInstanceTrace.mm",
   ]
   sources += devtool_public_headers
