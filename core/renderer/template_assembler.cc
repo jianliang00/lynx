@@ -1613,6 +1613,9 @@ void TemplateAssembler::SelectComponent(const std::string& component_id,
 void TemplateAssembler::ElementAnimate(const std::string& component_id,
                                        const std::string& id_selector,
                                        const lepus::Value& args) {
+  auto pipeline_option = std::make_shared<PipelineOptions>();
+  pipeline_context_manager_->CreateAndUpdateCurrentPipelineContext(
+      pipeline_option);
   NodeSelectRoot root = NodeSelectRoot::ByComponentId(component_id);
   NodeSelectOptions options(NodeSelectOptions::IdentifierType::CSS_SELECTOR,
                             id_selector);
@@ -1621,12 +1624,16 @@ void TemplateAssembler::ElementAnimate(const std::string& component_id,
   if (elements.empty() || elements[0] == nullptr) {
     return;
   }
-  elements[0]->Animate(args);
+  elements[0]->Animate(args, pipeline_option);
+  this->RunPixelPipeline();
 }
 
 void TemplateAssembler::ElementAnimateV2(const std::string& component_id,
                                          const std::string& id_selector,
                                          const lepus::Value& args) {
+  auto pipeline_option = std::make_shared<PipelineOptions>();
+  pipeline_context_manager_->CreateAndUpdateCurrentPipelineContext(
+      pipeline_option);
   NodeSelectRoot root = NodeSelectRoot::ByComponentId(component_id);
   NodeSelectOptions options(NodeSelectOptions::IdentifierType::CSS_SELECTOR,
                             id_selector);
@@ -1635,7 +1642,8 @@ void TemplateAssembler::ElementAnimateV2(const std::string& component_id,
   if (elements.empty() || elements[0] == nullptr) {
     return;
   }
-  elements[0]->AnimateV2(args);
+  elements[0]->AnimateV2(args, pipeline_option);
+  this->RunPixelPipeline();
 }
 
 void TemplateAssembler::GetComponentContextDataAsync(

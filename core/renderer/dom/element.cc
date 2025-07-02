@@ -676,7 +676,8 @@ void Element::UpdateElement() {
 
 void Element::onNodeReload() { painting_context()->OnNodeReload(impl_id()); }
 
-void Element::Animate(const lepus::Value& args) {
+void Element::Animate(const lepus::Value& args,
+                      std::shared_ptr<PipelineOptions>& pipeline_option) {
   // animate's args: operation, js_name, keyframes, animation_data.
   if (!args.IsArrayOrJSArray()) {
     LOGE("Element::Animate's para must be array");
@@ -785,12 +786,11 @@ void Element::Animate(const lepus::Value& args) {
       break;
   }
   ConsumeStyle(styles);
-  auto options = std::make_shared<PipelineOptions>();
-  element_manager_->OnFinishUpdateProps(this, options);
-  OnPatchFinish(options);
+  element_manager_->OnFinishUpdateProps(this, pipeline_option);
 }
 
-void Element::AnimateV2(const lepus::Value& args) {
+void Element::AnimateV2(const lepus::Value& args,
+                        std::shared_ptr<PipelineOptions>& pipeline_option) {
   // AnimateV2 only work on NewAnimator.
   if (!enable_new_animator()) {
     return;
@@ -899,9 +899,7 @@ void Element::AnimateV2(const lepus::Value& args) {
     computed_css_style()->AppendAnimatedAnimationValue(styles);
     has_keyframe_props_changed_ = true;
   }
-  auto options = std::make_shared<PipelineOptions>();
-  element_manager_->OnFinishUpdateProps(this, options);
-  OnPatchFinish(options);
+  element_manager_->OnFinishUpdateProps(this, pipeline_option);
 }
 
 void Element::PreparePropBundleIfNeed() {

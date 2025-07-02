@@ -202,10 +202,12 @@ class Element : public lepus::RefCounted {
   void ResetPseudoType(int pseudo_type) { pseudo_type_ = pseudo_type; }
 
   // For Animation API
-  void Animate(const lepus::Value& args);
+  void Animate(const lepus::Value& args,
+               std::shared_ptr<PipelineOptions>& pipeline_option);
 
   // For Animation API
-  void AnimateV2(const lepus::Value& args);
+  void AnimateV2(const lepus::Value& args,
+                 std::shared_ptr<PipelineOptions>& pipeline_option);
 
   // For JS API setNativeProps
   virtual void SetNativeProps(

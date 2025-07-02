@@ -238,7 +238,8 @@ TEST_F(ElementTest, Animate_Array) {
 
   // 1.Check that the keyframe array was passed in correctly.
   lepus::Value test_animate_args{array1};
-  element->Animate(test_animate_args);
+  auto pipeline_option = std::make_shared<PipelineOptions>();
+  element->Animate(test_animate_args, pipeline_option);
   auto iter = element->keyframes_map_->find("name1");
   EXPECT_EQ(iter != element->keyframes_map_->end(), true);
   EXPECT_EQ(iter->second->GetKeyframesContent()
@@ -282,7 +283,8 @@ TEST_F(ElementTest, Animate_Array) {
       element->styles_.find(kPropertyIDAnimationPlayState)->second.GetPattern(),
       CSSValuePattern::ENUM);
   array1->set(0, lepus_value(2));
-  element->Animate(test_animate_args);
+  auto pipeline_option1 = std::make_shared<PipelineOptions>();
+  element->Animate(test_animate_args, pipeline_option1);
   EXPECT_EQ(
       element->styles_.find(kPropertyIDAnimationPlayState)->second.GetValue(),
       lepus::Value(0));
@@ -290,7 +292,8 @@ TEST_F(ElementTest, Animate_Array) {
       element->styles_.find(kPropertyIDAnimationPlayState)->second.GetPattern(),
       CSSValuePattern::ENUM);
   array1->set(0, lepus_value(3));
-  element->Animate(test_animate_args);
+  auto pipeline_option2 = std::make_shared<PipelineOptions>();
+  element->Animate(test_animate_args, pipeline_option2);
   EXPECT_EQ(
       element->styles_.find(kPropertyIDAnimationPlayState)->second.GetValue(),
       lepus::Value(1));
@@ -332,7 +335,8 @@ TEST_F(ElementTest, Animate_Table) {
 
   // 1.Check that the keyframe table was passed in correctly.
   lepus::Value test_animate_args{array1};
-  element->Animate(test_animate_args);
+  auto pipeline_option3 = std::make_shared<PipelineOptions>();
+  element->Animate(test_animate_args, pipeline_option3);
   auto iter = element->keyframes_map_->find("name1");
   EXPECT_EQ(iter != element->keyframes_map_->end(), true);
   EXPECT_EQ(iter->second->GetKeyframesContent()
@@ -386,7 +390,8 @@ TEST_F(ElementTest, Animate_Table) {
       element->styles_.find(kPropertyIDAnimationPlayState)->second.GetPattern(),
       CSSValuePattern::ENUM);
   array1->set(0, lepus_value(2));
-  element->Animate(test_animate_args);
+  auto pipeline_option4 = std::make_shared<PipelineOptions>();
+  element->Animate(test_animate_args, pipeline_option4);
   EXPECT_EQ(
       element->styles_.find(kPropertyIDAnimationPlayState)->second.GetValue(),
       lepus::Value(0));
@@ -394,7 +399,8 @@ TEST_F(ElementTest, Animate_Table) {
       element->styles_.find(kPropertyIDAnimationPlayState)->second.GetPattern(),
       CSSValuePattern::ENUM);
   array1->set(0, lepus_value(3));
-  element->Animate(test_animate_args);
+  auto pipeline_option5 = std::make_shared<PipelineOptions>();
+  element->Animate(test_animate_args, pipeline_option5);
   EXPECT_EQ(
       element->styles_.find(kPropertyIDAnimationPlayState)->second.GetValue(),
       lepus::Value(1));
@@ -436,7 +442,8 @@ TEST_F(ElementTest, Animate_v2_Table) {
 
   // 1.Check that the keyframe table was passed in correctly.
   lepus::Value test_animate_args{array1};
-  element->AnimateV2(test_animate_args);
+  auto pipeline_option = std::make_shared<PipelineOptions>();
+  element->AnimateV2(test_animate_args, pipeline_option);
   auto iter = element->keyframes_map_->find("name1");
   EXPECT_EQ(iter != element->keyframes_map_->end(), true);
   EXPECT_EQ(iter->second->GetKeyframesContent()
