@@ -60,7 +60,10 @@ static NSMapTable<NSString *, __kindof UIViewController *> *_dispatchedViewContr
   } else if (localRes.isLynxRecorderSchema) {
     url = localRes.url;
   } else {
-    NSURL *source = [NSURL URLWithString:sourceUrl];
+    NSString *encodeUrl = [sourceUrl
+        stringByAddingPercentEncodingWithAllowedCharacters:[NSCharacterSet
+                                                               URLFragmentAllowedCharacterSet]];
+    NSURL *source = [NSURL URLWithString:encodeUrl];
     if ([source.scheme isEqualToString:@"http"] || [source.scheme isEqualToString:@"https"]) {
       _latestQuery = source.query;
       url = sourceUrl;

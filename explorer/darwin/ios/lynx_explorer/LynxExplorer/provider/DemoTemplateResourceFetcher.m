@@ -12,7 +12,10 @@
 // scheme: file://lynx?local://
 + (LocalBundleResult)readLocalBundleFromResource:(NSString *)url {
   LocalBundleResult res = {NO, NO, nil, nil, nil};
-  NSURL *source = [NSURL URLWithString:url];
+  NSString *encodeUrl =
+      [url stringByAddingPercentEncodingWithAllowedCharacters:[NSCharacterSet
+                                                                  URLFragmentAllowedCharacterSet]];
+  NSURL *source = [NSURL URLWithString:encodeUrl];
   if ([source.scheme isEqualToString:@"file"]) {
     NSURL *subSourceUrl = [NSURL URLWithString:source.query];
     if ([subSourceUrl.scheme isEqualToString:@"local"]) {

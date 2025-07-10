@@ -7,7 +7,10 @@
 @implementation TemplateProvider
 
 - (void)loadTemplateWithUrl:(NSString*)url onComplete:(LynxTemplateLoadBlock)callback {
-  NSURL* nsUrl = [NSURL URLWithString:url];
+  NSString* encodeUrl =
+      [url stringByAddingPercentEncodingWithAllowedCharacters:[NSCharacterSet
+                                                                  URLFragmentAllowedCharacterSet]];
+  NSURL* nsUrl = [NSURL URLWithString:encodeUrl];
   NSURLSessionDataTask* task = [[NSURLSession sharedSession]
         dataTaskWithURL:nsUrl
       completionHandler:^(NSData* _Nullable data, NSURLResponse* _Nullable response,
