@@ -431,6 +431,32 @@ public abstract class LynxBaseUI
     updateUIPaintStyle(targetUI, mUIPaintStyles);
   }
 
+  /**
+   * Returns the current memory usage in kilobytes (KB).
+   * The value represents a non-negative memory consumption measurement.
+   * Implementations should return the total memory used by the component
+   * or resource being monitored. For example:
+   *  - An image processor might return decoded pixel data size.
+   *
+   * @return memory usage in KB, or {@code 0.0f} if not implemented/unavailable
+   */
+  public float getMemoryUsageKb() {
+    return 0.f;
+  }
+
+  /**
+   * Provides detailed memory usage information in a customizable key-value format.
+   * The returned map can contain arbitrary memory-related entries. For example,
+   * an image processing implementation might return a mapping of image URLs to
+   * their memory sizes (e.g., {@code {"https://example.com/img1.jpg": "2.5"}}).
+   *
+   * Implementations are free to define relevant entries or return null
+   * if no memory details are available.
+   */
+  public Map<String, String> getMemoryUsageDetail() {
+    return null;
+  }
+
   public boolean getVisibility() {
     return true;
   }

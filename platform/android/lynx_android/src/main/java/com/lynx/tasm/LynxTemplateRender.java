@@ -49,6 +49,7 @@ import com.lynx.tasm.behavior.ILynxUIRenderer;
 import com.lynx.tasm.behavior.ImageInterceptor;
 import com.lynx.tasm.behavior.LynxContext;
 import com.lynx.tasm.behavior.LynxIntersectionObserverManager;
+import com.lynx.tasm.behavior.LynxUIOwner;
 import com.lynx.tasm.behavior.event.EventTarget;
 import com.lynx.tasm.behavior.herotransition.HeroTransitionManager;
 import com.lynx.tasm.behavior.shadow.ChoreographerLayoutTick;
@@ -2171,6 +2172,40 @@ public class LynxTemplateRender implements ILynxEngine, ILynxErrorReceiver {
     onTraceEventEnd(TraceEventDef.TEMPLATE_RENDER_DISPATCH_ERROR);
   }
 
+  private void updateMemoryUsage() {
+    if (!PerformanceController.isMemoryMonitorEnabled()) {
+      return;
+    }
+
+    WeakReference<LynxTemplateRender> weakThis = new WeakReference<>(this);
+    long delayMs = PerformanceController.getMemoryAcquisitionDelayMs();
+    // Since resources are usually loaded asynchronously, such as images downloaded asynchronously
+    // from the network, it is necessary to delay the collection of memory so as to collect as much
+    // resource memory as possible.
+    UIThreadUtils.runOnUiThread(new Runnable() {
+      @Override
+      public void run() {
+        LynxTemplateRender render = weakThis.get();
+        if (render == null) {
+          return;
+        }
+        PerformanceController perfController = render.mPerformanceController;
+        if (perfController == null) {
+          return;
+        }
+        ILynxUIRenderer renderer = render.mLynxUIRender;
+        if (renderer == null) {
+          return;
+        }
+        LynxUIOwner uiOwner = renderer.lynxUIOwner();
+        if (uiOwner == null) {
+          return;
+        };
+        perfController.updateMemoryUsage(uiOwner.getMemoryUsage());
+      }
+    }, delayMs);
+  }
+
   private class InnerSSRLoadedCallback implements AbsTemplateProvider.Callback {
     private TemplateData mTemplateData;
     private String mUrl;
@@ -2383,6 +2418,7 @@ public class LynxTemplateRender implements ILynxEngine, ILynxErrorReceiver {
         if (mDevTool != null) {
           mDevTool.onPageUpdate();
         }
+        updateMemoryUsage();
       } catch (Throwable e) {
         e.printStackTrace();
       }

@@ -24,6 +24,7 @@ import com.lynx.tasm.service.ILynxEventReporterService;
 import com.lynx.tasm.service.LynxServiceCenter;
 import java.lang.ref.WeakReference;
 import java.util.HashMap;
+import java.util.Map;
 
 /**
  * @brief Manages performance data collection and observation. This class acts as a central point
@@ -34,6 +35,7 @@ import java.util.HashMap;
 public class PerformanceController implements IMemoryMonitor, ITimingCollector {
   private static volatile boolean sIsNativeLibraryLoaded = false;
   private static volatile LynxBooleanOption sIsMemoryMonitorEnabled = LynxBooleanOption.UNSET;
+  private static volatile long sMemoryAcquisitionDelayMs = -1;
   private volatile long mNativePerformanceActorPtr = 0;
   private WeakReference<IPerformanceObserver> mObserver;
   private WeakReference<ILynxEventReporterService> mEventReporterService;
@@ -56,6 +58,23 @@ public class PerformanceController implements IMemoryMonitor, ITimingCollector {
       return true;
     }
     return false;
+  }
+
+  public static long getMemoryAcquisitionDelayMs() {
+    if (sMemoryAcquisitionDelayMs >= 0) {
+      return sMemoryAcquisitionDelayMs;
+    }
+    String value = LynxEnv.inst().getMemoryAcquisitionDelayMs();
+    // default is 2 ms.
+    long delay = 2;
+    if (value != null && !value.isEmpty()) {
+      try {
+        delay = Long.parseLong(value);
+        sMemoryAcquisitionDelayMs = delay;
+      } catch (NumberFormatException ignored) {
+      }
+    }
+    return delay;
   }
 
   public void setPerformanceObserver(IPerformanceObserver observer) {
@@ -87,7 +106,7 @@ public class PerformanceController implements IMemoryMonitor, ITimingCollector {
       }
       MemoryRecord record = builder.build();
       nativeAllocateMemory(
-          mNativePerformanceActorPtr, record.getCategory(), record.getSizeKb(), null, null);
+          mNativePerformanceActorPtr, record.getCategory(), record.mSizeKb, null, null);
     });
   }
 
@@ -105,7 +124,7 @@ public class PerformanceController implements IMemoryMonitor, ITimingCollector {
       }
       MemoryRecord record = builder.build();
       nativeDeallocateMemory(
-          mNativePerformanceActorPtr, record.getCategory(), record.getSizeKb(), null, null);
+          mNativePerformanceActorPtr, record.getCategory(), record.mSizeKb, null, null);
     });
   }
 
@@ -122,8 +141,28 @@ public class PerformanceController implements IMemoryMonitor, ITimingCollector {
         return;
       }
       MemoryRecord record = builder.build();
-      nativeUpdateMemoryUsage(
-          mNativePerformanceActorPtr, record.getCategory(), record.getSizeKb(), null, null);
+      nativeUpdateMemoryUsage(mNativePerformanceActorPtr, record.getCategory(), record.mSizeKb,
+          record.mInstanceCount, null);
+    });
+  }
+
+  @Override
+  public void updateMemoryUsage(Map<String, MemoryRecord> recordMap) {
+    if (!mEnableController || recordMap == null) {
+      return;
+    }
+    runOnReportThread(() -> {
+      if (mNativePerformanceActorPtr == 0) {
+        return;
+      }
+      for (Map.Entry<String, MemoryRecord> recordEntry : recordMap.entrySet()) {
+        MemoryRecord record = recordEntry.getValue();
+        if (record == null) {
+          continue;
+        }
+        nativeUpdateMemoryUsage(mNativePerformanceActorPtr, record.getCategory(), record.mSizeKb,
+            record.mInstanceCount, record.mDetail);
+      }
     });
   }
 
@@ -259,7 +298,7 @@ public class PerformanceController implements IMemoryMonitor, ITimingCollector {
   private native void nativeDeallocateMemory(
       long nativePtr, String category, float sizeKb, String detailKey, String detailValue);
   private native void nativeUpdateMemoryUsage(
-      long nativePtr, String category, float sizeKb, String detailKey, String detailValue);
+      long nativePtr, String category, float sizeKb, int instanceCount, Map<String, String> detail);
   private native void nativeSetTiming(
       long nativePtr, String key, long usTimestamp, String pipelineID);
   private native void nativeSetPaintEndTimingIfNeeded(long nativePtr, long usTimestamp);

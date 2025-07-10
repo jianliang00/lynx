@@ -2442,6 +2442,7 @@ public interface com::lynx::tasm::performance::memory::IMemoryMonitor {
   public void com.lynx.tasm.performance.memory.IMemoryMonitor.allocateMemory(IMemoryRecordBuilder builder);
   public void com.lynx.tasm.performance.memory.IMemoryMonitor.deallocateMemory(IMemoryRecordBuilder builder);
   public void com.lynx.tasm.performance.memory.IMemoryMonitor.updateMemoryUsage(IMemoryRecordBuilder builder);
+  public void com.lynx.tasm.performance.memory.IMemoryMonitor.updateMemoryUsage(Map< String, MemoryRecord > recordMap);
 }
 
 public interface com::lynx::tasm::performance::memory::IMemoryRecordBuilder {
@@ -3620,6 +3621,8 @@ public class abstract com::lynx::tasm::behavior::ui::LynxBaseUI : com.lynx.tasm.
   public void com.lynx.tasm.behavior.ui.LynxBaseUI.recognizeGesturere();
   public CSSPropertySetter.UIPaintStyles com.lynx.tasm.behavior.ui.LynxBaseUI.getOrCreateUIPaintStyles();
   public void com.lynx.tasm.behavior.ui.LynxBaseUI.applyUIPaintStylesToTarget(LynxBaseUI targetUI);
+  public float com.lynx.tasm.behavior.ui.LynxBaseUI.getMemoryUsageKb();
+  public Map< String, String > com.lynx.tasm.behavior.ui.LynxBaseUI.getMemoryUsageDetail();
   public boolean com.lynx.tasm.behavior.ui.LynxBaseUI.getVisibility();
   public boolean com.lynx.tasm.behavior.ui.LynxBaseUI.isVisible();
   public void com.lynx.tasm.behavior.ui.LynxBaseUI.initialize();
@@ -4197,6 +4200,7 @@ public class com::lynx::tasm::LynxEnv :  {
   public void com.lynx.tasm.LynxEnv.setCreateViewAsync(boolean isCreateViewAsync);
   public void com.lynx.tasm.LynxEnv.setVsyncAlignedFlushGlobalSwitch(boolean enable);
   public boolean com.lynx.tasm.LynxEnv.getCreateViewAsync();
+  public String com.lynx.tasm.LynxEnv.getMemoryAcquisitionDelayMs();
   public boolean com.lynx.tasm.LynxEnv.getVsyncAlignedFlushGlobalSwitch();
   public boolean com.lynx.tasm.LynxEnv.isSettingsEnableNewImage();
   public void com.lynx.tasm.LynxEnv.setDebug(boolean debug);
@@ -4294,6 +4298,7 @@ public enum com::lynx::tasm::LynxEnvKey {
   public com.lynx.tasm.LynxEnvKey.ENABLE_REFRESH_RATE_OPT ENABLE_REFRESH_RATE_OPT;
   public com.lynx.tasm.LynxEnvKey.ENABLE_MULTI_JS_THREAD_BY_DEFAULT ENABLE_MULTI_JS_THREAD_BY_DEFAULT;
   public com.lynx.tasm.LynxEnvKey.ENABLE_TEXT_LAYOUT_CACHE ENABLE_TEXT_LAYOUT_CACHE;
+  public com.lynx.tasm.LynxEnvKey.MEMORY_ACQUISITION_DELAY_MS MEMORY_ACQUISITION_DELAY_MS;
   public  final String com.lynx.tasm.LynxEnvKey.SP_KEY_ENABLE_DEBUG_MODE SP_KEY_ENABLE_DEBUG_MODE;
   public  final String com.lynx.tasm.LynxEnvKey.SP_KEY_ENABLE_LAUNCH_RECORD SP_KEY_ENABLE_LAUNCH_RECORD;
   public  final String com.lynx.tasm.LynxEnvKey.SP_KEY_FORCE_DISABLE_QUICKJS_CACHE SP_KEY_FORCE_DISABLE_QUICKJS_CACHE;
@@ -6014,6 +6019,7 @@ public class com::lynx::tasm::behavior::LynxUIOwner :  {
   public void com.lynx.tasm.behavior.LynxUIOwner.onTasmFinish(long operationId);
   public void com.lynx.tasm.behavior.LynxUIOwner.onLayoutFinish(int componentID, long operationId);
   public void com.lynx.tasm.behavior.LynxUIOwner.performMeasure();
+  public HashMap< String, MemoryRecord > com.lynx.tasm.behavior.LynxUIOwner.getMemoryUsage();
   public void com.lynx.tasm.behavior.LynxUIOwner.performLayout();
   public void com.lynx.tasm.behavior.LynxUIOwner.setHasTouchPseudo(boolean hasTouchPseudo);
   public boolean com.lynx.tasm.behavior.LynxUIOwner.getHasTouchPseudo();
@@ -6559,10 +6565,11 @@ public class com::lynx::devtoolwrapper::MemoryListener :  {
 }
 
 public class com::lynx::tasm::performance::memory::MemoryRecord :  {
-  public com.lynx.tasm.performance.memory.MemoryRecord.MemoryRecord(String category, float sizeKb, Map< String, String > detail);
+  public float com.lynx.tasm.performance.memory.MemoryRecord.mSizeKb mSizeKb;
+  public int com.lynx.tasm.performance.memory.MemoryRecord.mInstanceCount mInstanceCount;
+  public Map<String, String> com.lynx.tasm.performance.memory.MemoryRecord.mDetail mDetail;
+  public com.lynx.tasm.performance.memory.MemoryRecord.MemoryRecord(String category, float sizeKb, int instanceCount, Map< String, String > detail);
   public String com.lynx.tasm.performance.memory.MemoryRecord.getCategory();
-  public float com.lynx.tasm.performance.memory.MemoryRecord.getSizeKb();
-  public Map< String, String > com.lynx.tasm.performance.memory.MemoryRecord.getDetails();
 }
 
 public interface com::lynx::devtoolwrapper::MemoryListener::MemoryReporter {
@@ -7074,12 +7081,14 @@ public interface com::lynx::tasm::behavior::PatchFinishListener {
 
 public class com::lynx::tasm::performance::PerformanceController : com.lynx.tasm.performance.memory.IMemoryMonitor, com.lynx.tasm.performance.timing.ITimingCollector {
   public static boolean com.lynx.tasm.performance.PerformanceController.isMemoryMonitorEnabled();
+  public static long com.lynx.tasm.performance.PerformanceController.getMemoryAcquisitionDelayMs();
   public void com.lynx.tasm.performance.PerformanceController.setPerformanceObserver(IPerformanceObserver observer);
   public boolean com.lynx.tasm.performance.PerformanceController.isEnableController();
   public void com.lynx.tasm.performance.PerformanceController.setEnableController(boolean enableController);
   public void com.lynx.tasm.performance.PerformanceController.allocateMemory(IMemoryRecordBuilder builder);
   public void com.lynx.tasm.performance.PerformanceController.deallocateMemory(IMemoryRecordBuilder builder);
   public void com.lynx.tasm.performance.PerformanceController.updateMemoryUsage(IMemoryRecordBuilder builder);
+  public void com.lynx.tasm.performance.PerformanceController.updateMemoryUsage(Map< String, MemoryRecord > recordMap);
   public void com.lynx.tasm.performance.PerformanceController.setMsTiming(String key, long msTimestamp, String pipelineID);
   public void com.lynx.tasm.performance.PerformanceController.markTiming(final String key, final String pipelineID);
   public void com.lynx.tasm.performance.PerformanceController.markPaintEndTimingIfNeeded();

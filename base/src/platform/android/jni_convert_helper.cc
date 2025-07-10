@@ -177,6 +177,123 @@ JNIConvertHelper::ConvertJavaStringSetToSTLStringSet(JNIEnv* env, jobject set) {
   return ret_set;
 }
 
+std::unique_ptr<std::unordered_map<std::string, std::string>>
+JNIConvertHelper::ConvertJavaStringHashMapToSTLStringMap(JNIEnv* env,
+                                                         jobject javaMap) {
+  if (!javaMap) {
+    return nullptr;
+  }
+
+  // get class
+  jclass mapClass = env->FindClass("java/util/HashMap");
+  jclass setClass = env->FindClass("java/util/Set");
+  jclass iteratorClass = env->FindClass("java/util/Iterator");
+  jclass entryClass = env->FindClass("java/util/Map$Entry");
+  jclass stringClass = env->FindClass("java/lang/String");
+  if (!mapClass || !setClass || !iteratorClass || !entryClass || !stringClass) {
+    return nullptr;
+  }
+
+  // get method id
+  jmethodID entrySetMethod =
+      env->GetMethodID(mapClass, "entrySet", "()Ljava/util/Set;");
+  jmethodID iteratorMethod =
+      env->GetMethodID(setClass, "iterator", "()Ljava/util/Iterator;");
+  jmethodID hasNextMethod = env->GetMethodID(iteratorClass, "hasNext", "()Z");
+  jmethodID nextMethod =
+      env->GetMethodID(iteratorClass, "next", "()Ljava/lang/Object;");
+  jmethodID getKeyMethod =
+      env->GetMethodID(entryClass, "getKey", "()Ljava/lang/Object;");
+  jmethodID getValueMethod =
+      env->GetMethodID(entryClass, "getValue", "()Ljava/lang/Object;");
+  if (!entrySetMethod || !iteratorMethod || !hasNextMethod || !nextMethod ||
+      !getKeyMethod || !getValueMethod) {
+    return nullptr;
+  }
+
+  // get entrySet
+  jobject entrySet = env->CallObjectMethod(javaMap, entrySetMethod);
+  if (env->ExceptionCheck() || !entrySet) {
+    env->ExceptionClear();
+    return nullptr;
+  }
+
+  // get iterator
+  jobject iterator = env->CallObjectMethod(entrySet, iteratorMethod);
+  if (env->ExceptionCheck() || !iterator) {
+    env->ExceptionClear();
+    env->DeleteLocalRef(entrySet);
+    return nullptr;
+  }
+
+  auto cppMapPtr =
+      std::make_unique<std::unordered_map<std::string, std::string>>();
+  // convert
+  while (env->CallBooleanMethod(iterator, hasNextMethod)) {
+    if (env->ExceptionCheck()) {
+      env->ExceptionClear();
+      break;
+    }
+
+    jobject entry = env->CallObjectMethod(iterator, nextMethod);
+    if (env->ExceptionCheck() || !entry) {
+      env->ExceptionClear();
+      continue;
+    }
+
+    // get string key
+    jobject keyObj = env->CallObjectMethod(entry, getKeyMethod);
+    if (env->ExceptionCheck() || !keyObj ||
+        !env->IsInstanceOf(keyObj, stringClass)) {
+      if (env->ExceptionCheck()) {
+        env->ExceptionClear();
+      }
+      env->DeleteLocalRef(entry);
+      if (keyObj) env->DeleteLocalRef(keyObj);
+      continue;
+    }
+
+    // get string value
+    jobject valueObj = env->CallObjectMethod(entry, getValueMethod);
+    if (env->ExceptionCheck() || !valueObj ||
+        !env->IsInstanceOf(valueObj, stringClass)) {
+      if (env->ExceptionCheck()) {
+        env->ExceptionClear();
+      }
+      env->DeleteLocalRef(entry);
+      env->DeleteLocalRef(keyObj);
+      if (valueObj) env->DeleteLocalRef(valueObj);
+      continue;
+    }
+
+    jstring javaKey = static_cast<jstring>(keyObj);
+    jstring javaValue = static_cast<jstring>(valueObj);
+
+    std::string key =
+        lynx::base::android::JNIConvertHelper::ConvertToString(env, javaKey);
+    std::string value =
+        lynx::base::android::JNIConvertHelper::ConvertToString(env, javaValue);
+
+    cppMapPtr->emplace(std::move(key), std::move(value));
+
+    // clear local ref
+    env->DeleteLocalRef(javaKey);
+    env->DeleteLocalRef(javaValue);
+    env->DeleteLocalRef(entry);
+  }
+
+  // clear local ref
+  env->DeleteLocalRef(iterator);
+  env->DeleteLocalRef(entrySet);
+  env->DeleteLocalRef(mapClass);
+  env->DeleteLocalRef(setClass);
+  env->DeleteLocalRef(iteratorClass);
+  env->DeleteLocalRef(entryClass);
+  env->DeleteLocalRef(stringClass);
+
+  return cppMapPtr;
+}
+
 }  // namespace android
 }  // namespace base
 }  // namespace lynx

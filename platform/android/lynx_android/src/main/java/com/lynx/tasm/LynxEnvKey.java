@@ -35,7 +35,8 @@ public enum LynxEnvKey {
   ENABLE_TEXT_BORING_LAYOUT("enable_text_boring_layout"),
   ENABLE_REFRESH_RATE_OPT("enable_refresh_rate_opt"),
   ENABLE_MULTI_JS_THREAD_BY_DEFAULT("enable_multi_js_thread_by_default"),
-  ENABLE_TEXT_LAYOUT_CACHE("enable_text_layout_cache");
+  ENABLE_TEXT_LAYOUT_CACHE("enable_text_layout_cache"),
+  MEMORY_ACQUISITION_DELAY_MS("memory_acquisition_delay_ms");
 
   private final String description;
 

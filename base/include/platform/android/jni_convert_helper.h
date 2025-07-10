@@ -6,7 +6,9 @@
 
 #include <jni.h>
 
+#include <memory>
 #include <string>
+#include <unordered_map>
 #include <unordered_set>
 #include <vector>
 
@@ -81,6 +83,9 @@ class JNIConvertHelper {
 
   static std::unordered_set<std::string> ConvertJavaStringSetToSTLStringSet(
       JNIEnv* env, jobject set);
+
+  static std::unique_ptr<std::unordered_map<std::string, std::string>>
+  ConvertJavaStringHashMapToSTLStringMap(JNIEnv* env, jobject javaMap);
 };
 }  // namespace android
 }  // namespace base

@@ -4,6 +4,8 @@
 
 package com.lynx.tasm.performance.memory;
 
+import java.util.Map;
+
 /**
  * @brief The protocol defines the interface for monitoring memory usage.
  *
@@ -36,4 +38,12 @@ public interface IMemoryMonitor {
    * @param builder The builder used to construct the MemoryRecord.
    */
   public void updateMemoryUsage(IMemoryRecordBuilder builder);
+
+  /**
+   * @brief Updates memory usage and sends a PerformanceEntry. This interface
+   * updates the total memory usage for the specified category based on the
+   * provided size and detail.
+   * @param recordMap The map of MemoryRecord.
+   */
+  public void updateMemoryUsage(Map<String, MemoryRecord> recordMap);
 }

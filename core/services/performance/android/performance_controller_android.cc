@@ -6,8 +6,11 @@
 
 #include <algorithm>
 #include <memory>
+#include <string>
 #include <unordered_map>
 
+#include "base/include/log/logging.h"
+#include "base/include/platform/android/jni_convert_helper.h"
 #include "core/base/android/jni_helper.h"
 #include "core/renderer/utils/android/value_converter_android.h"
 #include "core/services/performance/memory_monitor/memory_record.h"
@@ -91,7 +94,7 @@ static void DeallocateMemory(JNIEnv* env, jobject jcaller, jlong nativePtr,
 
 static void UpdateMemoryUsage(JNIEnv* env, jobject jcaller, jlong nativePtr,
                               jstring j_category, jfloat j_sizeKb,
-                              jstring j_detail_key, jstring j_detail_value) {
+                              jint j_instanceCount, jobject j_detail_map) {
   if (nativePtr == 0) {
     return;
   }
@@ -105,24 +108,15 @@ static void UpdateMemoryUsage(JNIEnv* env, jobject jcaller, jlong nativePtr,
   std::string category =
       lynx::base::android::JNIConvertHelper::ConvertToString(env, j_category);
   std::unique_ptr<std::unordered_map<std::string, std::string>> detail_ptr =
-      nullptr;
-  if (j_detail_key && j_detail_value) {
-    std::string detail_key =
-        lynx::base::android::JNIConvertHelper::ConvertToString(env,
-                                                               j_detail_key);
-    std::string detail_value =
-        lynx::base::android::JNIConvertHelper::ConvertToString(env,
-                                                               j_detail_value);
-    detail_ptr =
-        std::make_unique<std::unordered_map<std::string, std::string>>();
-    detail_ptr->emplace(detail_key, detail_value);
-  }
+      lynx::base::android::JNIConvertHelper::
+          ConvertJavaStringHashMapToSTLStringMap(env, j_detail_map);
   nativeActorPtr->Act(
-      [category = std::move(category), sizeKb = j_sizeKb,
+      [category = std::move(category), size_kb = j_sizeKb,
+       instance_count = j_instanceCount,
        captured_detail = std::move(detail_ptr)](auto& performance) mutable {
         performance->GetMemoryMonitor().UpdateMemoryUsage(
-            lynx::tasm::performance::MemoryRecord(category, sizeKb,
-                                                  std::move(captured_detail)));
+            lynx::tasm::performance::MemoryRecord(
+                category, size_kb, instance_count, std::move(captured_detail)));
       });
 }
 

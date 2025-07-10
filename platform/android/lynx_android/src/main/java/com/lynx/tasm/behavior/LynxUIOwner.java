@@ -54,6 +54,7 @@ import com.lynx.tasm.eventreport.LynxEventReporter;
 import com.lynx.tasm.gesture.LynxNewGestureDelegate;
 import com.lynx.tasm.gesture.arena.GestureArenaManager;
 import com.lynx.tasm.gesture.detector.GestureDetector;
+import com.lynx.tasm.performance.memory.MemoryRecord;
 import com.lynx.tasm.utils.LynxConstants;
 import com.lynx.tasm.utils.UIThreadUtils;
 import java.lang.ref.WeakReference;
@@ -1154,6 +1155,43 @@ public class LynxUIOwner {
 
   public void performMeasure() {
     mUIBody.measureChildren();
+  }
+
+  public HashMap<String, MemoryRecord> getMemoryUsage() {
+    if (mUIHolder == null) {
+      return null;
+    }
+    HashMap<String, MemoryRecord> records = new HashMap<>();
+    for (Map.Entry<Integer, LynxBaseUI> e : mUIHolder.entrySet()) {
+      LynxBaseUI baseUI = e.getValue();
+      if (baseUI == null || !(baseUI instanceof LynxBaseUI)) {
+        // In some unknown case, e.getValue() is instance of java.lang.Double.
+        // Here, we filter these cases to avoid ClassCastException.
+        LLog.e(TAG, "getMemoryUsage failed, the ui is null or not LynxBaseUI");
+        continue;
+      }
+      String tag = baseUI.getTagName();
+      if (tag == null) {
+        continue;
+      }
+      float objSizeKb = baseUI.getMemoryUsageKb();
+      MemoryRecord record = records.get(tag);
+      if (record == null) {
+        record = new MemoryRecord(tag, 0.f, 0, null);
+        records.put(tag, record);
+      }
+      record.mInstanceCount++;
+      record.mSizeKb += objSizeKb;
+      Map<String, String> detail = baseUI.getMemoryUsageDetail();
+
+      if (detail != null) {
+        if (record.mDetail == null) {
+          record.mDetail = new HashMap<>();
+        }
+        record.mDetail.putAll(detail);
+      }
+    }
+    return records;
   }
 
   public void performLayout() {

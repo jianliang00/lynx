@@ -924,6 +924,10 @@ public class LynxEnv {
     return mCreateViewAsync;
   }
 
+  public String getMemoryAcquisitionDelayMs() {
+    return getStringFromExternalEnv(LynxEnvKey.MEMORY_ACQUISITION_DELAY_MS);
+  }
+
   public boolean getVsyncAlignedFlushGlobalSwitch() {
     return mVsyncAlignedFlushGlobalSwitch;
   }

@@ -13,25 +13,21 @@ public class MemoryRecord {
   /** The category of the memory record. like "image", "vm", "element" etc. */
   private String mCategory;
   /** The size of the memory record in kilobytes. */
-  private float mSizeKb;
+  public float mSizeKb;
+  /** The number of instances of the category. */
+  public int mInstanceCount = 0;
   /** The detail information of the memory record. */
-  private Map<String, String> mDetail = null;
+  public Map<String, String> mDetail = null;
 
-  public MemoryRecord(String category, float sizeKb, Map<String, String> detail) {
+  public MemoryRecord(
+      String category, float sizeKb, int instanceCount, Map<String, String> detail) {
     mCategory = category;
     mSizeKb = sizeKb;
+    mInstanceCount = instanceCount;
     mDetail = detail;
   }
 
   public String getCategory() {
     return mCategory;
-  }
-
-  public float getSizeKb() {
-    return mSizeKb;
-  }
-
-  public Map<String, String> getDetails() {
-    return mDetail;
   }
 }
