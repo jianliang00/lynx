@@ -19,7 +19,7 @@
 #include "core/renderer/css/css_property_id.h"
 
 // clang-format off
-#if defined(__clang__) && __has_feature(hwaddress_sanitizer)
+#if defined(__clang__) && __has_feature(unsafe_buffer_usage)
 // Disable hwasan checking for unsafe buffer accesses.
 // Disabling `clang-format` allows each `_Pragma` to be on its own line, as
 // recommended by https://gcc.gnu.org/onlinedocs/cpp/Pragmas.html.
