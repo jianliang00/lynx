@@ -102,8 +102,9 @@ public class LynxView extends UIBodyView {
       return;
     }
 
-    LLog.i(TAG, "new lynxview detail " + this.toString());
-    mLynxUIRender.onInitBodyView(this, getContext(), builder.lynxRuntimeOptions.getLynxGroup());
+    LLog.i(TAG, "new lynxview detail " + this);
+    mLynxUIRender.onInitBodyView(
+        this, getContext(), builder.getLynxRuntimeOptions().getLynxGroup());
     initialize(getContext(), builder);
   }
 
@@ -134,9 +135,9 @@ public class LynxView extends UIBodyView {
     }
 
     LynxModuleFactory manager = runtime.getModuleFactory();
-    manager.addModuleParamWrapperIfAbsent(builder.lynxRuntimeOptions.getWrappers());
+    manager.addModuleParamWrapperIfAbsent(builder.getLynxRuntimeOptions().getWrappers());
 
-    builder.lynxRuntimeOptions.merge(runtime.getLynxRuntimeOptions());
+    builder.getLynxRuntimeOptions().merge(runtime.getLynxRuntimeOptions());
 
     initialize(context, builder);
   }
@@ -765,7 +766,7 @@ public class LynxView extends UIBodyView {
    * Calling this api will make LynxView rendered with SSR data interactable and behave just like a
    * normal lynxview.
    *
-   * @param url The url of the template
+   * @param hydrateUrl The url of the template
    * @param data The init data of the template
    */
   public void ssrHydrateUrl(@NonNull String hydrateUrl, final Map<String, Object> data) {
@@ -786,7 +787,7 @@ public class LynxView extends UIBodyView {
    * Calling this api will make LynxView rendered with SSR data interactable and behave just like a
    * normal lynxview.
    *
-   * @param url The url of the template
+   * @param hydrateUrl The url of the template
    * @param data The init data of the template
    */
   public void ssrHydrateUrl(@NonNull String hydrateUrl, final TemplateData data) {
@@ -1062,7 +1063,6 @@ public class LynxView extends UIBodyView {
     TraceEvent.endSection(TraceEventDef.DESTORY_LYNXVIEW);
   }
 
-  // TODO: 2020/3/25  final
   public ThreadStrategyForRendering getThreadStrategyForRendering() {
     if (mLynxTemplateRender == null) {
       return null;

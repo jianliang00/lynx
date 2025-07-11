@@ -2293,6 +2293,44 @@ public interface com::lynx::tasm::behavior::ILynxUIRenderer {
   public float[] com.lynx.tasm.behavior.ILynxUIRenderer.getTransformValue(int sign, float[] padBorderMarginLayout);
 }
 
+public interface com::lynx::tasm::group::ILynxViewConfigProvider {
+  public BehaviorRegistry com.lynx.tasm.group.ILynxViewConfigProvider.getBehaviorRegistry();
+  public boolean com.lynx.tasm.group.ILynxViewConfigProvider.isEnableAutoExpose();
+  public Float com.lynx.tasm.group.ILynxViewConfigProvider.getDensity();
+  public ThreadStrategyForRendering com.lynx.tasm.group.ILynxViewConfigProvider.getThreadStrategy();
+  public boolean com.lynx.tasm.group.ILynxViewConfigProvider.isEnableLayoutSafepoint();
+  public boolean com.lynx.tasm.group.ILynxViewConfigProvider.isEnableUnifiedPipeline();
+  public Map< String, Object > com.lynx.tasm.group.ILynxViewConfigProvider.getContextData();
+  public LynxBackgroundRuntimeOptions com.lynx.tasm.group.ILynxViewConfigProvider.getLynxRuntimeOptions();
+  public int com.lynx.tasm.group.ILynxViewConfigProvider.getScreenWidth();
+  public int com.lynx.tasm.group.ILynxViewConfigProvider.getScreenHeight();
+  public boolean com.lynx.tasm.group.ILynxViewConfigProvider.getForceDarkAllowed();
+  public boolean com.lynx.tasm.group.ILynxViewConfigProvider.isEnableMultiAsyncThread();
+  public boolean com.lynx.tasm.group.ILynxViewConfigProvider.isEnableSyncFlush();
+  public boolean com.lynx.tasm.group.ILynxViewConfigProvider.isEnableAutoConcurrency();
+  public boolean com.lynx.tasm.group.ILynxViewConfigProvider.isEnableVSyncAlignedMessageLoop();
+  public boolean com.lynx.tasm.group.ILynxViewConfigProvider.isEnablePendingJsTask();
+  public boolean com.lynx.tasm.group.ILynxViewConfigProvider.isEnableAsyncHydration();
+  public boolean com.lynx.tasm.group.ILynxViewConfigProvider.isEnableJSRuntime();
+  public boolean com.lynx.tasm.group.ILynxViewConfigProvider.isEnableAirStrictMode();
+  public boolean com.lynx.tasm.group.ILynxViewConfigProvider.isDebuggable();
+  public int com.lynx.tasm.group.ILynxViewConfigProvider.getPresetWidthMeasureSpec();
+  public int com.lynx.tasm.group.ILynxViewConfigProvider.getPresetHeightMeasureSpec();
+  public float com.lynx.tasm.group.ILynxViewConfigProvider.getFontScale();
+  public boolean com.lynx.tasm.group.ILynxViewConfigProvider.isEnablePreUpdateData();
+  public IUIRendererCreator com.lynx.tasm.group.ILynxViewConfigProvider.getUIRendererCreator();
+  public int com.lynx.tasm.group.ILynxViewConfigProvider.getEmbeddedMode();
+  public LynxBooleanOption com.lynx.tasm.group.ILynxViewConfigProvider.isEnableGenericResourceFetcher();
+  public LynxGenericResourceFetcher com.lynx.tasm.group.ILynxViewConfigProvider.getLynxGenericResourceFetcher();
+  public LynxMediaResourceFetcher com.lynx.tasm.group.ILynxViewConfigProvider.getLynxMediaResourceFetcher();
+  public LynxTemplateResourceFetcher com.lynx.tasm.group.ILynxViewConfigProvider.getLynxTemplateResourceFetcher();
+}
+
+public interface com::lynx::tasm::group::ILynxViewRuntimeCacheManager {
+  public void com.lynx.tasm.group.ILynxViewRuntimeCacheManager.setTemplateBundle();
+  public TemplateBundle com.lynx.tasm.group.ILynxViewRuntimeCacheManager.getTemplateBundle();
+}
+
 public interface com::lynx::tasm::ILynxViewStateListener {
   public void com.lynx.tasm.ILynxViewStateListener.onLoadFinished();
   public void com.lynx.tasm.ILynxViewStateListener.onEnterForeground();
@@ -3358,10 +3396,18 @@ public class com::lynx::tasm::LynxBackgroundRuntimeOptions :  {
   public LynxResourceProvider com.lynx.tasm.LynxBackgroundRuntimeOptions.getResourceProvidersByKey(String key);
   public Set< Map.Entry< String, LynxResourceProvider > > com.lynx.tasm.LynxBackgroundRuntimeOptions.getAllResourceProviders();
   public void com.lynx.tasm.LynxBackgroundRuntimeOptions.setPresetData(TemplateData data);
-  public void com.lynx.tasm.LynxBackgroundRuntimeOptions.genericResourceFetcher(@NonNull LynxGenericResourceFetcher fetcher);
-  public void com.lynx.tasm.LynxBackgroundRuntimeOptions.mediaResourceFetcher(@NonNull LynxMediaResourceFetcher fetcher);
-  public void com.lynx.tasm.LynxBackgroundRuntimeOptions.templateResourceFetcher(@NonNull LynxTemplateResourceFetcher fetcher);
+  public void com.lynx.tasm.LynxBackgroundRuntimeOptions.setGenericResourceFetcher(@NonNull LynxGenericResourceFetcher fetcher);
+  public LynxGenericResourceFetcher com.lynx.tasm.LynxBackgroundRuntimeOptions.getGenericResourceFetcher();
+  public void com.lynx.tasm.LynxBackgroundRuntimeOptions.setMediaResourceFetcher(@NonNull LynxMediaResourceFetcher fetcher);
+  public LynxMediaResourceFetcher com.lynx.tasm.LynxBackgroundRuntimeOptions.getMediaResourceFetcher();
+  public void com.lynx.tasm.LynxBackgroundRuntimeOptions.setTemplateResourceFetcher(@NonNull LynxTemplateResourceFetcher fetcher);
+  public LynxTemplateResourceFetcher com.lynx.tasm.LynxBackgroundRuntimeOptions.getTemplateResourceFetcher();
+  public void com.lynx.tasm.LynxBackgroundRuntimeOptions.setEnableGenericResourceFetcher(LynxBooleanOption enabled);
+  public LynxBooleanOption com.lynx.tasm.LynxBackgroundRuntimeOptions.isEnableGenericResourceFetcher();
   public static int com.lynx.tasm.LynxBackgroundRuntimeOptions.calcRuntimeFlags(boolean forceReloadJSCore, boolean useQuickJSEngine, boolean enablePendingJsTask, boolean enableUserBytecode, @Nullable Boolean enableJSGroupThread, @Nullable Boolean enablePendingCoreJsLoad);
+}
+
+public class com::lynx::tasm::group::LynxBaseConfigurator< T extends LynxBaseConfigurator :  {
 }
 
 public interface com::lynx::devtoolwrapper::LynxBaseInspectorOwner {
@@ -3976,8 +4022,8 @@ public class abstract com::lynx::tasm::behavior::LynxContext : com.lynx.tasm.beh
   public int com.lynx.tasm.behavior.LynxContext.getLongPressDuration();
   public int com.lynx.tasm.behavior.LynxContext.getMapContainerType();
   public LynxAccessibilityWrapper com.lynx.tasm.behavior.LynxContext.getLynxAccessibilityWrapper();
-  public void com.lynx.tasm.behavior.LynxContext.setContextData(HashMap< String, Object > contextData);
-  public HashMap com.lynx.tasm.behavior.LynxContext.getContextData();
+  public void com.lynx.tasm.behavior.LynxContext.setContextData(Map< String, Object > contextData);
+  public Map com.lynx.tasm.behavior.LynxContext.getContextData();
   public int com.lynx.tasm.behavior.LynxContext.getInstanceId();
   public void com.lynx.tasm.behavior.LynxContext.setInstanceId(int instanceId);
   public void com.lynx.tasm.behavior.LynxContext.setInPreLoad(boolean preload);
@@ -6264,74 +6310,60 @@ public class com::lynx::tasm::LynxView : com.lynx.tasm.behavior.ui.UIBody.UIBody
   public static LynxViewBuilder com.lynx.tasm.LynxView.builder(Context context);
 }
 
-public class com::lynx::tasm::LynxViewBuilder :  {
+public class com::lynx::tasm::LynxViewBuilder : LynxBaseConfigurator< LynxViewBuilder >, com.lynx.tasm.group.ILynxViewConfigProvider {
   public com.lynx.tasm.LynxViewBuilder.LynxViewBuilder();
   public com.lynx.tasm.LynxViewBuilder.LynxViewBuilder(Context context);
   public LynxViewBuilder com.lynx.tasm.LynxViewBuilder.setTemplateProvider(@Nullable AbsTemplateProvider provider);
   public ILynxUIRenderer com.lynx.tasm.LynxViewBuilder.createLynxUIRenderer();
   public LynxViewBuilder com.lynx.tasm.LynxViewBuilder.setUri(@Nullable Uri uri);
   public Uri com.lynx.tasm.LynxViewBuilder.getUri();
-  public void com.lynx.tasm.LynxViewBuilder.setCustomBehaviorRegistry(@Nullable BehaviorRegistry registry);
-  public LynxViewBuilder com.lynx.tasm.LynxViewBuilder.setBehaviors(@Nullable List< Behavior > bundle);
-  public LynxViewBuilder com.lynx.tasm.LynxViewBuilder.addBehaviors(@NonNull List< Behavior > bundle);
-  public LynxViewBuilder com.lynx.tasm.LynxViewBuilder.addBehavior(@NonNull Behavior bundle);
-  public LynxViewBuilder com.lynx.tasm.LynxViewBuilder.setUIRendererCreator(@NonNull IUIRendererCreator uiRendererCreator);
-  public IUIRendererCreator com.lynx.tasm.LynxViewBuilder.getUIRenderCreator();
-  public LynxViewBuilder com.lynx.tasm.LynxViewBuilder.setUIRunningMode(boolean ui);
-  public LynxViewBuilder com.lynx.tasm.LynxViewBuilder.setPresetMeasuredSpec(int widthMeasureSpec, int heightMeasureSpec);
-  public LynxViewBuilder com.lynx.tasm.LynxViewBuilder.setScreenSize(int width, int height);
-  public LynxViewBuilder com.lynx.tasm.LynxViewBuilder.enableAutoExpose(boolean enableAutoExpose);
-  public LynxViewBuilder com.lynx.tasm.LynxViewBuilder.setEnableUserBytecode(boolean enableUserBytecode);
-  public LynxViewBuilder com.lynx.tasm.LynxViewBuilder.setBytecodeSourceUrl(String url);
-  public LynxViewBuilder com.lynx.tasm.LynxViewBuilder.setEnableUserCodeCache(boolean enableUserBytecode);
-  public LynxViewBuilder com.lynx.tasm.LynxViewBuilder.setCodeCacheSourceUrl(String url);
-  public LynxViewBuilder com.lynx.tasm.LynxViewBuilder.setDensity(float density);
-  public LynxViewBuilder com.lynx.tasm.LynxViewBuilder.setThreadStrategyForRendering(ThreadStrategyForRendering strategy);
-  public ThreadStrategyForRendering com.lynx.tasm.LynxViewBuilder.getThreadStrategy();
-  public LynxViewBuilder com.lynx.tasm.LynxViewBuilder.setLynxGroup(@Nullable LynxGroup group);
+  public LynxViewBuilder com.lynx.tasm.LynxViewBuilder.insertLynxViewConfig(String key, String value);
+  public LynxViewBuilder com.lynx.tasm.LynxViewBuilder.setLynxViewGroup(LynxViewGroup group);
   public LynxViewBuilder com.lynx.tasm.LynxViewBuilder.setLynxModuleExtraData(Object data);
-  public void com.lynx.tasm.LynxViewBuilder.registerModule(String name, Class<? extends LynxModule > module);
-  public void com.lynx.tasm.LynxViewBuilder.registerModule(String name, Class<? extends LynxModule > module, Object param);
-  public LynxViewBuilder com.lynx.tasm.LynxViewBuilder.setEnableLayoutSafepoint(boolean enable);
-  public LynxViewBuilder com.lynx.tasm.LynxViewBuilder.setEnableCreateViewAsync(boolean enable);
-  public LynxViewBuilder com.lynx.tasm.LynxViewBuilder.setEnableAutoConcurrency(boolean enable);
-  public LynxViewBuilder com.lynx.tasm.LynxViewBuilder.setEnableVSyncAlignedMessageLoop(boolean enable);
-  public LynxViewBuilder com.lynx.tasm.LynxViewBuilder.setEnableMultiAsyncThread(boolean enableMultiAsyncThread);
-  public LynxViewBuilder com.lynx.tasm.LynxViewBuilder.setEnableUnifiedPipeline(boolean enableUnifiedPipeline);
-  public LynxViewBuilder com.lynx.tasm.LynxViewBuilder.setEnableSyncFlush(boolean enable);
-  public LynxViewBuilder com.lynx.tasm.LynxViewBuilder.setEnableAsyncHydration(boolean enable);
-  public LynxViewBuilder com.lynx.tasm.LynxViewBuilder.setEnablePendingJsTask(boolean enablePendingJsTask);
-  public LynxViewBuilder com.lynx.tasm.LynxViewBuilder.setEnableJSRuntime(boolean enable);
-  public LynxViewBuilder com.lynx.tasm.LynxViewBuilder.setEnableAirStrictMode(boolean enable);
-  public LynxViewBuilder com.lynx.tasm.LynxViewBuilder.setDynamicComponentFetcher(DynamicComponentFetcher fetcher);
-  public LynxViewBuilder com.lynx.tasm.LynxViewBuilder.setResourceProvider(String key, LynxResourceProvider provider);
-  public LynxViewBuilder com.lynx.tasm.LynxViewBuilder.setForceDarkAllowed(boolean allowed);
   public LynxViewBuilder com.lynx.tasm.LynxViewBuilder.setResourceFetcher(LynxResourceFetcher resourceFetcher);
   public LynxViewBuilder com.lynx.tasm.LynxViewBuilder.setFontLoader(LynxFontFaceLoader.Loader fontLoader);
-  public LynxViewBuilder com.lynx.tasm.LynxViewBuilder.setFontScale(float scale);
-  public LynxViewBuilder com.lynx.tasm.LynxViewBuilder.setImageFetcher(LynxImageFetcher imageFetcher);
-  public LynxViewBuilder com.lynx.tasm.LynxViewBuilder.setImageCustomParam(Map< String, String > imageCustomParams);
-  public LynxViewBuilder com.lynx.tasm.LynxViewBuilder.setLynxBackgroundRuntime(LynxBackgroundRuntime runtime);
-  public LynxViewBuilder com.lynx.tasm.LynxViewBuilder.setDebuggable(boolean enable);
   public LynxViewBuilder com.lynx.tasm.LynxViewBuilder.setEnableRadonCompatible(boolean enableRadonCompatible);
   public LynxViewBuilder com.lynx.tasm.LynxViewBuilder.setEnableLayoutOnly(boolean enableLayoutOnly);
-  public LynxView com.lynx.tasm.LynxViewBuilder.build(@NonNull Context context);
-  public LynxViewBuilder com.lynx.tasm.LynxViewBuilder.registerContextData(String key, Object value);
-  public HashMap com.lynx.tasm.LynxViewBuilder.getContextData();
-  public Map< String, String > com.lynx.tasm.LynxViewBuilder.getImageCustomParam();
-  public Boolean com.lynx.tasm.LynxViewBuilder.enableJSRuntime();
-  public LynxViewBuilder com.lynx.tasm.LynxViewBuilder.setEnablePreUpdateData(boolean enable);
-  public void com.lynx.tasm.LynxViewBuilder.setGenericResourceFetcher(@NonNull LynxGenericResourceFetcher fetcher);
-  public void com.lynx.tasm.LynxViewBuilder.setMediaResourceFetcher(@NonNull LynxMediaResourceFetcher fetcher);
-  public void com.lynx.tasm.LynxViewBuilder.setTemplateResourceFetcher(@NonNull LynxTemplateResourceFetcher fetcher);
-  public void com.lynx.tasm.LynxViewBuilder.setEnableGenericResourceFetcher(LynxBooleanOption enabled);
+  public LynxViewBuilder com.lynx.tasm.LynxViewBuilder.setDynamicComponentFetcher(DynamicComponentFetcher fetcher);
+  public LynxViewBuilder com.lynx.tasm.LynxViewBuilder.setEnableCreateViewAsync(boolean enable);
+  public LynxViewBuilder com.lynx.tasm.LynxViewBuilder.setImageFetcher(LynxImageFetcher imageFetcher);
+  public LynxViewBuilder com.lynx.tasm.LynxViewBuilder.setImageCustomParam(Map< String, String > imageCustomParams);
   public LynxViewBuilder com.lynx.tasm.LynxViewBuilder.setLynxViewConfig(Map< String, String > map);
   public Map< String, String > com.lynx.tasm.LynxViewBuilder.getLynxViewConfig();
-  public LynxViewBuilder com.lynx.tasm.LynxViewBuilder.insertLynxViewConfig(String key, String value);
-  public LynxViewBuilder com.lynx.tasm.LynxViewBuilder.setEmbeddedMode(@EmbeddedMode.Mode int embeddedMode);
+  public LynxViewBuilder com.lynx.tasm.LynxViewBuilder.setLynxBackgroundRuntime(LynxBackgroundRuntime runtime);
   public TemplateBundle com.lynx.tasm.LynxViewBuilder.getTemplateBundle();
   public LynxViewBuilder com.lynx.tasm.LynxViewBuilder.setTemplateBundle(TemplateBundle templateBundle);
-  public static void com.lynx.tasm.LynxViewBuilder.setDefaultDensity(Float density);
+  public BehaviorRegistry com.lynx.tasm.LynxViewBuilder.getBehaviorRegistry();
+  public boolean com.lynx.tasm.LynxViewBuilder.isEnableAutoExpose();
+  public Float com.lynx.tasm.LynxViewBuilder.getDensity();
+  public ThreadStrategyForRendering com.lynx.tasm.LynxViewBuilder.getThreadStrategy();
+  public boolean com.lynx.tasm.LynxViewBuilder.isEnableLayoutSafepoint();
+  public boolean com.lynx.tasm.LynxViewBuilder.isEnableUnifiedPipeline();
+  public Map< String, Object > com.lynx.tasm.LynxViewBuilder.getContextData();
+  public LynxBackgroundRuntimeOptions com.lynx.tasm.LynxViewBuilder.getLynxRuntimeOptions();
+  public int com.lynx.tasm.LynxViewBuilder.getScreenWidth();
+  public int com.lynx.tasm.LynxViewBuilder.getScreenHeight();
+  public boolean com.lynx.tasm.LynxViewBuilder.getForceDarkAllowed();
+  public boolean com.lynx.tasm.LynxViewBuilder.isEnableMultiAsyncThread();
+  public boolean com.lynx.tasm.LynxViewBuilder.isEnableSyncFlush();
+  public boolean com.lynx.tasm.LynxViewBuilder.isEnableAutoConcurrency();
+  public boolean com.lynx.tasm.LynxViewBuilder.isEnableVSyncAlignedMessageLoop();
+  public boolean com.lynx.tasm.LynxViewBuilder.isEnablePendingJsTask();
+  public boolean com.lynx.tasm.LynxViewBuilder.isEnableAsyncHydration();
+  public boolean com.lynx.tasm.LynxViewBuilder.isEnableJSRuntime();
+  public boolean com.lynx.tasm.LynxViewBuilder.isEnableAirStrictMode();
+  public boolean com.lynx.tasm.LynxViewBuilder.isDebuggable();
+  public int com.lynx.tasm.LynxViewBuilder.getPresetWidthMeasureSpec();
+  public int com.lynx.tasm.LynxViewBuilder.getPresetHeightMeasureSpec();
+  public float com.lynx.tasm.LynxViewBuilder.getFontScale();
+  public boolean com.lynx.tasm.LynxViewBuilder.isEnablePreUpdateData();
+  public IUIRendererCreator com.lynx.tasm.LynxViewBuilder.getUIRendererCreator();
+  public int com.lynx.tasm.LynxViewBuilder.getEmbeddedMode();
+  public LynxBooleanOption com.lynx.tasm.LynxViewBuilder.isEnableGenericResourceFetcher();
+  public LynxGenericResourceFetcher com.lynx.tasm.LynxViewBuilder.getLynxGenericResourceFetcher();
+  public LynxMediaResourceFetcher com.lynx.tasm.LynxViewBuilder.getLynxMediaResourceFetcher();
+  public LynxTemplateResourceFetcher com.lynx.tasm.LynxViewBuilder.getLynxTemplateResourceFetcher();
+  public LynxView com.lynx.tasm.LynxViewBuilder.build(@NonNull Context context);
 }
 
 public enum com::lynx::tasm::utils::LynxViewBuilderProperty {
@@ -6444,6 +6476,47 @@ public interface com::lynx::tasm::behavior::herotransition::HeroTransitionManage
 
 public interface com::lynx::tasm::behavior::herotransition::HeroTransitionManager::LynxViewExitFinishListener {
   public void com.lynx.tasm.behavior.herotransition.HeroTransitionManager.LynxViewExitFinishListener.onLynxViewExited();
+}
+
+public class com::lynx::tasm::group::LynxViewGroup : com.lynx.tasm.group.ILynxViewConfigProvider {
+  public BehaviorRegistry com.lynx.tasm.group.LynxViewGroup.getBehaviorRegistry();
+  public boolean com.lynx.tasm.group.LynxViewGroup.isEnableAutoExpose();
+  public Float com.lynx.tasm.group.LynxViewGroup.getDensity();
+  public ThreadStrategyForRendering com.lynx.tasm.group.LynxViewGroup.getThreadStrategy();
+  public boolean com.lynx.tasm.group.LynxViewGroup.isEnableLayoutSafepoint();
+  public boolean com.lynx.tasm.group.LynxViewGroup.isEnableUnifiedPipeline();
+  public Map< String, Object > com.lynx.tasm.group.LynxViewGroup.getContextData();
+  public LynxBackgroundRuntimeOptions com.lynx.tasm.group.LynxViewGroup.getLynxRuntimeOptions();
+  public int com.lynx.tasm.group.LynxViewGroup.getScreenWidth();
+  public int com.lynx.tasm.group.LynxViewGroup.getScreenHeight();
+  public boolean com.lynx.tasm.group.LynxViewGroup.getForceDarkAllowed();
+  public boolean com.lynx.tasm.group.LynxViewGroup.isEnableMultiAsyncThread();
+  public boolean com.lynx.tasm.group.LynxViewGroup.isEnableSyncFlush();
+  public boolean com.lynx.tasm.group.LynxViewGroup.isEnableAutoConcurrency();
+  public boolean com.lynx.tasm.group.LynxViewGroup.isEnableVSyncAlignedMessageLoop();
+  public boolean com.lynx.tasm.group.LynxViewGroup.isEnablePendingJsTask();
+  public boolean com.lynx.tasm.group.LynxViewGroup.isEnableAsyncHydration();
+  public boolean com.lynx.tasm.group.LynxViewGroup.isEnableJSRuntime();
+  public boolean com.lynx.tasm.group.LynxViewGroup.isEnableAirStrictMode();
+  public boolean com.lynx.tasm.group.LynxViewGroup.isDebuggable();
+  public int com.lynx.tasm.group.LynxViewGroup.getPresetWidthMeasureSpec();
+  public int com.lynx.tasm.group.LynxViewGroup.getPresetHeightMeasureSpec();
+  public float com.lynx.tasm.group.LynxViewGroup.getFontScale();
+  public boolean com.lynx.tasm.group.LynxViewGroup.isEnablePreUpdateData();
+  public IUIRendererCreator com.lynx.tasm.group.LynxViewGroup.getUIRendererCreator();
+  public int com.lynx.tasm.group.LynxViewGroup.getEmbeddedMode();
+  public LynxBooleanOption com.lynx.tasm.group.LynxViewGroup.isEnableGenericResourceFetcher();
+  public LynxGenericResourceFetcher com.lynx.tasm.group.LynxViewGroup.getLynxGenericResourceFetcher();
+  public LynxMediaResourceFetcher com.lynx.tasm.group.LynxViewGroup.getLynxMediaResourceFetcher();
+  public LynxTemplateResourceFetcher com.lynx.tasm.group.LynxViewGroup.getLynxTemplateResourceFetcher();
+  public void com.lynx.tasm.group.LynxViewGroup.release();
+}
+
+public class com::lynx::tasm::group::LynxViewGroupBuilder : LynxBaseConfigurator< LynxViewGroupBuilder > {
+  public LynxViewGroupBuilder com.lynx.tasm.group.LynxViewGroupBuilder.setUrl(@NonNull String url);
+  public LynxViewGroupBuilder com.lynx.tasm.group.LynxViewGroupBuilder.setTemplateBundle(@NonNull TemplateBundle templateBundle);
+  public LynxViewGroupBuilder com.lynx.tasm.group.LynxViewGroupBuilder.setGlobalProps(@NonNull TemplateData globalProps);
+  public LynxViewGroup com.lynx.tasm.group.LynxViewGroupBuilder.build();
 }
 
 public interface com::lynx::tasm::behavior::ui::LynxViewVisibleHelper {

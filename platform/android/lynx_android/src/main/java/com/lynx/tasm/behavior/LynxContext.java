@@ -103,7 +103,7 @@ public abstract class LynxContext extends LynxBaseContext implements ExceptionHa
 
   private LynxBooleanOption mLongTaskMonitorEnabled = LynxBooleanOption.UNSET;
 
-  private HashMap<String, Object> mContextData;
+  private Map<String, Object> mContextData;
 
   private boolean mInPreLoad;
 
@@ -1256,11 +1256,11 @@ public abstract class LynxContext extends LynxBaseContext implements ExceptionHa
     return null;
   }
 
-  public void setContextData(HashMap<String, Object> contextData) {
+  public void setContextData(Map<String, Object> contextData) {
     this.mContextData = contextData;
   }
 
-  public HashMap getContextData() {
+  public Map getContextData() {
     return mContextData;
   }
 

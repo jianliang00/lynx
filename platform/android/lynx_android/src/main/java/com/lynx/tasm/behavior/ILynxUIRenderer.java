@@ -25,98 +25,97 @@ import com.lynx.tasm.behavior.ui.UIBody.UIBodyView;
 import com.lynx.tasm.behavior.ui.UIGroup;
 
 public interface ILynxUIRenderer {
-  public void onInitBodyView(UIBodyView bodyView, Context context, LynxGroup group);
+  void onInitBodyView(UIBodyView bodyView, Context context, LynxGroup group);
 
-  public void onInitLynxTemplateRender(LynxContext context, BehaviorRegistry behaviorRegistry,
+  void onInitLynxTemplateRender(LynxContext context, BehaviorRegistry behaviorRegistry,
       @Nullable UIBodyView body, @Nullable LynxBooleanOption longTaskMonitorEnabled);
 
-  public void onCreateTemplateRenderer(LynxContext context, LynxPageLoadListener pageLoadListener,
+  void onCreateTemplateRenderer(LynxContext context, LynxPageLoadListener pageLoadListener,
       ThreadStrategyForRendering threadStrategy, BehaviorRegistry behaviorRegistry,
       LayoutTick layoutTick);
 
-  public void attachBodyView(UIBodyView bodyView, LynxContext lynxContext, Context context);
+  void attachBodyView(UIBodyView bodyView, LynxContext lynxContext, Context context);
 
-  public void attachNativeFacade(NativeFacade nativeFacade);
+  void attachNativeFacade(NativeFacade nativeFacade);
 
-  public void onReloadAndInitUIThreadPart();
+  void onReloadAndInitUIThreadPart();
 
-  public void onReloadAndInitAnyThreadPart();
+  void onReloadAndInitAnyThreadPart();
 
   long getUIDelegatePtr();
 
   DisplayMetrics getScreenMetrics();
 
-  public void onPageConfigDecoded(PageConfig config);
+  void onPageConfigDecoded(PageConfig config);
 
-  public void onEnterForeground();
+  void onEnterForeground();
 
-  public void onEnterBackground();
+  void onEnterBackground();
 
-  public void onDestroyTemplateRenderer();
+  void onDestroyTemplateRenderer();
 
-  public void onDestroy();
+  void onDestroy();
 
-  public LynxUIOwner lynxUIOwner();
+  LynxUIOwner lynxUIOwner();
 
-  public UIGroup<UIBody.UIBodyView> getLynxRootUI();
+  UIGroup<UIBody.UIBodyView> getLynxRootUI();
 
-  public void pauseRootLayoutAnimation();
+  void pauseRootLayoutAnimation();
 
-  public void resumeRootLayoutAnimation();
+  void resumeRootLayoutAnimation();
 
-  public void onAttach();
+  void onAttach();
 
-  public void onDetach();
+  void onDetach();
 
-  public void onEnterForegroundInternal();
+  void onEnterForegroundInternal();
 
-  public void onEnterBackgroundInternal();
+  void onEnterBackgroundInternal();
 
-  public void setContextFree(boolean isContextFree);
+  void setContextFree(boolean isContextFree);
 
-  public void setFirstLayout();
+  void setFirstLayout();
 
-  public LynxBaseUI findLynxUIByName(@NonNull String name);
+  LynxBaseUI findLynxUIByName(@NonNull String name);
 
-  public LynxBaseUI findLynxUIByIdSelector(@NonNull String id);
+  LynxBaseUI findLynxUIByIdSelector(@NonNull String id);
 
-  public LynxBaseUI findLynxUIByIndex(@NonNull int index);
+  LynxBaseUI findLynxUIByIndex(@NonNull int index);
 
-  public boolean onTouchEvent(MotionEvent ev, UIGroup rootUi);
+  boolean onTouchEvent(MotionEvent ev, UIGroup rootUi);
 
-  public boolean consumeSlideEvent(MotionEvent ev);
+  boolean consumeSlideEvent(MotionEvent ev);
 
-  public boolean blockNativeEvent(MotionEvent ev);
+  boolean blockNativeEvent(MotionEvent ev);
 
-  public ThreadStrategyForRendering getSupportedThreadStrategy(
-      ThreadStrategyForRendering threadStrategy);
+  ThreadStrategyForRendering getSupportedThreadStrategy(ThreadStrategyForRendering threadStrategy);
 
-  public void performInnerMeasure(int widthMeasureSpec, int heightMeasureSpec);
+  void performInnerMeasure(int widthMeasureSpec, int heightMeasureSpec);
 
-  public void onLayout(boolean changed, int left, int top, int right, int bottom);
+  void onLayout(boolean changed, int left, int top, int right, int bottom);
 
-  public boolean useInvokeUIMethod();
+  boolean useInvokeUIMethod();
 
-  public boolean isAccessibilityDisabled();
+  boolean isAccessibilityDisabled();
 
-  public boolean enableTimingCollector();
+  boolean enableTimingCollector();
 
-  public boolean shouldInvokeNativeViewMethod();
+  boolean shouldInvokeNativeViewMethod();
 
-  public boolean disableBindDrawChildHook();
+  boolean disableBindDrawChildHook();
 
-  public boolean needHandleDispatchKeyEvent();
-  public boolean dispatchKeyEvent(KeyEvent event);
+  boolean needHandleDispatchKeyEvent();
+  boolean dispatchKeyEvent(KeyEvent event);
 
-  public void scrollIntoViewFromUI(int nodeId);
+  void scrollIntoViewFromUI(int nodeId);
 
-  public String getActualScreenshotMode();
+  String getActualScreenshotMode();
 
-  public void takeScreenshot(ScreenshotBitmapHandler handler, String screenShotMode);
+  void takeScreenshot(ScreenshotBitmapHandler handler, String screenShotMode);
 
-  public Bitmap getBitmapOfView();
+  Bitmap getBitmapOfView();
 
-  public int getNodeForLocation(float x, float y, String mode);
+  int getNodeForLocation(float x, float y, String mode);
 
-  public float[] getTransformValue(int sign, float[] padBorderMarginLayout);
+  float[] getTransformValue(int sign, float[] padBorderMarginLayout);
 }

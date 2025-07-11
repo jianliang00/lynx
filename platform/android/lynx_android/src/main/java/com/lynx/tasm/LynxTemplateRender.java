@@ -68,6 +68,7 @@ import com.lynx.tasm.core.LynxLayoutProxy;
 import com.lynx.tasm.core.resource.LynxResourceLoader;
 import com.lynx.tasm.event.LynxCustomEvent;
 import com.lynx.tasm.eventreport.LynxEventReporter;
+import com.lynx.tasm.group.ILynxViewConfigProvider;
 import com.lynx.tasm.performance.PerformanceController;
 import com.lynx.tasm.performance.TimingOption;
 import com.lynx.tasm.performance.longtasktiming.LynxLongTaskMonitor;
@@ -132,6 +133,7 @@ public class LynxTemplateRender implements ILynxEngine, ILynxErrorReceiver {
   private final LynxViewClientGroup mClient = new LynxViewClientGroup();
   private final LynxViewClientGroupV2 mClientV2 = new LynxViewClientGroupV2();
   private LynxViewBuilder mLynxViewBuilder;
+  private ILynxViewConfigProvider mLynxViewConfigProvider;
   private LynxBackgroundRuntimeOptions mLynxRuntimeOptions;
   protected LynxModuleFactory mModuleFactory;
   private LynxIntersectionObserverManager mIntersectionObserverManager;
@@ -220,6 +222,7 @@ public class LynxTemplateRender implements ILynxEngine, ILynxErrorReceiver {
   private AtomicInteger mLynxGetDataCounter = new AtomicInteger(0);
   private SparseArray<LynxGetDataCallback> mCallbackSparseArray = new SparseArray<>();
 
+  private int mEmbeddedMode;
   private boolean mEnableReuseEngine;
   private boolean mIsEngineFromReuse;
   private boolean mAutoFallbackEngineAfterDraw = false;
@@ -277,10 +280,12 @@ public class LynxTemplateRender implements ILynxEngine, ILynxErrorReceiver {
     mInitStart = System.currentTimeMillis();
     mContext = context;
     mBodyView = bodyView;
+    mLynxViewConfigProvider = builder;
     mLynxViewBuilder = builder;
+    mEmbeddedMode = mLynxViewConfigProvider.getEmbeddedMode();
 
-    mEnableReuseEngine = EmbeddedMode.isEnginePoolEnable(mLynxViewBuilder.embeddedMode)
-        && mLynxViewBuilder.templateBundle != null;
+    mEnableReuseEngine =
+        EmbeddedMode.isEnginePoolEnable(mEmbeddedMode) && mLynxViewBuilder.templateBundle != null;
     if (mEnableReuseEngine) {
       reuseLynxEngine();
     } else {
@@ -289,25 +294,24 @@ public class LynxTemplateRender implements ILynxEngine, ILynxErrorReceiver {
 
     mRuntime = builder.lynxBackgroundRuntime;
     mTemplateProvider = builder.templateProvider;
-    mEnableSyncFlush = builder.enableSyncFlush;
-    mEnableJSRuntime = builder.enableJSRuntime;
+    mEnableSyncFlush = mLynxViewConfigProvider.isEnableSyncFlush();
+    mEnableJSRuntime = mLynxViewConfigProvider.isEnableJSRuntime();
     mEnableGenericResourceFetcher =
-        checkEnableGenericResourceFetcher(builder.enableGenericResourceFetcher);
-    mEnableAirStrictMode = builder.enableAirStrictMode;
+        checkEnableGenericResourceFetcher(mLynxViewConfigProvider.isEnableGenericResourceFetcher());
+    mEnableAirStrictMode = mLynxViewConfigProvider.isEnableAirStrictMode();
     builder.lynxBackgroundRuntime = null;
 
     if (mBodyView != null) {
       mBodyView.setTimingCollector(mPerformanceController);
-      mPerformanceController.setEnableController(
-          !EmbeddedMode.isBaseModeEnable(mLynxViewBuilder.embeddedMode));
+      mPerformanceController.setEnableController(!EmbeddedMode.isBaseModeEnable(mEmbeddedMode));
     }
     mGenericInfo = new LynxGenericInfo();
-    mLynxRuntimeOptions = builder.lynxRuntimeOptions;
-    mAutoConcurrency = builder.enableAutoConcurrency;
+    mLynxRuntimeOptions = mLynxViewConfigProvider.getLynxRuntimeOptions();
+    mAutoConcurrency = mLynxViewConfigProvider.isEnableAutoConcurrency();
 
     // force using MULTI_THREADS by default for enableAutoConcurrency
-    mThreadStrategyForRendering =
-        mAutoConcurrency ? ThreadStrategyForRendering.MULTI_THREADS : builder.threadStrategy;
+    mThreadStrategyForRendering = mAutoConcurrency ? ThreadStrategyForRendering.MULTI_THREADS
+                                                   : mLynxViewConfigProvider.getThreadStrategy();
 
     mAsyncRender = (mThreadStrategyForRendering == ThreadStrategyForRendering.MULTI_THREADS
         || mThreadStrategyForRendering == ThreadStrategyForRendering.MOST_ON_TASM);
@@ -327,24 +331,25 @@ public class LynxTemplateRender implements ILynxEngine, ILynxErrorReceiver {
     mVsyncAlignedFlushEnabled = VSYNC_ALIGNED_FLUSH_EXP_SWITCH
         && LynxEnv.inst().getVsyncAlignedFlushGlobalSwitch()
         && isThreadStrategySupportVsyncAlignedFlush();
-    mFontScale = builder.fontScale;
+    mFontScale = mLynxViewConfigProvider.getFontScale();
     mOriginLynxViewConfig = builder.lynxViewConfig;
     // To support modify `bytecode` settings for LynxView reuse,
     // these properties may differ from themself in LynxBackgroundRuntimeOptions,
     // thus store them as properties of LynxTemplateRender
     mEnableBytecode = mLynxRuntimeOptions.isEnableUserBytecode();
     mBytecodeSourceUrl = mLynxRuntimeOptions.getBytecodeSourceUrl();
-    mEnablePendingJsTask = builder.enablePendingJsTask;
+    mEnablePendingJsTask = mLynxViewConfigProvider.isEnablePendingJsTask();
 
     // Caller may to set up virtual screen metrics, so we have to get screen_metrics with
     // lynxcontent.mVirtualScreenMetric(). The Global screen_metrics cannot be deleted for
     // compatibility, some caller still using its related interface.
-    DisplayMetricsHolder.updateOrInitDisplayMetrics(context, builder.densityOverride);
+    DisplayMetricsHolder.updateOrInitDisplayMetrics(context, mLynxViewConfigProvider.getDensity());
     DisplayMetrics screenMetrics = DisplayMetricsHolder.getScreenDisplayMetrics();
-    if (builder.screenWidth != DisplayMetricsHolder.UNDEFINE_SCREEN_SIZE_VALUE
-        && builder.screenHeight != DisplayMetricsHolder.UNDEFINE_SCREEN_SIZE_VALUE) {
-      screenMetrics.widthPixels = builder.screenWidth;
-      screenMetrics.heightPixels = builder.screenHeight;
+    if (mLynxViewConfigProvider.getScreenWidth() != DisplayMetricsHolder.UNDEFINE_SCREEN_SIZE_VALUE
+        && mLynxViewConfigProvider.getScreenHeight()
+            != DisplayMetricsHolder.UNDEFINE_SCREEN_SIZE_VALUE) {
+      screenMetrics.widthPixels = mLynxViewConfigProvider.getScreenWidth();
+      screenMetrics.heightPixels = mLynxViewConfigProvider.getScreenHeight();
     }
 
     // Prepare for env
@@ -382,28 +387,28 @@ public class LynxTemplateRender implements ILynxEngine, ILynxErrorReceiver {
         };
     mTemplateAssembler.setLynxContext(mLynxContext);
 
-    mLynxContext.setEmbeddedMode(builder.embeddedMode);
+    mLynxContext.setEmbeddedMode(mEmbeddedMode);
 
     mLynxContext.setUIBodyView(mBodyView);
-    mLynxContext.setForceDarkAllowed(builder.forceDarkAllowed);
-    mLynxContext.setContextData(mLynxViewBuilder.getContextData());
-    if (mLynxViewBuilder.getImageCustomParam() != null) {
-      mLynxContext.setImageCustomParam(mLynxViewBuilder.getImageCustomParam());
+    mLynxContext.setForceDarkAllowed(mLynxViewConfigProvider.getForceDarkAllowed());
+    mLynxContext.setContextData(mLynxViewConfigProvider.getContextData());
+    if (mLynxViewBuilder.mImageCustomParam != null) {
+      mLynxContext.setImageCustomParam(mLynxViewBuilder.mImageCustomParam);
     }
     mLynxContext.setEnableAutoConcurrency(mAutoConcurrency);
     // TODO(chenyouhui): Move this function call to a more appropriate place.
     ILynxExtensionService extensionService =
         LynxServiceCenter.inst().getService(ILynxExtensionService.class);
     if (extensionService != null) {
-      extensionService.onLynxViewSetup(
-          mLynxContext, mLynxRuntimeOptions.getLynxGroup(), mLynxViewBuilder.behaviorRegistry);
+      extensionService.onLynxViewSetup(mLynxContext, mLynxRuntimeOptions.getLynxGroup(),
+          mLynxViewConfigProvider.getBehaviorRegistry());
     }
     LynxEnv.inst().initNativeUIThread();
     init(context);
 
     // TODO: update viewport only if the builder has preset measure spec
-    int widthMeasureSpec = builder.presetWidthMeasureSpec;
-    int heightMeasureSpec = builder.presetHeightMeasureSpec;
+    int widthMeasureSpec = mLynxViewConfigProvider.getPresetWidthMeasureSpec();
+    int heightMeasureSpec = mLynxViewConfigProvider.getPresetHeightMeasureSpec();
     // for auto concurrency or layout on background thread,
     // if width measure spec and height measure spec have not been preset,
     // use screen width as width measure spec by default
@@ -439,7 +444,7 @@ public class LynxTemplateRender implements ILynxEngine, ILynxErrorReceiver {
         LynxEnginePool.getInstance().pollEngineFromPool(mLynxViewBuilder.templateBundle);
 
     // FIXME(huangweiwu): This is temporary code to ensure there is no runtime.
-    mLynxViewBuilder.enablePendingJsTask = true;
+    mLynxViewBuilder.setEnablePendingJsTask(true);
 
     if (mLynxEngineRef == null) {
       // Failed to get from the pool, create a new one.
@@ -715,41 +720,41 @@ public class LynxTemplateRender implements ILynxEngine, ILynxErrorReceiver {
 
     if (mEnableGenericResourceFetcher) {
       mLynxContext.setGenericResourceFetcher(
-          mLynxViewBuilder.lynxRuntimeOptions.genericResourceFetcher);
-      mLynxContext.setMediaResourceFetcher(
-          mLynxViewBuilder.lynxRuntimeOptions.mediaResourceFetcher);
+          mLynxViewConfigProvider.getLynxGenericResourceFetcher());
+      mLynxContext.setMediaResourceFetcher(mLynxViewConfigProvider.getLynxMediaResourceFetcher());
       mLynxContext.setTemplateResourceFetcher(
-          mLynxViewBuilder.lynxRuntimeOptions.templateResourceFetcher);
+          mLynxViewConfigProvider.getLynxTemplateResourceFetcher());
     }
 
     mPageLoadListener = new InnerPageLoadListener();
     mGroup = mLynxRuntimeOptions.getLynxGroup();
     mLoader = new LynxResourceLoader(null, mLynxViewBuilder.fetcher, this,
         mLynxContext.getTemplateResourceFetcher(), mLynxContext.getGenericResourceFetcher());
-    mLynxContext.setEnableAutoExpose(mLynxViewBuilder.enableAutoExpose);
-    mNativeFacade = new NativeFacade(mLynxViewBuilder.enableJSRuntime());
+    mLynxContext.setEnableAutoExpose(mLynxViewConfigProvider.isEnableAutoExpose());
+    mNativeFacade = new NativeFacade(mLynxViewBuilder.isEnableJSRuntime());
     DisplayMetrics screenMetrics = mLynxContext.getScreenMetrics();
     long runtimeWrapperPtr = (mRuntime == null) ? 0 : mRuntime.getNativePtr();
     long whiteBoardPtr = (mGroup == null) ? 0 : mGroup.getWhiteBoardPtr();
 
     ILynxUIRenderer lynxUIRenderer = lynxUIRenderer();
     lynxUIRenderer.onCreateTemplateRenderer(mLynxContext, mPageLoadListener,
-        mThreadStrategyForRendering, mLynxViewBuilder.behaviorRegistry, layoutTick);
+        mThreadStrategyForRendering, mLynxViewConfigProvider.getBehaviorRegistry(), layoutTick);
 
-    boolean enableVSyncAligned = mLynxViewBuilder.enableVSyncAlignedMessageLoop
+    boolean enableVSyncAligned = mLynxViewConfigProvider.isEnableVSyncAlignedMessageLoop()
         || LynxEnv.inst().enableVSyncAlignedMessageLoopGlobal();
     mNativePtr = nativeCreate(runtimeWrapperPtr, mNativeFacade,
         mPerformanceController.isEnableController() ? mPerformanceController : null, mLoader,
-        mThreadStrategyForRendering.id(), mLynxViewBuilder.enableLayoutSafepoint,
+        mThreadStrategyForRendering.id(), mLynxViewConfigProvider.isEnableLayoutSafepoint(),
         mLynxViewBuilder.enableLayoutOnly, screenMetrics.widthPixels, screenMetrics.heightPixels,
-        screenMetrics.density, LynxEnv.inst().getLocale(), mLynxViewBuilder.enableJSRuntime(),
-        mLynxViewBuilder.enableMultiAsyncThread, mLynxViewBuilder.enablePreUpdateData,
-        mAutoConcurrency, enableVSyncAligned, mLynxViewBuilder.enableAsyncHydration,
+        screenMetrics.density, LynxEnv.inst().getLocale(), mLynxViewBuilder.isEnableJSRuntime(),
+        mLynxViewConfigProvider.isEnableMultiAsyncThread(),
+        mLynxViewConfigProvider.isEnablePreUpdateData(), mAutoConcurrency, enableVSyncAligned,
+        mLynxViewConfigProvider.isEnableAsyncHydration(),
         mGroup != null && mGroup.enableJSGroupThread(), getJSGroupThreadNameIfNeed(),
         new TasmPlatformInvoker(mNativeFacade), whiteBoardPtr, lynxUIRenderer.getUIDelegatePtr(),
         lynxUIRenderer.useInvokeUIMethod(), mLongTaskMonitorEnabled == LynxBooleanOption.FALSE,
-        mForceLayoutOnBackgroundThread, mLynxViewBuilder.enableUnifiedPipeline,
-        mLynxViewBuilder.embeddedMode, mLynxEngineRef == null ? 0 : mLynxEngineRef.getNativePtr());
+        mForceLayoutOnBackgroundThread, mLynxViewConfigProvider.isEnableUnifiedPipeline(),
+        mEmbeddedMode, mLynxEngineRef == null ? 0 : mLynxEngineRef.getNativePtr());
     lynxUIRenderer.attachNativeFacade(mNativeFacade);
     mNativeLifecycle = nativeLifecycleCreate();
     mCleanupReference = new CleanupReference(this, new CleanupOnUiThread(mNativeLifecycle), true);
@@ -859,7 +864,7 @@ public class LynxTemplateRender implements ILynxEngine, ILynxErrorReceiver {
   }
 
   private void setUpExtensionModules() {
-    if (mBodyView == null || !mLynxViewBuilder.enableJSRuntime()) {
+    if (mBodyView == null || !mLynxViewBuilder.isEnableJSRuntime()) {
       return;
     }
     Map<String, LynxExtensionModule> modules = mLynxContext.getExtensionModules();
@@ -886,15 +891,15 @@ public class LynxTemplateRender implements ILynxEngine, ILynxErrorReceiver {
     mLynxContext.setLynxViewClient(mClient);
 
     ILynxUIRenderer lynxUIRenderer = lynxUIRenderer();
-    lynxUIRenderer.onInitLynxTemplateRender(
-        mLynxContext, mLynxViewBuilder.behaviorRegistry, mBodyView, mLongTaskMonitorEnabled);
+    lynxUIRenderer.onInitLynxTemplateRender(mLynxContext,
+        mLynxViewConfigProvider.getBehaviorRegistry(), mBodyView, mLongTaskMonitorEnabled);
     if (LynxEnv.inst().isLynxDebugEnabled()) {
       // TODO(zhoupeng.z): DevTool should accept UIBodyView
       if (mRuntime != null) {
         mDevTool = mRuntime.getDevtool();
         mDevTool.attach(getLynxView(), this);
       } else {
-        mDevTool = new LynxDevtool(getLynxView(), this, mLynxViewBuilder.debuggable);
+        mDevTool = new LynxDevtool(getLynxView(), this, mLynxViewConfigProvider.isDebuggable());
       }
       mDevTool.attachLynxUIOwner(lynxUIRenderer.lynxUIOwner());
       WeakReference<LynxTemplateRender> mWeakRef = new WeakReference<>(this);
@@ -1976,8 +1981,8 @@ public class LynxTemplateRender implements ILynxEngine, ILynxErrorReceiver {
     mIsEngineFromReuse = false;
     recreateLynxUIRenderer();
     if (mLynxUIRender != null) {
-      mLynxUIRender.onInitLynxTemplateRender(
-          mLynxContext, mLynxViewBuilder.behaviorRegistry, mBodyView, mLongTaskMonitorEnabled);
+      mLynxUIRender.onInitLynxTemplateRender(mLynxContext,
+          mLynxViewConfigProvider.getBehaviorRegistry(), mBodyView, mLongTaskMonitorEnabled);
       if (mDevTool != null) {
         mDevTool.attachLynxUIOwner(mLynxUIRender.lynxUIOwner());
       }
@@ -2482,7 +2487,7 @@ public class LynxTemplateRender implements ILynxEngine, ILynxErrorReceiver {
   }
 
   public void onAttachedToWindow() {
-    String eventName = "lynxview onAttachedToWindow " + this.toString();
+    String eventName = "lynxview onAttachedToWindow " + this;
     LLog.i(TAG, eventName);
     onTraceEventBegin(eventName);
     onEnterForeground(false);
@@ -3510,7 +3515,7 @@ public class LynxTemplateRender implements ILynxEngine, ILynxErrorReceiver {
   }
 
   private void recreateLynxUIRenderer() {
-    mLynxUIRender = mLynxViewBuilder.uiRenderCreator.createLynxUIRender();
+    mLynxUIRender = mLynxViewConfigProvider.getUIRendererCreator().createLynxUIRender();
     mBodyView.setLynxUIRendererInternal(mLynxUIRender);
   }
 
@@ -3534,7 +3539,7 @@ public class LynxTemplateRender implements ILynxEngine, ILynxErrorReceiver {
         mLynxUIRender = mBodyView.getLynxUIRendererInternal();
       } else {
         // for context free.
-        mLynxUIRender = mLynxViewBuilder.uiRenderCreator.createLynxUIRender();
+        mLynxUIRender = mLynxViewConfigProvider.getUIRendererCreator().createLynxUIRender();
       }
     }
     return mLynxUIRender;
