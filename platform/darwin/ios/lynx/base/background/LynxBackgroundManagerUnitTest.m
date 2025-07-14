@@ -3,6 +3,7 @@
 // LICENSE file in the root directory of this source tree.
 
 #import <Lynx/LynxBackgroundManager.h>
+#import <Lynx/LynxGradientUtils.h>
 #import <Lynx/LynxPropsProcessor.h>
 #import <Lynx/LynxUI+Internal.h>
 #import <Lynx/LynxUIView.h>
@@ -37,6 +38,10 @@
                                     margin:UIEdgeInsetsZero];
   [_view frameDidChange];
   [_view onNodeReadyForUIOwner];
+}
+
+- (void)tearDown {
+  _view = nil;
 }
 
 - (void)testTopLayer {
@@ -138,6 +143,65 @@
   XCTAssertEqual(_view.backgroundManager.borderRadius.bottomRightY.val, 20);
   XCTAssertEqual(_view.backgroundManager.borderRadius.bottomRightY.unit,
                  LynxBorderValueUnitDefault);
+}
+
+// Tests background layer functionality with gradient image and solid color combination
+// Verifies proper layer creation, property application, rendering, and cleanup behavior
+- (void)testColorLayer {
+  // Initialize length context for gradient calculations
+  struct LynxLengthContext context = {};
+
+  // Create gradient image from linear gradient string definition
+  // Gradient: 180deg direction from #fe2c551f (red with alpha) to #fe2c5500 (transparent red)
+  NSArray* image =
+      [LynxGradientUtils getGradientArrayFromString:@"linear-gradient(180deg ,#fe2c551f ,#fe2c5500)"
+                                  withLengthContext:context];
+
+  // Apply gradient image as background-image property
+  [LynxPropsProcessor updateProp:image withKey:@"background-image" forUI:_view];
+
+  // Apply solid red background color (0xFFFF0000 = red in ARGB format)
+  [LynxPropsProcessor updateProp:@0xFFFF0000 withKey:@"background-color" forUI:_view];
+
+  [_view propsDidUpdate];
+
+  [_view updateFrameWithoutLayoutAnimation:CGRectMake(0, 0, 200.0f, 100.f)
+                               withPadding:UIEdgeInsetsZero
+                                    border:UIEdgeInsetsZero
+                                    margin:UIEdgeInsetsZero];
+  [_view frameDidChange];
+  [_view onNodeReadyForUIOwner];
+
+  // Verify gradient image was properly applied to background layer
+  XCTAssertNotNil(_view.backgroundManager.backgroundLayer.imageArray);
+
+  // Verify background layer has sublayers (gradient + color layers)
+  XCTAssertNotNil(_view.backgroundManager.backgroundLayer.sublayers);
+
+  // Force layer to render
+  [_view.backgroundManager.backgroundLayer display];
+
+  // Verify first sublayer is a CAShapeLayer (used for solid color background)
+  XCTAssertTrue([[_view.backgroundManager.backgroundLayer.sublayers objectAtIndex:0]
+      isKindOfClass:[CAShapeLayer class]]);
+
+  // Verify shape layer's fill color matches our specified red color
+  XCTAssertTrue(CGColorEqualToColor(
+      [(CAShapeLayer*)[_view.backgroundManager.backgroundLayer.sublayers objectAtIndex:0]
+          fillColor],
+      [UIColor redColor].CGColor));
+
+  // Remove background color by setting to nil
+  [LynxPropsProcessor updateProp:nil withKey:@"background-color" forUI:_view];
+  [_view propsDidUpdate];
+  [_view onNodeReadyForUIOwner];
+
+  // Force layer to re-render after color removal
+  [_view.backgroundManager.backgroundLayer display];
+
+  // Verify color layer's fill color was properly removed
+  CAShapeLayer* colorLayer = [_view.backgroundManager.backgroundLayer.sublayers objectAtIndex:0];
+  XCTAssertTrue(colorLayer.fillColor == NULL);
 }
 
 @end

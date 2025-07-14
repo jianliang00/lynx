@@ -432,6 +432,9 @@ dispatch_block_t mDispatchTask = NULL;
     _colorLayer.path = clipPath;
     CGPathRelease(clipPath);
     [self addSublayer:_colorLayer];
+  } else {
+    // reset color if layer exists and no background color set.
+    [_colorLayer setFillColor:nil];
   }
 
   NSEnumerator* reverseEnum = [self.imageArray reverseObjectEnumerator];
