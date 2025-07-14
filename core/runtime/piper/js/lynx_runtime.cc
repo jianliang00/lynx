@@ -228,7 +228,7 @@ void LynxRuntime::TransitionToFullRuntime() {
     return;
   }
   runtime_flags_ &= ~LynxRuntimeFlags::PENDING_CORE_JS_LOAD;
-  auto rt = js_executor_->GetJSRuntime();
+  auto rt = GetJSRuntime();
   if (!rt) {
     return;
   }
@@ -385,11 +385,15 @@ void LynxRuntime::CallJSFunction(const std::string& module_id,
   LynxFatal(arguments.IsArrayOrJSArray(), error::E_BTS_RUNTIME_ERROR,
             "the arguments should be array when CallJSFunction!");
   QueueOrExecTask([this, module_id, method_id, arguments]() {
-    piper::Scope scope(*GetJSRuntime());
-    auto array =
-        piper::arrayFromLepus(*GetJSRuntime(), *(arguments.Array().get()));
+    auto js_runtime = GetJSRuntime();
+    if (!js_runtime) {
+      LOGE("js_runtime is nullptr!");
+      return;
+    }
+    piper::Scope scope(*js_runtime);
+    auto array = piper::arrayFromLepus(*js_runtime, *(arguments.Array().get()));
     if (!array) {
-      GetJSRuntime()->reportJSIException(
+      js_runtime->reportJSIException(
           BUILD_JSI_NATIVE_EXCEPTION("CallJSFunction fail! Reason: Transfer "
                                      "lepus value to js value fail."));
       return;
@@ -555,9 +559,13 @@ void LynxRuntime::CallFunction(const std::string& module_id,
   if (state_ == State::kDestroying) {
     return;
   }
+  auto js_runtime = GetJSRuntime();
+  if (!js_runtime) {
+    LOGW("js_runtime is nullptr!");
+    return;
+  }
 #if ENABLE_TESTBENCH_RECORDER
   if (module_id == "GlobalEventEmitter") {
-    auto js_runtime = GetJSRuntime();
     auto size = arguments.length(*js_runtime);
     if (size) {
       piper::Value values[*size];
@@ -577,7 +585,6 @@ void LynxRuntime::CallFunction(const std::string& module_id,
   if (native_context_proxy != nullptr &&
       native_context_proxy->HasEventListener(kMessageEventTypeGlobalEvent) &&
       module_id == "GlobalEventEmitter" && method_id == "emit") {
-    auto js_runtime = GetJSRuntime();
     MessageEvent jsContextEvent(
         kMessageEventTypeGlobalEvent, ContextProxy::Type::kNative,
         ContextProxy::Type::kJSContext,
@@ -651,7 +658,7 @@ void LynxRuntime::OnJSSourcePrepared(
     tasm::TimingCollector::Instance()->Mark(tasm::timing::kLoadBackgroundStart);
     // We should set enable_circular_data_check flag to js runtime ahead of load
     // app_service.js, so we can check all js data updated if necessary.
-    auto js_runtime = js_executor_->GetJSRuntime();
+    auto js_runtime = GetJSRuntime();
     if (js_runtime) {
       // If devtool is enabled, enable circular data check always.
       bool enable_circular_data_check =
@@ -708,7 +715,7 @@ bool LynxRuntime::TryToDestroy() {
   // the app_ object. But in shared context mode, we must check the validity of
   // the JSRuntime in case it is release by its shell owner or other Lynx
   // instance.
-  auto js_runtime = js_executor_->GetJSRuntime();
+  auto js_runtime = GetJSRuntime();
   if (js_runtime && js_runtime->Valid()) {
     auto native_context_proxy =
         app_->GetContextProxy(runtime::ContextProxy::Type::kNative);
@@ -958,7 +965,7 @@ void LynxRuntime::OnModuleMethodInvoked(const std::string& module,
 }
 
 std::shared_ptr<piper::Runtime> LynxRuntime::GetJSRuntime() {
-  return js_executor_->GetJSRuntime();
+  return js_executor_ ? js_executor_->GetJSRuntime() : nullptr;
 }
 
 int64_t LynxRuntime::GenerateRuntimeId() {
@@ -968,10 +975,14 @@ int64_t LynxRuntime::GenerateRuntimeId() {
 
 void LynxRuntime::SetEnableBytecode(bool enable,
                                     const std::string& bytecode_source_url) {
-  if (auto rt = GetJSRuntime()) {
-    rt->SetEnableUserBytecode(enable);
-    rt->SetBytecodeSourceUrl(bytecode_source_url);
-  }
+  QueueOrExecAppTask([this, enable, bytecode_source_url]() {
+    LOGI("LynxRuntime::SetEnableBytecode, enable: "
+         << enable << " bytecode_source_url: " << bytecode_source_url);
+    if (auto rt = GetJSRuntime()) {
+      rt->SetEnableUserBytecode(enable);
+      rt->SetBytecodeSourceUrl(bytecode_source_url);
+    }
+  });
 }
 
 void LynxRuntime::SetPageOptions(const tasm::PageOptions& page_options) {
