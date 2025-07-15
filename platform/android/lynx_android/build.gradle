@@ -31,10 +31,19 @@ android {
         multiDexEnabled true
 
         packagingOptions {
-            exclude 'lib/*/libnapi.so'
-            exclude 'lib/*/libquick.so'
-            exclude 'lib/*/liblynxtrace.so'
-            exclude 'lib/*/libv8_libfull.cr.so'
+            if (enable_lynx_android_test.toBoolean()) {
+                // Android test build
+                pickFirst 'lib/*/libnapi.so'
+                pickFirst 'lib/*/libnapi_v8.so'
+                pickFirst 'lib/*/libquick.so'
+                pickFirst 'lib/*/libc++_shared.so'
+                pickFirst 'lib/*/liblynxtrace.so'
+            } else {
+                exclude 'lib/*/libnapi.so'
+                exclude 'lib/*/libquick.so'
+                exclude 'lib/*/liblynxtrace.so'
+                exclude 'lib/*/libv8_libfull.cr.so' 
+            }
         }
     }
 
