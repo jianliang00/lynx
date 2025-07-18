@@ -16,12 +16,14 @@
 namespace lynx {
 namespace tasm {
 
+class PipelineContext;
+
 /**
  * Member of TemplateAssembler, provided to ElementManager.
  */
 class ElementManagerDelegateImpl : public ElementManagerDelegate {
  public:
-  ElementManagerDelegateImpl() = default;
+  explicit ElementManagerDelegateImpl(TemplateAssembler *tasm) : tasm_(tasm) {}
   ~ElementManagerDelegateImpl() override = default;
 
   void LoadFrameBundle(const std::string &src, FrameElement *element) override;
@@ -35,11 +37,18 @@ class ElementManagerDelegateImpl : public ElementManagerDelegate {
     bundle_loader_ = loader;
   }
 
+  PipelineContext *GetCurrentPipelineContext() override;
+
+  PipelineContext *CreateAndUpdateCurrentPipelineContext(
+      const std::shared_ptr<PipelineOptions> &pipeline_options,
+      bool is_major_updated = false) override;
+
  private:
   std::unordered_set<FrameElement *> frame_element_set_;
   std::unordered_map<std::string, std::shared_ptr<LynxTemplateBundle>>
       frame_bundles_{};
   std::shared_ptr<LazyBundleLoader> bundle_loader_{nullptr};
+  TemplateAssembler *tasm_;
 };
 
 }  // namespace tasm

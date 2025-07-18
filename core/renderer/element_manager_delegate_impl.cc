@@ -7,6 +7,8 @@
 #include <utility>
 
 #include "core/renderer/dom/fiber/frame_element.h"
+#include "core/renderer/pipeline/pipeline_context.h"
+#include "core/renderer/template_assembler.h"
 
 namespace lynx {
 namespace tasm {
@@ -42,6 +44,18 @@ void ElementManagerDelegateImpl::DidFrameBundleLoaded(
 
 void ElementManagerDelegateImpl::OnFrameRemoved(FrameElement *element) {
   frame_element_set_.erase(element);
+}
+
+PipelineContext *ElementManagerDelegateImpl::GetCurrentPipelineContext() {
+  return tasm_->GetCurrentPipelineContext();
+}
+
+PipelineContext *
+ElementManagerDelegateImpl::CreateAndUpdateCurrentPipelineContext(
+    const std::shared_ptr<PipelineOptions> &pipeline_options,
+    bool is_major_updated) {
+  return tasm_->CreateAndUpdateCurrentPipelineContext(pipeline_options,
+                                                      is_major_updated);
 }
 
 }  // namespace tasm

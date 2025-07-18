@@ -1379,16 +1379,8 @@ EventResult TouchEventHandler::FireElementWorklet(
         handler->lepus_script(), value, task_handler_, element_id,
         context.event_type);
     // trigger patch finish when a worklet operation is completed
-    auto options = std::make_shared<PipelineOptions>();
-    auto current_option = tasm->GetCurrentPipelineContext()
-                              ? tasm->GetCurrentPipelineContext()->GetOptions()
-                              : nullptr;
-    if (current_option == nullptr ||
-        !current_option->enable_unified_pixel_pipeline) {
-      // TODO(kechenglong): SetNeedsLayout if and only if needed.
-      tasm->page_proxy()->element_manager()->SetNeedsLayout();
-      tasm->page_proxy()->element_manager()->OnPatchFinish(options);
-    }
+    tasm->page_proxy()->element_manager()->SetNeedsLayout();
+    tasm->page_proxy()->element_manager()->RequestResolve(current_option);
 #endif  // ENABLE_LEPUSNG_WORKLET
   }
   if (context.event_type != EventType::kComponent) {

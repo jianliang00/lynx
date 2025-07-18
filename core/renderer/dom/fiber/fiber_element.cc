@@ -3259,6 +3259,14 @@ void FiberElement::OnPseudoStatusChanged(PseudoState prev_status,
               [this](lynx::perfetto::EventContext ctx) {
                 UpdateTraceDebugInfo(ctx.event());
               });
+  auto current_context =
+      element_manager_->element_manager_delegate()->GetCurrentPipelineContext();
+  std::shared_ptr<PipelineOptions> pipeline_options;
+  if (current_context) {
+    pipeline_options = current_context->GetOptions();
+  } else {
+    pipeline_options = std::make_shared<PipelineOptions>();
+  }
   // FIXME: Every element will emit the OnPseudoStatusChanged event
   auto *css_fragment = GetRelatedCSSFragment();
   if (css_fragment && css_fragment->enable_css_selector()) {
@@ -3275,8 +3283,7 @@ void FiberElement::OnPseudoStatusChanged(PseudoState prev_status,
         MarkStyleDirty(false);
       }
       InvalidateChildren(invalidation_set);
-      auto pipeline_options = std::make_shared<PipelineOptions>();
-      element_manager_->OnPatchFinish(pipeline_options, this);
+      element_manager_->RequestResolve(pipeline_options);
     }
     return;
   }
@@ -3292,8 +3299,7 @@ void FiberElement::OnPseudoStatusChanged(PseudoState prev_status,
   has_extreme_parsed_styles_ = false;
 
   data_model_->SetPseudoState(current_status);
-  auto pipeline_options = std::make_shared<PipelineOptions>();
-  element_manager_->OnPatchFinish(pipeline_options, this);
+  element_manager_->RequestResolve(pipeline_options);
 }
 
 bool FiberElement::IsInheritable(CSSPropertyID id) const {

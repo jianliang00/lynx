@@ -1000,7 +1000,7 @@ class TemplateAssembler final : public TemplateEntryHolder,
   SignalContext signal_context_;
 
   // Called by ElementManager
-  ElementManagerDelegateImpl element_manager_delegate_{};
+  ElementManagerDelegateImpl element_manager_delegate_{this};
 
   // Manage the lifecycle of all pilepine contexts in current lynx engine.
   std::unique_ptr<PipelineContextManager> pipeline_context_manager_{nullptr};

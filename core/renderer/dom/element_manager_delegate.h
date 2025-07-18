@@ -5,6 +5,7 @@
 #ifndef CORE_RENDERER_DOM_ELEMENT_MANAGER_DELEGATE_H_
 #define CORE_RENDERER_DOM_ELEMENT_MANAGER_DELEGATE_H_
 
+#include <memory>
 #include <string>
 
 #include "core/template_bundle/lynx_template_bundle.h"
@@ -13,6 +14,7 @@ namespace lynx {
 namespace tasm {
 
 class FrameElement;
+class PipelineContext;
 
 /**
  * ElementManagerDelegate provides APIs which ElementManager needs to call but
@@ -34,6 +36,14 @@ class ElementManagerDelegate {
                                     LynxTemplateBundle bundle) = 0;
   // Call for frame removed.
   virtual void OnFrameRemoved(FrameElement *element) = 0;
+
+  // Call for the current pipeline context.
+  virtual PipelineContext *GetCurrentPipelineContext() = 0;
+
+  // Call for create and update the pipeline context.
+  virtual PipelineContext *CreateAndUpdateCurrentPipelineContext(
+      const std::shared_ptr<PipelineOptions> &pipeline_options,
+      bool is_major_updated = false) = 0;
 };
 
 }  // namespace tasm

@@ -1796,6 +1796,11 @@ void TemplateAssembler::TriggerLepusGlobalEvent(const std::string& event_name,
   if (!template_loaded_) {
     return;
   }
+
+  std::shared_ptr<PipelineOptions> current_option =
+      std::make_shared<PipelineOptions>();
+  tasm::PipelineScope pipeline_scope(this, current_option);
+
   SendGlobalEventToLepus(event_name, std::move(msg));
   LOGI("TemplateAssembler TriggerLepusGlobalEvent event" << event_name
                                                          << " this:" << this);
@@ -1826,6 +1831,9 @@ void TemplateAssembler::TriggerWorkletFunction(std::string component_id,
   }
 
   EnsureTouchEventHandler();
+  std::shared_ptr<PipelineOptions> current_option =
+      std::make_shared<PipelineOptions>();
+  tasm::PipelineScope pipeline_scope(this, current_option);
 
   std::optional<lepus::Value> call_result =
       worklet::LepusElement::TriggerWorkletFunction(
@@ -1969,6 +1977,10 @@ void TemplateAssembler::OnPseudoStatusChanged(int32_t id, uint32_t pre_status,
   DCHECK(current_status >= 0 &&
          current_status <= std::numeric_limits<PseudoState>::max());
   EnsureTouchEventHandler();
+  std::shared_ptr<PipelineOptions> current_option =
+      std::make_shared<PipelineOptions>();
+  PipelineScope pipeline_scope(this, current_option);
+
   touch_event_handler_->HandlePseudoStatusChanged(
       id, static_cast<PseudoState>(pre_status),
       static_cast<PseudoState>(current_status));

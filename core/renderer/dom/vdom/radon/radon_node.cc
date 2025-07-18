@@ -24,6 +24,7 @@
 #include "core/renderer/dom/vdom/radon/radon_component.h"
 #include "core/renderer/dom/vdom/radon/radon_page.h"
 #include "core/renderer/page_proxy.h"
+#include "core/renderer/pipeline/pipeline_context.h"
 #include "core/renderer/trace/renderer_trace_event_def.h"
 #include "core/renderer/utils/base/base_def.h"
 #include "core/renderer/utils/lynx_env.h"
@@ -858,6 +859,7 @@ bool RadonNode::ShouldFlushStyle(RadonNode* old_radon_node,
 }
 
 void RadonNode::CollectInvalidationSetsForPseudoAndInvalidate(
+    std::shared_ptr<PipelineOptions>& pipeline_options,
     CSSFragment* style_sheet, PseudoState prev, PseudoState curr) {
   TRACE_EVENT(LYNX_TRACE_CATEGORY, RADON_SHOULD_COLLECT_INVALID_SETS_FOR_PSEUDO,
               [this](lynx::perfetto::EventContext ctx) {
@@ -890,19 +892,29 @@ void RadonNode::CollectInvalidationSetsForPseudoAndInvalidate(
     }
   }
   if (should_patch) {
-    auto pipeline_options = std::make_shared<PipelineOptions>();
-    // TODO(kechenglong): SetNeedsLayout if and only if needed.
     page_proxy_->element_manager()->SetNeedsLayout();
-    page_proxy_->element_manager()->OnPatchFinish(pipeline_options);
+    page_proxy_->element_manager()->RequestResolve(pipeline_options);
   }
 }
 
 void RadonNode::OnPseudoStateChanged(PseudoState prev, PseudoState curr) {
+  std::shared_ptr<PipelineOptions> pipeline_options;
+  PipelineContext* current_context = nullptr;
+  if (element_) {
+    current_context = element_->element_manager()
+                          ->element_manager_delegate()
+                          ->GetCurrentPipelineContext();
+  }
+  if (current_context) {
+    pipeline_options = current_context->GetOptions();
+  } else {
+    pipeline_options = std::make_shared<PipelineOptions>();
+  }
   CSSFragment* style_sheet =
       GetRemoveCSSScopeEnabled() ? GetPageStyleSheet() : ParentStyleSheet();
   if (style_sheet && style_sheet->enable_css_selector()) {
-    return CollectInvalidationSetsForPseudoAndInvalidate(style_sheet, prev,
-                                                         curr);
+    return CollectInvalidationSetsForPseudoAndInvalidate(
+        pipeline_options, style_sheet, prev, curr);
   }
 
   bool should_patch = false;
@@ -920,10 +932,8 @@ void RadonNode::OnPseudoStateChanged(PseudoState prev, PseudoState curr) {
     should_patch = RefreshStyle();
   }
   if (should_patch) {
-    auto pipeline_options = std::make_shared<PipelineOptions>();
-    // TODO(kechenglong): SetNeedsLayout if and only if needed.
     page_proxy_->element_manager()->SetNeedsLayout();
-    page_proxy_->element_manager()->OnPatchFinish(pipeline_options);
+    page_proxy_->RequestResolve(pipeline_options);
   }
 }
 

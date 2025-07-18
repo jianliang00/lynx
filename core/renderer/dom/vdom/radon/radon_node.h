@@ -52,8 +52,9 @@ class RadonNode : public RadonBase {
   // removed the given class, what other types of elements need to change?).
   // Then apply style invalidation to children immediately.
   void CollectInvalidationSetsAndInvalidate(RadonNode* old_radon_node);
-  void CollectInvalidationSetsForPseudoAndInvalidate(CSSFragment*, PseudoState,
-                                                     PseudoState);
+  void CollectInvalidationSetsForPseudoAndInvalidate(
+      std::shared_ptr<PipelineOptions>& pipeline_options, CSSFragment*,
+      PseudoState, PseudoState);
   // Optimized logic: use GetCachedStyleList to get new style only when
   // needed.
   // only can be used if forceCalcNewStyle is set to false by compilerOptions

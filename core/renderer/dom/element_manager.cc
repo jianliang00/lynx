@@ -510,6 +510,15 @@ ElementManager::GetSubTreeLayoutInfo(int32_t root_id, Viewport viewport) {
   return delegate_->GetSubTreeLayoutInfo(root_id, viewport);
 }
 
+void ElementManager::RequestResolve(
+    std::shared_ptr<PipelineOptions> &pipeline_options) {
+  if (pipeline_options->enable_unified_pixel_pipeline) {
+    pipeline_options->resolve_requested = true;
+  } else {
+    OnPatchFinish(pipeline_options);
+  }
+}
+
 void ElementManager::DidPatchFinishForFiber() {
   if (EnableFiberElementMemoryReport()) {
     UpdateElementMemoryUsage(CalcTotalMemoryUsageDiff());

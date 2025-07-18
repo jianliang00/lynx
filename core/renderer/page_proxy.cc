@@ -444,7 +444,7 @@ void PageProxy::SetRadonPage(RadonPage *page) {
 // used for unified pipeline;
 void PageProxy::RequestResolve(
     std::shared_ptr<PipelineOptions> &pipeline_options) {
-  if (pipeline_options->enable_unified_pixel_pipeline) {
+  if (pipeline_options && pipeline_options->enable_unified_pixel_pipeline) {
     // TODO(nihao.royal): modify pipeline_option here directly here because
     // only loadTemplate is supported now, current pipeline context won't be
     // updated. use

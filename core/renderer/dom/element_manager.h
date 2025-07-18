@@ -1169,6 +1169,9 @@ class ElementManager : public ElementContextDelegate {
     return platform_layout_context_.get();
   }
 
+  // used for unified pipeline;
+  void RequestResolve(std::shared_ptr<PipelineOptions> &pipeline_options);
+
  protected:
   /**
    * call this function after exec OnPatchFinishForFiber
