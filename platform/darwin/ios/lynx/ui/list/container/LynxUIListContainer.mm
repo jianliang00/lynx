@@ -32,10 +32,35 @@ typedef NS_ENUM(NSInteger, LynxListScrollState) {
 
 @implementation LynxListContainerComponentWrapper
 
-- (void)addListItemView:(UIView *)listItemView withFrame:(CGRect)frame {
+- (void)addListItemView:(UIView *)listItemView
+              withFrame:(CGRect)frame
+           addSubLayers:(BOOL)addSubLayers
+      adjustLayersFrame:(BOOL)adjustLayersFrame {
   self.frame = frame;
   listItemView.frame = [LynxListContainerComponentWrapper getAlignedFrame:frame];
   [self addSubview:listItemView];
+  if (self.holdingUI && self.holdingUI.backgroundManager) {
+    LynxBackgroundManager *backgroundManager = self.holdingUI.backgroundManager;
+    // Move the borderLayer and backgroundLayer of the ListItemView to the wrapperView.
+    if (addSubLayers) {
+      // Note: If list-item is new created, all layers are added to WrapperView's layer in
+      // OnNodeReady(), but if list-item is reused we need to execute add sub layers.
+      CALayer *listItemViewLayer = self.holdingUI.view.layer;
+      if (backgroundManager.borderLayer) {
+        [backgroundManager.borderLayer removeFromSuperlayer];
+        [self.layer insertSublayer:backgroundManager.borderLayer above:listItemViewLayer];
+      }
+      if (backgroundManager.backgroundLayer) {
+        [backgroundManager.backgroundLayer removeFromSuperlayer];
+        [self.layer insertSublayer:backgroundManager.backgroundLayer below:listItemViewLayer];
+      }
+    }
+    // Adjust all related layers (background, border and mask layers).
+    if (adjustLayersFrame) {
+      NSValue *value = [NSValue valueWithCGRect:listItemView.frame];
+      [self.holdingUI setLayerValue:value forKeyPath:@"frame" forAllLayers:YES];
+    }
+  }
 }
 
 + (CGRect)getAlignedFrame:(CGRect)frame {
@@ -307,7 +332,10 @@ LYNX_REGISTER_UI("list-container")
   LynxListContainerComponentWrapper *wrapper =
       (LynxListContainerComponentWrapper *)component.view.superview;
   if ([wrapper isKindOfClass:LynxListContainerComponentWrapper.class]) {
-    [wrapper addListItemView:component.view withFrame:component.frame];
+    [wrapper addListItemView:component.view
+                   withFrame:component.frame
+                addSubLayers:NO
+           adjustLayersFrame:YES];
     wrapper.layer.zPosition = component.zIndex;
   }
   if (self.enableListSticky && self.updateStickyForDiff) {
@@ -369,7 +397,10 @@ LYNX_REGISTER_UI("list-container")
     LynxListContainerComponentWrapper *wrapper = [[LynxListContainerComponentWrapper alloc] init];
     wrapper.holdingUI = component;
     [component.view removeFromSuperview];
-    [wrapper addListItemView:component.view withFrame:component.frame];
+    [wrapper addListItemView:component.view
+                   withFrame:component.frame
+                addSubLayers:YES
+           adjustLayersFrame:NO];
     [self.view addSubview:wrapper];
     wrapper.layer.zPosition = component.zIndex;
     // Invoke fade-in animation.
