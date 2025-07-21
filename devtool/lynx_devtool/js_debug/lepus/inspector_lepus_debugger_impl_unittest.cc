@@ -130,6 +130,7 @@ TEST_F(InspectorLepusDebuggerImplTest, PrepareForScriptEval) {
 
   // reset for next test
   DevToolConfig::SetStopAtEntry(false, true);
+  DevToolConfig::SetFetchDebugInfo(false, true);
 }
 
 }  // namespace testing

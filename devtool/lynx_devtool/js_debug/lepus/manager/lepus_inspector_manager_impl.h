@@ -18,8 +18,6 @@ class LepusInspectorManagerImpl : public LepusInspectorManager {
   LepusInspectorManagerImpl() = default;
   ~LepusInspectorManagerImpl() override = default;
 
-  bool IsDebugEnabled() override;
-
   void InitInspector(Context* entry,
                      const std::shared_ptr<InspectorLepusObserver>& observer,
                      const std::string& context_name) override;

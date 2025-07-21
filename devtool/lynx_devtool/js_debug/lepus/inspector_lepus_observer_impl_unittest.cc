@@ -33,14 +33,34 @@ class InspectorLepusObserverImplTest : public ::testing::Test {
   std::shared_ptr<lynx::testing::LynxDevToolMediatorMock> mediator_;
 };
 
-TEST_F(InspectorLepusObserverImplTest, IsDebugEnabled) {
-  DevToolConfig::SetStopAtEntry(true);
-  bool result = observer_->IsDebugEnabled();
+TEST_F(InspectorLepusObserverImplTest, ShouldFetchDebugInfo) {
+  bool result = observer_->ShouldFetchDebugInfo();
+  EXPECT_FALSE(result);
+
+  DevToolConfig::SetFetchDebugInfo(true, false);
+  result = observer_->ShouldFetchDebugInfo();
+  EXPECT_FALSE(result);
+
+  DevToolConfig::SetFetchDebugInfo(true, true);
+  result = observer_->ShouldFetchDebugInfo();
+  EXPECT_TRUE(result);
+
+  DevToolConfig::SetFetchDebugInfo(false, true);
+  DevToolConfig::SetStopAtEntry(true, false);
+  result = observer_->ShouldFetchDebugInfo();
   EXPECT_FALSE(result);
 
   DevToolConfig::SetStopAtEntry(true, true);
-  result = observer_->IsDebugEnabled();
+  result = observer_->ShouldFetchDebugInfo();
   EXPECT_TRUE(result);
+
+  DevToolConfig::SetStopAtEntry(false, true);
+  result = observer_->ShouldFetchDebugInfo();
+  EXPECT_TRUE(result);
+
+  // reset for other tests
+  DevToolConfig::SetStopAtEntry(false, false);
+  DevToolConfig::SetFetchDebugInfo(false, true);
 }
 
 // The following 4 functions only test the case when debugger_wp_ is nullptr,

@@ -105,7 +105,8 @@ void InspectorJavaScriptDebuggerImpl::OnInspectorInited(
     // triggered very early, we must send these messages fisrt to avoid missing
     // the triggering time.
     delegate_->DispatchInitMessage(view_id_, runtime_enable_needed_);
-    delegate_->SetStopAtEntry(DevToolConfig::ShouldStopAtEntry(), view_id_);
+    delegate_->SetStopAtEntry(DevToolConfig::ShouldStopAtEntry(false),
+                              view_id_);
   }
 }
 
@@ -126,7 +127,8 @@ void InspectorJavaScriptDebuggerImpl::StopDebug() {
 void InspectorJavaScriptDebuggerImpl::PrepareForScriptEval() {
   std::unique_lock<std::mutex> lock(mutex_);
   if (delegate_ != nullptr) {
-    delegate_->SetStopAtEntry(DevToolConfig::ShouldStopAtEntry(), view_id_);
+    delegate_->SetStopAtEntry(DevToolConfig::ShouldStopAtEntry(false),
+                              view_id_);
   }
 }
 

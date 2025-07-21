@@ -11,20 +11,12 @@
 namespace lynx {
 namespace lepus {
 
-bool LepusInspectorManagerImpl::IsDebugEnabled() {
-  auto sp = observer_wp_.lock();
-  if (sp == nullptr) {
-    return false;
-  }
-  return sp->IsDebugEnabled();
-}
-
 void LepusInspectorManagerImpl::InitInspector(
     Context* context, const std::shared_ptr<InspectorLepusObserver>& observer,
     const std::string& context_name) {
   // Do not support debugging lazy components of non-LepusNG.
   if (!context->IsLepusNGContext() &&
-      (!observer->IsDebugEnabled() ||
+      (!observer->ShouldFetchDebugInfo() ||
        context_name != devtool::kLepusDefaultContextName)) {
     return;
   }
@@ -56,7 +48,7 @@ void LepusInspectorManagerImpl::SetDebugInfo(const std::string& debug_info_url,
   if (it == debug_info_url_to_id_.end()) {
     debug_info_id = cur_debug_info_id++;
     debug_info_url_to_id_[debug_info_url] = debug_info_id;
-    if (sp->IsDebugEnabled()) {
+    if (sp->ShouldFetchDebugInfo()) {
       // Get the content of debug-info.json by the specified URL.
       debug_info = sp->GetDebugInfo(debug_info_url);
     }

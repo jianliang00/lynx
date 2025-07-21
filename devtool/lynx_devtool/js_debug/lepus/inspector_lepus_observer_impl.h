@@ -23,8 +23,8 @@ class InspectorLepusObserverImpl : public lepus::InspectorLepusObserver {
 
   std::unique_ptr<lepus::LepusInspectorManager> CreateLepusInspectorManager()
       override;
-  bool IsDebugEnabled() override {
-    return DevToolConfig::ShouldStopAtEntry(true);
+  bool ShouldFetchDebugInfo() override {
+    return DevToolConfig::ShouldFetchDebugInfo(true);
   }
   std::string GetDebugInfo(const std::string& url) override;
   void SetDebugInfoUrl(const std::string& url,

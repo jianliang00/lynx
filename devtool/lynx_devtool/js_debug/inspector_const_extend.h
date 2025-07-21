@@ -18,6 +18,8 @@ constexpr char kScriptCoreUrl[] = "lynx_core.js";
 
 constexpr char kTypeGetStopAtEntry[] = "GetStopAtEntry";
 constexpr char kTypeSetStopAtEntry[] = "SetStopAtEntry";
+constexpr char kTypeGetFetchDebugInfo[] = "GetFetchDebugInfo";
+constexpr char kTypeSetFetchDebugInfo[] = "SetFetchDebugInfo";
 constexpr char kKeyDefault[] = "DEFAULT";
 constexpr char kKeyMTS[] = "MTS";
 constexpr char kKeyBTS[] = "BTS";

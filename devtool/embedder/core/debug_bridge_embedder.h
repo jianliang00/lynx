@@ -51,7 +51,8 @@ class DebugBridgeEmbedder
 
   void EnableDebugging(const std::string& schema);
 
-  void HandleStopAtEntry(const std::string& message, const std::string& type);
+  void HandleDevToolConfigMessage(const std::string& message,
+                                  const std::string& type);
 
   std::shared_ptr<DebugStateListenerEmbedder> debug_state_listener_;
   DevtoolsOpenCardCallback open_card_callback_;

@@ -166,19 +166,22 @@ using ClientInfo = std::unordered_map<std::string, std::string>;
                                  WithType:@"GetGlobalSwitch"
                                ForSession:-1];
   } else {
-    [self handleStopAtEntry:message withType:type];
+    [self handleDevToolConfigMessage:message withType:type];
   }
 }
 
-- (void)handleStopAtEntry:(NSString *)message withType:(NSString *)type {
+- (void)handleDevToolConfigMessage:(NSString *)message withType:(NSString *)type {
   static NSString *const kGetStopAtEntry = @"GetStopAtEntry";
   static NSString *const kSetStopAtEntry = @"SetStopAtEntry";
+  static NSString *const kGetFetchDebugInfo = @"GetFetchDebugInfo";
+  static NSString *const kSetFetchDebugInfo = @"SetFetchDebugInfo";
   static NSString *const kKeyType = @"type";
   static NSString *const kKeyValue = @"value";
   static NSString *const kKeyMTS = @"MTS";
   static NSString *const kKeyBTS = @"BTS";
   static NSString *const kKeyDefault = @"DEFAULT";
-  if (![type isEqualToString:kGetStopAtEntry] && ![type isEqualToString:kSetStopAtEntry]) {
+  if (![type isEqualToString:kGetStopAtEntry] && ![type isEqualToString:kSetStopAtEntry] &&
+      ![type isEqualToString:kGetFetchDebugInfo] && ![type isEqualToString:kSetFetchDebugInfo]) {
     return;
   }
   NSString *response = message;
@@ -188,12 +191,18 @@ using ClientInfo = std::unordered_map<std::string, std::string>;
                                       options:NSJSONReadingMutableContainers
                                         error:0];
   NSString *key = messageDict[kKeyType];
-  if ([type isEqualToString:kGetStopAtEntry]) {
+  if ([type isEqualToString:kGetStopAtEntry] || [type isEqualToString:kGetFetchDebugInfo]) {
     bool result = false;
-    if ([key isEqualToString:kKeyMTS]) {
-      result = lynx::devtool::DevToolConfig::ShouldStopAtEntry(true);
-    } else if ([key isEqualToString:kKeyBTS] || [key isEqualToString:kKeyDefault]) {
-      result = lynx::devtool::DevToolConfig::ShouldStopAtEntry(false);
+    if ([type isEqualToString:kGetStopAtEntry]) {
+      if ([key isEqualToString:kKeyMTS]) {
+        result = lynx::devtool::DevToolConfig::ShouldStopAtEntry(true);
+      } else if ([key isEqualToString:kKeyBTS] || [key isEqualToString:kKeyDefault]) {
+        result = lynx::devtool::DevToolConfig::ShouldStopAtEntry(false);
+      }
+    } else if ([type isEqualToString:kGetFetchDebugInfo]) {
+      if ([key isEqualToString:kKeyMTS]) {
+        result = lynx::devtool::DevToolConfig::ShouldFetchDebugInfo(true);
+      }
     }
     [messageDict setValue:[NSNumber numberWithBool:result] forKey:kKeyValue];
     NSError *error;
@@ -201,8 +210,8 @@ using ClientInfo = std::unordered_map<std::string, std::string>;
                                                            options:0
                                                              error:&error];
     if (!responseData || error) {
-      LLogError(@"handleStopAtEntry error! message: %@, type: %@, description: %@", message, type,
-                [error localizedDescription]);
+      LLogError(@"handleDevToolConfigMessage error! message: %@, type: %@, description: %@",
+                message, type, [error localizedDescription]);
       return;
     }
     response = [[NSString alloc] initWithData:responseData encoding:NSUTF8StringEncoding];
@@ -211,7 +220,12 @@ using ClientInfo = std::unordered_map<std::string, std::string>;
     if ([key isEqualToString:kKeyMTS]) {
       lynx::devtool::DevToolConfig::SetStopAtEntry(value, true);
     } else if ([key isEqualToString:kKeyBTS] || [key isEqualToString:kKeyDefault]) {
-      lynx::devtool::DevToolConfig::SetStopAtEntry(value);
+      lynx::devtool::DevToolConfig::SetStopAtEntry(value, false);
+    }
+  } else if ([type isEqualToString:kSetFetchDebugInfo]) {
+    bool value = [messageDict[kKeyValue] boolValue];
+    if ([key isEqualToString:kKeyMTS]) {
+      lynx::devtool::DevToolConfig::SetFetchDebugInfo(value, true);
     }
   }
   [[DebugRouter instance] sendDataAsync:response WithType:type ForSession:-1];

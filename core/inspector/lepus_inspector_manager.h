@@ -17,8 +17,6 @@ class LepusInspectorManager {
  public:
   virtual ~LepusInspectorManager() = default;
 
-  virtual bool IsDebugEnabled() { return false; }
-
   virtual void InitInspector(
       Context* context, const std::shared_ptr<InspectorLepusObserver>& observer,
       const std::string& context_name) = 0;

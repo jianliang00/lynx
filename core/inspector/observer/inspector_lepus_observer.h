@@ -25,7 +25,7 @@ class InspectorLepusObserver {
   virtual std::unique_ptr<LepusInspectorManager> CreateLepusInspectorManager() {
     return nullptr;
   }
-  virtual bool IsDebugEnabled() { return false; }
+  virtual bool ShouldFetchDebugInfo() { return false; }
   virtual std::string GetDebugInfo(const std::string& url) { return ""; }
   virtual void SetDebugInfoUrl(const std::string& url,
                                const std::string& file_name) = 0;

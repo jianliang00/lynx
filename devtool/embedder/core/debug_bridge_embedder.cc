@@ -86,7 +86,7 @@ void DebugBridgeEmbedder::OnMessage(const std::string& message,
 
     DebugRouter::GetInstance().SendDataAsync(message, "SetGlobalSwitch", -1);
   } else {
-    HandleStopAtEntry(message, type);
+    HandleDevToolConfigMessage(message, type);
   }
 }
 
@@ -97,10 +97,12 @@ void DebugBridgeEmbedder::SetAppInfo(
   }
 }
 
-void DebugBridgeEmbedder::HandleStopAtEntry(const std::string& message,
-                                            const std::string& type) {
+void DebugBridgeEmbedder::HandleDevToolConfigMessage(const std::string& message,
+                                                     const std::string& type) {
   if (type != devtool::kTypeGetStopAtEntry &&
-      type != devtool::kTypeSetStopAtEntry) {
+      type != devtool::kTypeSetStopAtEntry &&
+      type != devtool::kTypeGetFetchDebugInfo &&
+      type != devtool::kTypeSetFetchDebugInfo) {
     return;
   }
   Json::Value content;
@@ -122,7 +124,18 @@ void DebugBridgeEmbedder::HandleStopAtEntry(const std::string& message,
     if (key == devtool::kKeyMTS) {
       lynx::devtool::DevToolConfig::SetStopAtEntry(value, true);
     } else if (key == devtool::kKeyBTS || key == devtool::kKeyDefault) {
-      lynx::devtool::DevToolConfig::SetStopAtEntry(value);
+      lynx::devtool::DevToolConfig::SetStopAtEntry(value, false);
+    }
+  } else if (type == devtool::kTypeGetFetchDebugInfo) {
+    bool result = false;
+    if (key == devtool::kKeyMTS) {
+      result = devtool::DevToolConfig::ShouldFetchDebugInfo(true);
+    }
+    content[devtool::kKeyValue] = result;
+  } else if (type == devtool::kTypeSetFetchDebugInfo) {
+    bool value = content[devtool::kKeyValue].asBool();
+    if (key == devtool::kKeyMTS) {
+      lynx::devtool::DevToolConfig::SetFetchDebugInfo(value, true);
     }
   }
   DebugRouter::GetInstance().SendDataAsync(content.toStyledString(), type, -1);

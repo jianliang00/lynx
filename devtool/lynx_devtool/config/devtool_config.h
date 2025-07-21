@@ -12,12 +12,16 @@ namespace devtool {
 
 class DevToolConfig {
  public:
-  static void SetStopAtEntry(bool stop_at_entry, bool is_lepus = false);
-  static bool ShouldStopAtEntry(bool is_lepus = false);
+  static void SetStopAtEntry(bool stop_at_entry, bool is_mts);
+  static bool ShouldStopAtEntry(bool is_mts);
+
+  static void SetFetchDebugInfo(bool fetch, bool is_mts);
+  static bool ShouldFetchDebugInfo(bool is_mts);
 
  private:
   static std::atomic<bool> should_stop_at_entry_;
-  static std::atomic<bool> should_stop_lepus_at_entry_;
+  static std::atomic<bool> should_stop_mts_at_entry_;
+  static std::atomic<bool> should_fetch_mts_debug_info_;
 };
 
 }  // namespace devtool
