@@ -40,6 +40,10 @@
 
 @end
 
+/**
+ * @apidoc
+ * @brief A client that provides callbacks for `LynxView`'s lifecycle and other events.
+ */
 @protocol
     LynxViewLifecycle <NSObject, LynxTimingListener, LynxJSBTimingListener, LynxViewBaseLifecycle>
 
@@ -50,23 +54,33 @@
              eventType:(NSString *)eventType;
 
 // issue: #1510
+/**
+ * @apidoc
+ * @brief Called when module method invocation completed.
+ * @param view The LynxView instance.
+ * @param method Method name.
+ * @param module Module name.
+ * @param code Error code if module method invocation failed.
+ */
 - (void)lynxView:(LynxView *)view
     didInvokeMethod:(NSString *)method
            inModule:(NSString *)module
           errorCode:(int)code;
 
 /**
- * Notify that content has started loading on LynxView. This method
- * is called once for each content loading request.
+ * @apidoc
+ * @brief Called when page start loading.
+ * @param view The LynxView instance.
+ * @note This method is called once for each content loading request.
  */
 - (void)lynxViewDidStartLoading:(LynxView *)view;
 
 /**
- * Notify that content has been successful loaded on LynxView. This method
- * is called once for each load content request.
- *
- * @param view LynxView
- * @param url  The url of the content
+ * @apidoc
+ * @brief Called when page load finish.
+ * @param view The LynxView instance.
+ * @param url The page URL.
+ * @note This method is called once for each content loading request.
  */
 - (void)lynxView:(LynxView *)view didLoadFinishedWithUrl:(NSString *)url;
 
@@ -81,36 +95,41 @@
     didLoadFinishedWithConfigInfo:(LynxConfigInfo *)info
     __deprecated_msg("This callback will not be invoked, use `didLoadFinishedWithUrl` instead");
 /**
- * Notify that LynxView has been first layout after the content is loaded.
- * You can get performance during loading process of the LynxView at this time.
+ * @apidoc
+ * @brief Called when first screen layout completed.
+ * @param view The LynxView instance.
+ * @note You can get performance during loading process of the LynxView at this time.
  */
 - (void)lynxViewDidFirstScreen:(LynxView *)view;
 
 /**
- * Notify that LynxView has been layout after the content has changed,
- * such as after native updateData, js setData.
+ * @apidoc
+ * @brief Called when page update.
+ * @param view The LynxView instance.
  */
 - (void)lynxViewDidPageUpdate:(LynxView *)view;
 
 /**
- * Notify the JS Runtime is  ready.
+ * @apidoc
+ * @brief Called when JS environment preparation completed.
+ * @param view The LynxView instance.
  */
 - (void)lynxViewDidConstructJSRuntime:(LynxView *)view;
 
 /**
- * Notify that LynxView has been updated after updating data on LynxView,
- * but the view may not be updated.
- * You can get performance during updating perocess of the LynxView at this moment.
+ * @apidoc
+ * @brief Called when data update, but the view may not be updated.
+ * @param view The LynxView instance.
  */
 - (void)lynxViewDidUpdate:(LynxView *)view;
 
-/**
- * Notify the intriniscContentSize has changed.
- */
 - (void)lynxViewDidChangeIntrinsicContentSize:(LynxView *)view;
 
 /**
- * Notify tasm has finished.
+ * @apidoc
+ * @brief Called when native layout finish in ui or most_on_tasm mode, or diff finish in
+ * multi_thread mode.
+ * @param view The LynxView instance.
  */
 - (void)lynxViewOnTasmFinishByNative:(LynxView *)view;
 
@@ -143,27 +162,17 @@
                    error:(NSError *)error
     __attribute__((deprecated("Use `lynxView:didRecieveError:`.")));
 
-/**
- * Notify that LynxView has error happens.
- * @param view which view meets the error.
- * @param error the error object which should be a LynxError instance.
- * @see LynxError for error domain and error code.
- */
 - (void)lynxView:(LynxView *)view didRecieveError:(NSError *)error;
 
-/**
- * Callback for performance data statistics after the first load is completed.
- * NOTE: The callback timing is not fixed due to differences in rendering threads
- * and should not be used as a starting point for any business side.
- * The callback is executed on the main thread.
- */
 - (void)lynxView:(LynxView *)view didReceiveFirstLoadPerf:(LynxPerformance *)perf;
 
 /**
- * Callback for performance statistics after the interface update is completed.
- * NOTE: The callback timing is not fixed due to differences in rendering threads
- * and should not be used as a starting point for any business side.
- * The callback is executed on the main thread.
+ * @apidoc
+ * @brief Performance data statistics callback after the interface update is completed.
+ * @note The timing of the callback is not fixed due to differences in rendering threads, and
+ * should not be used as a starting point for any business side. The callback is in the main
+ * thread.
+ * @param view The LynxView instance.
  */
 - (void)lynxView:(LynxView *)view didReceiveUpdatePerf:(LynxPerformance *)perf;
 
@@ -178,38 +187,36 @@
     API_DEPRECATED("Will be provided by TimingObserver", ios(6.0, API_TO_BE_DEPRECATED));
 
 /**
- * Report the used components after the interface is destroyed.
+ * @apidoc
+ * @brief Return the used component tagName.
+ * @param view The LynxView instance.
+ * @param componentSet The set of component tagName.
  */
 - (void)lynxView:(LynxView *)view didReportComponentInfo:(NSSet<NSString *> *)componentSet;
 
 /**
- * Notify that LynxView will send a touch event to frontend.
- * @param event Event's detail, including eventName, lynxView, etc.
+ * @apidoc
+ * @brief Report Lynx events that sended to frontend.
+ *
+ * @param event LynxEvent that will send to frontend, including eventName, lynxview, etc.
  */
 - (void)onLynxEvent:(LynxEventDetail *)event;
 
 /**
- * @param info Piper's information
- *             "url" : (String)Lynx's url
- *             "module-name" (NSString): module's name
- *             "method-name" (NSString): method's name
- *             "params" (NSArray<id>): (Optional) other necessary parameters
+ * @apidoc
+ * @brief Called when JSBridge invoked.
+ * @param info Piper's information. `url: NSString`: Lynx's url; `module-name: NSString`:
+ * module's name; `method-name: NSString`: method's name; `params: NSArray`: (Optional) other
+ * necessary parameters.
  */
 - (void)onPiperInvoked:(NSDictionary *)info;
 
-/**
- * @param info Piper's response
- *             "url" : (String)Lynx's url
- *             "module-name" (NSString): module's name
- *             "method-name" (NSString): method's name
- *             "session-id"(NSString): method's invoke session key string
- *             "response" (NSArray<Str>): (Optional) jsb response parameters
- */
 - (void)onPiperResponsed:(NSDictionary *)info;
 
 /**
- * Provide a reusable TemplateBundle after template is decode.
- * NOTE: This callback is disabled by default, and you can enable it through the
+ * @apidoc
+ * @brief Provide a reusable TemplateBundle after template is decode.
+ * @note This callback is disabled by default, and you can enable it through the
  * enableRecycleTemplateBundle option in LynxLoadMeta.
  * @param bundle the recycled template bundle, it is nonnull but could be invalid
  */

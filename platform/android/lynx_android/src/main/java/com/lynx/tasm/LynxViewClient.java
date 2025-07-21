@@ -15,25 +15,32 @@ import java.util.Map;
 import java.util.Set;
 import javax.xml.transform.Transformer;
 
+/**
+ * @apidoc
+ * @brief A client that provides callbacks for `LynxView`'s lifecycle and other events.
+ */
 public abstract class LynxViewClient
     extends LynxBackgroundRuntimeClient implements ImageInterceptor {
   // issue: #1510
   /**
-   * Module Method invocation completed
-   * @param module The name of the module
-   * @param method The name of the method
-   * @param error_code The error code
+   * @apidoc
+   * @brief Called when module method invocation completed.
+   * @param module Module name.
+   * @param method Method name.
+   * @param error_code Error code if module method invocation failed.
    */
   public void onModuleMethodInvoked(String module, String method, int error_code) {}
 
   /**
-   * Page starts preparing to load
+   * @apidoc
+   * @brief Called when page start loading.
    * @param url The page URL
    */
   public void onPageStart(@Nullable String url) {}
 
   /**
-   * Page loaded successfully
+   * @apidoc
+   * @brief Called when page load finish.
    */
   public void onLoadSuccess() {}
 
@@ -44,17 +51,20 @@ public abstract class LynxViewClient
   public void onReportLynxConfigInfo(LynxConfigInfo info) {}
 
   /**
-   * First screen layout completed
+   * @apidoc
+   * @brief Called when first screen layout completed.
    */
   public void onFirstScreen() {}
 
   /**
-   * Page update callback
+   * @apidoc
+   * @brief Called when page update.
    */
   public void onPageUpdate() {}
 
   /**
-   * Data update callback
+   * @apidoc
+   * @brief Called when data update, but the view may not be updated.
    */
   public void onDataUpdated() {}
   /**
@@ -66,8 +76,9 @@ public abstract class LynxViewClient
   public void onLoadFailed(String message) {}
 
   /**
-   * JS environment preparation completed
-   * Note: The callback is in an asynchronous thread.
+   * @apidoc
+   * @brief Called when JS environment preparation completed.
+   * @note The callback is in an asynchronous thread.
    */
   public void onRuntimeReady() {}
 
@@ -80,40 +91,46 @@ public abstract class LynxViewClient
   public void onReceivedError(String info) {}
 
   /**
-   * Error received
-   * @param error The type and information of the error
+   * @apidoc
+   * @brief Called when error received.
+   * @param error The type and information of the error.
    */
   public void onReceivedError(LynxError error) {}
 
   /**
-   * Java error received
-   * @param error The type and information of the error
+   * @apidoc
+   * @brief Called when java error received.
+   * @param error The type and information of the error.
    */
   public void onReceivedJavaError(LynxError error) {}
 
   /**
-   * JS error received
-   * @param jsError JS exception information
+   * @apidoc
+   * @brief Called when JS error received.
+   * @param jsError JS exception information.
    */
   public void onReceivedJSError(LynxError jsError) {}
 
   /**
-   * C++ layer error received
-   * @param nativeError Native exception information
+   * @apidoc
+   * @brief Called when C++ layer error received.
+   * @param nativeError Native exception information.
    */
   public void onReceivedNativeError(LynxError nativeError) {}
 
   /**
-   * Performance data statistics callback after the first load is completed.
-   * NOTE: The timing of the callback is not fixed due to differences in rendering threads, and
+   * @apidoc
+   * @brief Performance data statistics callback after the first load is completed.
+   * @note The timing of the callback is not fixed due to differences in rendering threads, and
    * should not be used as a starting point for any business side. The callback is in the main
    * thread.
    */
   public void onFirstLoadPerfReady(LynxPerfMetric metric) {}
 
   /**
-   * Performance data statistics callback after the interface update is completed.
-   * NOTE: The timing of the callback is not fixed due to differences in rendering threads, and
+   * @apidoc
+   * @brief Performance data statistics callback after the interface update is completed.
+   * @note The timing of the callback is not fixed due to differences in rendering threads, and
    * should not be used as a starting point for any business side. The callback is in the main
    * thread.
    */
@@ -129,74 +146,85 @@ public abstract class LynxViewClient
   public void onDynamicComponentPerfReady(HashMap<String, Object> perf) {}
 
   /**
-   * Return the used component tagName
-   * @param mComponentSet immutableSet
+   * @apidoc
+   * @brief Return the used component tagName.
+   * @param mComponentSet The set of component tagName.
    */
   public void onReportComponentInfo(Set<String> mComponentSet) {}
 
   /**
-   * Callback after the page is destroyed
-   * NOTE: The callback is in the main thread
+   * @apidoc
+   * @brief Called after the page is destroyed.
+   * @note The callback executed in the main thread.
    */
   public void onDestroy() {}
 
   /**
-   * If there is no need to update the UI after calling {@link LynxView#updateData}, this method is
-   * called back
+   * @apidoc
+   * @brief If there is no need to update the UI after calling
+   * [`updateData`](../lynx-view/update-data.mdx), this method is called back.
    */
   public void onUpdateDataWithoutChange() {}
 
   /**
-   * When the UI starts scrolling, this method is called back
-   * @param ScrollInfo Contains scroll parameters, including the instance of the scrolling view, and
-   * the front-end specified id and name
+   * @apidoc
+   * @brief Called when the UI start scrolling.
+   * @param info Contains scroll parameters, including the instance of the scrolling view, and
+   * the front-end specified id and name.
    */
   public void onScrollStart(ScrollInfo info) {}
 
   /**
-   * When the UI finishes scrolling, this method is called back
-   * @param ScrollInfo Contains scroll parameters, including the instance of the scrolling view, and
-   * the front-end specified id and name
+   * @apidoc
+   * @brief Called when the UI finished scrolling.
+   * @param info Contains scroll parameters, including the instance of the scrolling view, and
+   * the front-end specified id and name.
    */
   public void onScrollStop(ScrollInfo info) {}
 
   /**
-   * Callback when inertial scrolling starts after releasing the finger
-   * @param ScrollInfo Contains scroll parameters, including the instance of the scrolling view, and
+   * @apidoc
+   * @brief Called when inertial scrolling starts after releasing the finger.
+   * @param info Contains scroll parameters, including the instance of the scrolling view, and
    * the front-end specified id and name
    */
   public void onFling(ScrollInfo info) {}
 
   /**
-   * for async render, flush end will call this
-   *
-   * {@link com.lynx.tasm.behavior.operations.queue.UIOperationQueueAsyncRender}
-   *
-   * @param flushInfo include begin timing, end timing and is sync flush or not
+   * @apidoc
+   * @brief Called when UI flush end in async render mode.
+   * @param flushInfo Contains the begin and end timings of the flush, and whether it is a
+   * synchronous flush.
    */
   public void onFlushFinish(FlushInfo flushInfo) {}
 
   /**
-   * on mode of ui/most_on_tasm, it will be triggered on layout finish by native
-   * on mode of multi_thread, it will be triggered on diff finish by native
+   * @apidoc
+   * @brief Called when native layout finish in ui or most_on_tasm mode, or diff finish in
+   * multi_thread mode.
    */
   public void onTASMFinishedByNative() {}
 
   /**
-   * @param info JSBridge's information
-   *             "url" : (String)Lynx's url
-   *             "module-name" (String): module's name
-   *             "method-name" (String): method's name
-   *             "params" (List<Object>): (Optional) other necessary parameters
+   * @apidoc
+   * @brief Called when JSBridge invoked.
+   * @param info JSBridge's information. `url: String`: Lynx's url; `module-name: String`:
+   * module's name; `method-name: String`: method's name; `params: List<Object>`: (Optional) other
+   * necessary parameters.
    */
   public void onPiperInvoked(Map<String, Object> info) {}
 
+  /**
+   * @apidoc
+   * @brief Called when lynx view and js runtime destroy.
+   */
   public void onLynxViewAndJSRuntimeDestroy() {}
 
   /**
-   * Report all android key events with flag indicating whether has been handeld.
-   * @param event the android key.
-   * @param handled indicate whether the event has been handled(consumed) by lynx.
+   * @apidoc
+   * @brief Report all android key events with flag indicating whether has been handled.
+   * @param event The android key.
+   * @param handled Indicate whether the event has been handled(consumed) by lynx.
    */
   public void onKeyEvent(KeyEvent event, boolean handled) {}
 
@@ -210,7 +238,8 @@ public abstract class LynxViewClient
   public void onCallJSBFinished(Map<String, Object> jsbTiming) {}
 
   /**
-   * Report Lynx events that sended to frontend.
+   * @apidoc
+   * @brief Report Lynx events that sended to frontend.
    *
    * @param detail LynxEvent that will send to frontend, including eventName, lynxview, etc.
    */
@@ -245,10 +274,11 @@ public abstract class LynxViewClient
       @NonNull final CompletionHandler handler) {}
 
   /**
-   * Provide a reusable TemplateBundle after template is decode.
-   * NOTE: This callback is disabled by default, and you can enable it through the
+   * @apidoc
+   * @brief Provide a reusable TemplateBundle after template is decode.
+   * @note This callback is disabled by default, and you can enable it through the
    * DUMP_ELEMENT option or RECYCLE_TEMPLATE_BUNDLE option in LynxLoadMeta.
-   * @param bundle the recycled template bundle, it is nonnull but could be invalid
+   * @param bundle The recycled template bundle, it is nonnull but could be invalid.
    */
   public void onTemplateBundleReady(@NonNull TemplateBundle bundle) {}
 

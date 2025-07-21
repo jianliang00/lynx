@@ -291,7 +291,7 @@
  * @apidoc
  * @brief Register lifecycle event observer for `LynxView`.
  * @param lifecycleClient The structure implemented by the client and registered to the `LynxView`
- *instance is used to obtain the callbacks of each process in the `LynxView` lifecycle.
+ * instance is used to obtain the callbacks of each process in the `LynxView` lifecycle.
  */
 - (void)addLifecycleClient:(nonnull id<LynxViewBaseLifecycle>)lifecycleClient;
 
