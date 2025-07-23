@@ -12,9 +12,7 @@ public enum LynxLoadOption {
   RECYCLE_TEMPLATE_BUNDLE(1 << 2),
   // PROCESS_LAYOUT_WITHOUT_UI_FLUSH:For calculating layout results without UI operations, used for
   // height calculation/pre-layout scenarios.
-  PROCESS_LAYOUT_WITHOUT_UI_FLUSH(1 << 3),
-  // RENDER_FOR_RECREATE_ENGINE: TBD
-  RENDER_FOR_RECREATE_ENGINE(1 << 4);
+  PROCESS_LAYOUT_WITHOUT_UI_FLUSH(1 << 3);
 
   private int mId;
 

@@ -109,7 +109,7 @@ void AddToJavaMap(JavaOnlyMap& map, const std::string& key, const T& vec) {
 }
 
 std::shared_ptr<lynx::tasm::PipelineOptions> ProcessLoadTemplateTimingOption(
-    JNIEnv* env, jlong ptr, jobject j_timing_option, jint options) {
+    JNIEnv* env, jlong ptr, jobject j_timing_option) {
   auto timing_option =
       lynx::tasm::android::ValueConverterAndroid::ConvertJavaOnlyMapToLepus(
           env, j_timing_option);
@@ -130,8 +130,6 @@ std::shared_ptr<lynx::tasm::PipelineOptions> ProcessLoadTemplateTimingOption(
   pipeline_options->pipeline_origin = pipeline_origin;
   pipeline_options->pipeline_start_timestamp = pipeline_start_timestamp;
   pipeline_options->need_timestamps = true;
-  pipeline_options->render_for_recreate_engine =
-      options & lynx::tasm::PipelineOptions::kRenderForRecreateEngine;
   reinterpret_cast<LynxShell*>(ptr)->OnPipelineStart(
       pipeline_options->pipeline_id, pipeline_origin, pipeline_start_timestamp);
 
@@ -147,14 +145,11 @@ std::shared_ptr<lynx::tasm::PipelineOptions> ProcessLoadTemplateTimingOption(
   return pipeline_options;
 }
 
-void InternalLoadTemplate(JNIEnv* env, jlong ptr, jlong lifecycle,
-                          jstring j_url, jbyteArray j_binary,
-                          const Value& value, const bool read_only_value,
-                          bool enable_pre_painting,
-                          const std::string& processor_name,
-                          jobject android_template_data,
-                          bool enable_recycle_template_bundle,
-                          jobject j_timing_option, jint options) {
+void InternalLoadTemplate(
+    JNIEnv* env, jlong ptr, jlong lifecycle, jstring j_url, jbyteArray j_binary,
+    const Value& value, const bool read_only_value, bool enable_pre_painting,
+    const std::string& processor_name, jobject android_template_data,
+    bool enable_recycle_template_bundle, jobject j_timing_option) {
   // TODO(songshourui.null): add a method to get template_data with
   // android_template_data
   std::shared_ptr<lynx::tasm::TemplateData> template_data =
@@ -175,15 +170,11 @@ void InternalLoadTemplate(JNIEnv* env, jlong ptr, jlong lifecycle,
   }
 
   auto pipeline_options =
-      ProcessLoadTemplateTimingOption(env, ptr, j_timing_option, options);
-  pipeline_options->enable_pre_painting = enable_pre_painting;
-  pipeline_options->enable_recycle_template_bundle =
-      enable_recycle_template_bundle;
-
+      ProcessLoadTemplateTimingOption(env, ptr, j_timing_option);
   reinterpret_cast<LynxShell*>(ptr)->LoadTemplate(
       JNIConvertHelper::ConvertToString(env, j_url),
       JNIConvertHelper::ConvertJavaBinary(env, j_binary), pipeline_options,
-      template_data);
+      template_data, enable_pre_painting, enable_recycle_template_bundle);
   AtomicLifecycle::TryFree(lifecycle_ptr);
 }
 
@@ -499,23 +490,21 @@ void LoadTemplateByPreParsedData(JNIEnv* env, jclass jcaller, jlong ptr,
                                  jbyteArray j_binary, jint is_pre_painting,
                                  jboolean enable_recycle_template_bundle,
                                  jlong data, jboolean readOnly, jstring name,
-                                 jobject template_data, jint options,
+                                 jobject template_data,
                                  jobject j_timing_option) {
   std::string processor_name = JNIConvertHelper::ConvertToString(env, name);
   InternalLoadTemplate(env, ptr, lifecycle, j_url, j_binary,
                        data ? *(reinterpret_cast<Value*>(data)) : Value(),
                        readOnly, is_pre_painting == 1, processor_name,
                        template_data, enable_recycle_template_bundle,
-                       j_timing_option, options);
+                       j_timing_option);
 }
 
-void LoadTemplateBundleByPreParsedData(JNIEnv* env, jclass jcaller, jlong ptr,
-                                       jlong lifecycle, jstring j_url,
-                                       jlong bundlePtr, jint is_pre_painting,
-                                       jlong data, jboolean readOnly,
-                                       jstring processorName,
-                                       jobject android_template_data,
-                                       jint options, jobject j_timing_option) {
+void LoadTemplateBundleByPreParsedData(
+    JNIEnv* env, jclass jcaller, jlong ptr, jlong lifecycle, jstring j_url,
+    jlong bundlePtr, jint is_pre_painting, jlong data, jboolean readOnly,
+    jstring processorName, jobject android_template_data,
+    jboolean enable_dump_element, jobject j_timing_option) {
   // TODO(songshourui.null): add a method to get template_data with
   // android_template_data
   std::string processor_name =
@@ -550,11 +539,10 @@ void LoadTemplateBundleByPreParsedData(JNIEnv* env, jclass jcaller, jlong ptr,
     return;
   }
   auto pipeline_options =
-      ProcessLoadTemplateTimingOption(env, ptr, j_timing_option, options);
-  pipeline_options->enable_pre_painting = (is_pre_painting == 1);
-
+      ProcessLoadTemplateTimingOption(env, ptr, j_timing_option);
   reinterpret_cast<LynxShell*>(ptr)->LoadTemplateBundle(
-      url, std::move(copied_bundle), pipeline_options, template_data);
+      url, std::move(copied_bundle), pipeline_options, template_data,
+      is_pre_painting == 1, enable_dump_element);
   AtomicLifecycle::TryFree(lifecycle_ptr);
 }
 
@@ -690,7 +678,7 @@ void ReloadTemplate(JNIEnv* env, jclass jcaller, jlong ptr, jlong lifecycle,
   }
   reinterpret_cast<LynxShell*>(ptr)->ResetTimingBeforeReload();
   auto pipeline_options =
-      ProcessLoadTemplateTimingOption(env, ptr, j_timing_option, 0);
+      ProcessLoadTemplateTimingOption(env, ptr, j_timing_option);
   pipeline_options->is_reload_template = true;
   /*
    * Null j global props -> Nil Value;

@@ -67,15 +67,6 @@ class Element;
 class PipelineVersion;
 
 struct PipelineOptions {
-  // TODO(songshourui.null): The platform layer's LoadTemplate can accept these
-  // options, which are directly mapped to the platform-layer LynxLoadOption
-  // enums. A centralized source of truth should be maintained, with other
-  // configurations generated from this source.
-  static const int32_t kDumpElement = 0x01 << 1;
-  static const int32_t kRecycleTemplateBundle = 0x01 << 2;
-  static const int32_t kProcessLayoutWithoutUIFlush = 0x01 << 3;
-  static const int32_t kRenderForRecreateEngine = 0x01 << 4;
-
   // TODO(kechenglong): impl ToLepusValue here.
   // Default constructor that generates a unique PipelineID
   explicit PipelineOptions() {
@@ -86,11 +77,8 @@ struct PipelineOptions {
   PipelineID pipeline_id;
   PipelineOrigin pipeline_origin;
   uint64_t pipeline_start_timestamp;
-
-  int64_t operation_id = 0;
-
   bool need_timestamps{false};
-
+  int64_t operation_id = 0;
   bool is_first_screen = false;
   // true if triggered by reloadTemplate, used to mark setup timing
   bool is_reload_template = false;
@@ -104,16 +92,8 @@ struct PipelineOptions {
   bool force_resolve_style_ = false;
   // Whether mark entire tree dirty and reset style sheet or not.
   bool force_update_style_sheet_ = false;
-  // Indicate this option is created in on scripting start
+  // indicate this option is created in on scripting start
   bool created_in_on_scripting_start_ = false;
-  // Indicate this pipeline is executed in pre painting mode.
-  bool enable_pre_painting = false;
-  // Indicate this pipeline need recycle template bundle.
-  bool enable_recycle_template_bundle = false;
-  // Indicate this pipeline need dump element tree.
-  bool enable_dump_element_tree = false;
-  // Indicate this pipeline is executed for a 'recreate' engine.
-  bool render_for_recreate_engine = false;
 
   // This variable records the order of native update data. Used for syncFlush
   // only.

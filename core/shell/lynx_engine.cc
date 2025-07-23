@@ -76,7 +76,8 @@ void LynxEngine::Init() {
 void LynxEngine::LoadTemplate(
     const std::string& url, std::vector<uint8_t> source,
     const std::shared_ptr<tasm::TemplateData>& template_data,
-    std::shared_ptr<tasm::PipelineOptions> pipeline_options) {
+    std::shared_ptr<tasm::PipelineOptions> pipeline_options,
+    const bool enable_pre_painting, bool enable_recycle_template_bundle) {
   TRACE_EVENT(LYNX_TRACE_CATEGORY, LYNX_ENGINE_LOAD_TEMPLATE, "url", url,
               INSTANCE_ID, instance_id_);
   tasm::TimingCollector::Scope<Delegate> scope(delegate_.get(),
@@ -85,13 +86,15 @@ void LynxEngine::LoadTemplate(
   tasm::timing::LongTaskMonitor::Scope longTaskScope(
       tasm_->GetPageOptions(), tasm::timing::kLoadTemplateTask,
       tasm::timing::kTaskNameLynxEngineLoadTemplate);
-  tasm_->LoadTemplate(url, std::move(source), template_data, pipeline_options);
+  tasm_->LoadTemplate(url, std::move(source), template_data, pipeline_options,
+                      enable_pre_painting, enable_recycle_template_bundle);
 }
 
 void LynxEngine::LoadTemplateBundle(
     const std::string& url, tasm::LynxTemplateBundle template_bundle,
     const std::shared_ptr<tasm::TemplateData>& template_data,
-    std::shared_ptr<tasm::PipelineOptions> pipeline_options) {
+    std::shared_ptr<tasm::PipelineOptions> pipeline_options,
+    const bool enable_pre_painting, bool enable_dump_element_tree) {
   TRACE_EVENT(LYNX_TRACE_CATEGORY, LYNX_ENGINE_LOAD_TEMPLATE_BUNDLE, "url", url,
               INSTANCE_ID, instance_id_);
   tasm::TimingCollector::Scope<Delegate> scope(delegate_.get(),
@@ -101,7 +104,8 @@ void LynxEngine::LoadTemplateBundle(
       tasm_->GetPageOptions(), tasm::timing::kLoadTemplateTask,
       tasm::timing::kTaskNameLynxEngineLoadTemplate);
   tasm_->LoadTemplateBundle(url, std::move(template_bundle), template_data,
-                            pipeline_options);
+                            pipeline_options, enable_pre_painting,
+                            enable_dump_element_tree);
 }
 
 void LynxEngine::LoadSSRData(

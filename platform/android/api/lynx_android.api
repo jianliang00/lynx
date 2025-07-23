@@ -5069,7 +5069,6 @@ public enum com::lynx::tasm::LynxLoadOption {
   public com.lynx.tasm.LynxLoadOption.DUMP_ELEMENT DUMP_ELEMENT;
   public com.lynx.tasm.LynxLoadOption.RECYCLE_TEMPLATE_BUNDLE RECYCLE_TEMPLATE_BUNDLE;
   public com.lynx.tasm.LynxLoadOption.PROCESS_LAYOUT_WITHOUT_UI_FLUSH PROCESS_LAYOUT_WITHOUT_UI_FLUSH;
-  public com.lynx.tasm.LynxLoadOption.RENDER_FOR_RECREATE_ENGINE RENDER_FOR_RECREATE_ENGINE;
   public com.lynx.tasm.LynxLoadOption.LynxLoadOption(int id);
   public int com.lynx.tasm.LynxLoadOption.id();
 }

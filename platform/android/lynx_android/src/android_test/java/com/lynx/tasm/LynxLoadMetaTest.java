@@ -35,8 +35,8 @@ public class LynxLoadMetaTest {
 
     assertEquals(meta.url, "http://my-template.js");
     assertEquals(meta.loadMode, LynxLoadMode.NORMAL);
-    assertTrue(meta.getLoadOption().contains(LynxLoadOption.DUMP_ELEMENT));
-    assertTrue(meta.getLoadOption().contains(LynxLoadOption.RECYCLE_TEMPLATE_BUNDLE));
+    assertTrue(meta.loadOptions.contains(LynxLoadOption.DUMP_ELEMENT));
+    assertTrue(meta.loadOptions.contains(LynxLoadOption.RECYCLE_TEMPLATE_BUNDLE));
     assertTrue(meta.initialData.isEmpty());
   }
 }

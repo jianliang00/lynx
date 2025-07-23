@@ -810,7 +810,8 @@ void TemplateAssembler::DidLoadTemplate() {
 void TemplateAssembler::LoadTemplateBundle(
     const std::string& url, LynxTemplateBundle template_bundle,
     const std::shared_ptr<TemplateData>& template_data,
-    std::shared_ptr<PipelineOptions>& pipeline_options) {
+    std::shared_ptr<PipelineOptions>& pipeline_options,
+    const bool enable_pre_painting, bool enable_dump_element_tree) {
   // TODO (nihao.royal) add testbench for LoadTemplateBundle.
 #if ENABLE_TESTBENCH_RECORDER
   tasm::recorder::TemplateAssemblerRecorder::RecordLoadTemplateBundle(
@@ -820,7 +821,7 @@ void TemplateAssembler::LoadTemplateBundle(
     client->SetRecordId(record_id_);
   }
 #endif
-  pre_painting_ = pipeline_options->enable_pre_painting;
+  pre_painting_ = enable_pre_painting;
   if (pre_painting_) {
     page_proxy_.SetPrePaintingStage(PrePaintingStage::kStartPrePainting);
   }
@@ -830,7 +831,7 @@ void TemplateAssembler::LoadTemplateBundle(
 
   if (page_proxy_.element_manager()) {
     page_proxy_.element_manager()->SetEnableDumpElementTree(
-        pipeline_options->enable_dump_element_tree);
+        enable_dump_element_tree);
   }
   TimingCollector::Instance()->Mark(tasm::timing::kTemplateBundleParseStart,
                                     template_bundle.decode_start_timestamp_);
@@ -849,7 +850,8 @@ void TemplateAssembler::LoadTemplateBundle(
 void TemplateAssembler::LoadTemplate(
     const std::string& url, std::vector<uint8_t> source,
     const std::shared_ptr<TemplateData>& template_data,
-    std::shared_ptr<PipelineOptions>& pipeline_options) {
+    std::shared_ptr<PipelineOptions>& pipeline_options,
+    const bool enable_pre_painting, bool enable_recycle_template_bundle) {
 #if ENABLE_TESTBENCH_RECORDER
   // test-bench actions
   tasm::recorder::TemplateAssemblerRecorder::RecordLoadTemplate(
@@ -861,16 +863,13 @@ void TemplateAssembler::LoadTemplate(
 #endif
   source_size_ = source.size();
   url_ = url;
-  pre_painting_ = pipeline_options->enable_pre_painting;
-  ;
+  pre_painting_ = enable_pre_painting;
   if (pre_painting_) {
     page_proxy_.SetPrePaintingStage(PrePaintingStage::kStartPrePainting);
   }
   LoadTemplateInternal(
       url, template_data, pipeline_options,
-      [this, source = std::move(source),
-       enable_recycle_template_bundle =
-           pipeline_options->enable_recycle_template_bundle](
+      [this, source = std::move(source), enable_recycle_template_bundle](
           const std::shared_ptr<TemplateEntry>& card_entry) mutable {
         if (!FromBinary(card_entry, std::move(source))) {
           return false;

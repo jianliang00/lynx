@@ -388,8 +388,8 @@ void DataBindingShell::TasmLoadTemplate(
     const std::string& url, std::vector<uint8_t> source,
     const std::shared_ptr<TemplateData>& template_data) {
   auto pipeline_options = std::make_shared<PipelineOptions>();
-  pipeline_options->enable_pre_painting = test_pre_painting_;
-  tasm_->LoadTemplate(url, std::move(source), template_data, pipeline_options);
+  tasm_->LoadTemplate(url, std::move(source), template_data, pipeline_options,
+                      test_pre_painting_);
 }
 
 void DataBindingLoadTemplateBundleShell::TasmLoadTemplate(
@@ -416,9 +416,8 @@ void DataBindingLoadTemplateBundleShell::TasmLoadTemplate(
   template_bundle.PrepareLepusContext(1);
 
   auto pipeline_options = std::make_shared<PipelineOptions>();
-  pipeline_options->enable_pre_painting = test_pre_painting_;
   tasm_->LoadTemplateBundle(url, std::move(template_bundle), template_data,
-                            pipeline_options);
+                            pipeline_options, test_pre_painting_);
 }
 
 void DataBindingTemplateBundleRecycleShell::TasmLoadTemplate(
@@ -430,18 +429,15 @@ void DataBindingTemplateBundleRecycleShell::TasmLoadTemplate(
   // get recycled bundle
   {
     DataBindingShell mock_shell;
-    pipeline_options->enable_pre_painting = false;
-    pipeline_options->enable_recycle_template_bundle = true;
     mock_shell.tasm_->LoadTemplate(url, std::move(source), nullptr,
-                                   pipeline_options);
+                                   pipeline_options, false, true);
     recycled_bundle = mock_shell.delegate_->GetTemplateBundle();
   }
 
   // load with recycled bundle
   auto another_pipeline_options = std::make_shared<PipelineOptions>();
-  another_pipeline_options->enable_pre_painting = test_pre_painting_;
   tasm_->LoadTemplateBundle(url, std::move(recycled_bundle), template_data,
-                            another_pipeline_options);
+                            another_pipeline_options, test_pre_painting_);
 }
 
 void DataBindingShell::UpdateDataByJS(const lepus::Value& table) {
