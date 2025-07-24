@@ -47,21 +47,21 @@ def generate_zip_file(src_dir, tag, component):
             podspec_name = filename.split('.')[0]
             if component == podspec_name or component == 'all':
                 print(f'Generating zip file for {podspec_name}')
-                run_command(f'export PACKAGE_ENV=prod && geniospkg --output_type zip --repo {podspec_name} --tag {tag} --cache_path lynx --no_json')
+                run_command(f'export PACKAGE_ENV=prod && geniospkg --output_type both --repo {podspec_name} --tag {tag} --cache_path lynx')
 
-def get_enable_trace_param(tag: str) -> str:
+def get_enable_trace_param(version: str) -> str:
     """
-    Returns '--enable-trace' if the tag ends with '-dev', otherwise returns an empty string.
+    Returns '--enable-trace' if the version ends with '-dev', otherwise returns an empty string.
     Args:
-        tag (str): The tag string to check.
+        version (str): The version string to check.
     Returns:
-        str: '--enable-trace' if tag ends with '-dev', else ''.
+        str: '--enable-trace' if version ends with '-dev', else ''.
     """
-    if tag.endswith('-dev'):
+    if version.endswith('-dev'):
         return '--enable-trace'
     return ''
 
-def prepare_cocoapods_publish_source(tag, component):
+def prepare_cocoapods_publish_source(version, tag, component):
     root_path = os.path.dirname(os.path.dirname(os.path.dirname(os.path.abspath(__file__))))
 
     # change to root path
@@ -69,13 +69,13 @@ def prepare_cocoapods_publish_source(tag, component):
 
     print('Start prepare cocoapods publish source')
     print('1. Replace lynx version')
-    replace_lynx_version(tag)
+    replace_lynx_version(version)
 
     print('2. Generate podspec files')
-    run_command(f'python3 tools/ios_tools/generate_podspec_scripts_by_gn.py --root {root_path} {get_enable_trace_param(tag)}')
+    run_command(f'python3 tools/ios_tools/generate_podspec_scripts_by_gn.py --root {root_path} {get_enable_trace_param(version)}')
 
     print('3. Generate lynx_core.js')
-    run_command(f'python3 tools/js_tools/build.py --platform ios --release_output platform/darwin/ios/JSAssets/release/lynx_core.js --dev_output platform/darwin/ios/lynx_devtool/assets/lynx_core_dev.js --version {tag}')
+    run_command(f'python3 tools/js_tools/build.py --platform ios --release_output platform/darwin/ios/JSAssets/release/lynx_core.js --dev_output platform/darwin/ios/lynx_devtool/assets/lynx_core_dev.js --version {version}')
 
     print('4. Generate zip files')
     generate_zip_file(root_path, tag, component)
@@ -131,36 +131,31 @@ def pod_lint_component(component, local_pod_source_name):
     # podspec.json will write the current directory path into itself
     run_command(f'bundle exec pod spec lint {component}.podspec.json --sources=trunk,{local_pod_source_name} --verbose --skip-import-validation --allow-warnings --skip-tests')
 
-def publish_component(component, sources, tag):
+def publish_component(component, sources):
     if sources != None:
-        run_command(f'export PACKAGE_ENV=prod && geniospkg --repo {component} --tag {tag} --public_repo --cache_path lynx')
         run_command(f'COCOAPODS_TRUNK_TOKEN=$COCOAPODS_TRUNK_TOKEN bundle exec pod trunk push {component}.podspec.json --verbose --skip-import-validation --allow-warnings --skip-tests --sources={sources}')
     else:
-        run_command(f'export PACKAGE_ENV=prod && geniospkg --repo {component} --tag {tag} --public_repo --cache_path lynx')
         run_command(f'COCOAPODS_TRUNK_TOKEN=$COCOAPODS_TRUNK_TOKEN bundle exec pod trunk push {component}.podspec.json --verbose --skip-import-validation --allow-warnings --skip-tests')
 
 
-def publish_to_cocoapods(component, sources, tag):
-    root_path = os.path.dirname(os.path.dirname(os.path.dirname(os.path.dirname(os.path.abspath(__file__)))))
-    # change to root path
-    os.chdir(root_path)
+def publish_to_cocoapods(component, sources):
     print(f'Start publish {component} to cocoapods')
     if component == 'all':
         # publish in order: Lynx -> BaseDevtool -> LynxDevtool -> LynxService
-        publish_component('Lynx', sources, tag)
-        publish_component('BaseDevtool', sources, tag)
-        publish_component('LynxDevtool', sources, tag)
-        publish_component('LynxService', sources, tag)
-        publish_component('XElement', sources, tag)
+        publish_component('Lynx', sources)
+        publish_component('BaseDevtool', sources)
+        publish_component('LynxDevtool', sources)
+        publish_component('LynxService', sources)
+        publish_component('XElement', sources)
     else:
-        publish_component(component, sources, tag)
+        publish_component(component, sources)
 
 
 def main():
     """
-    usage: 1. 'python3 cocoapods_publish_helper.py --prepare-source --tag <tag> --component <component>'
+    usage: 1. 'python3 cocoapods_publish_helper.py --prepare-source --version <version> --component <component>'
            2. 'python3 cocoapods_publish_helper.py --publish --component <component> --sources <sources>'
-    like : 1. python3 publish_pod_to_cocoapods.py --prepare-source --tag 0.0.1 --component Lynx
+    like : 1. python3 publish_pod_to_cocoapods.py --prepare-source --version 0.0.1 --component Lynx
            2. python3 publish_pod_to_cocoapods.py --publish --component Lynx --sources 'https://cdn.cocoapods.org'
     """
     parser = argparse.ArgumentParser()
@@ -168,7 +163,9 @@ def main():
     parser.add_argument(
         "--prepare-source", action="store_true", help="Prepare the source for publishing"
     )
-    parser.add_argument('--tag', type=str, help='the release version of lynx', required=False)
+    # When publishing a dev version, the tag does not match the version. The version is formatted as version="{tag}-dev"
+    parser.add_argument('--tag', type=str, help='the release tag of lynx', required=False)
+    parser.add_argument('--version', type=str, help='the pod version of lynx', required=False)
     parser.add_argument(
         "--publish", action="store_true", help="Publish to cocoapods"
     )
@@ -177,9 +174,9 @@ def main():
 
     args = parser.parse_args()
     if args.prepare_source:
-        prepare_cocoapods_publish_source(args.tag, args.component)
+        prepare_cocoapods_publish_source(args.version, args.tag, args.component)
     elif args.publish:
-        publish_to_cocoapods(args.component, args.sources, args.tag)
+        publish_to_cocoapods(args.component, args.sources)
     elif args.pod_lint:
         run_pod_lint(args.component)
     else:

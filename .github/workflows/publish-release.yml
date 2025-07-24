@@ -131,26 +131,21 @@ jobs:
           cache-backend: github
       - name: Setup Ruby Cache
         uses: ./lynx/.github/actions/ios-common-deps
-      - name: Prepare cocoapods publish source
-        run: |-
-          cd $GITHUB_WORKSPACE/lynx
-          source tools/envsetup.sh
-          python3 tools/ios_tools/cocoapods_publish_helper.py --prepare-source --tag ${{ inputs.version }} --component all
-      - name: Push iOS SDK to release
-        uses: ncipollo/release-action@v1
+      - name: Publish iOS SDK
+        uses: ./lynx/.github/actions/ios-sdk-publish
         with:
+          version: ${{ inputs.version }}
           tag: ${{ inputs.version }}
-          token: ${{ secrets.GITHUB_TOKEN }}
-          artifacts: '${{ github.workspace }}/lynx/*.zip'
-          replacesArtifacts: true
-          allowUpdates: true
-      - name: Publish to CocoaPods Repo
+          cocoapods_trunk_token: ${{ secrets.COCOAPODS_TRUNK_TOKEN }}
+          github_token: ${{ secrets.GITHUB_TOKEN }}
+          component: all
+      - name: Publish iOS dev SDK
+        uses: ./lynx/.github/actions/ios-sdk-publish
         env:
-          COCOAPODS_TRUNK_TOKEN: ${{ secrets.COCOAPODS_TRUNK_TOKEN }}
-        run: |-
-          cd $GITHUB_WORKSPACE/lynx
-          source tools/envsetup.sh
-          git config --global user.name "lynx.authors"
-          git config --global user.email "lynx.authors@users.noreply.github.com"
-          python3 tools/ios_tools/skip_pod_lint.py --source public
-          python3 tools/ios_tools/cocoapods_publish_helper.py --publish --component all  --tag ${{ inputs.version }}
+          LYNX_ENABLE_RECORDER: 1
+        with:
+          version: ${{ inputs.version }}-dev
+          tag: ${{ inputs.version }}
+          cocoapods_trunk_token: ${{ secrets.COCOAPODS_TRUNK_TOKEN }}
+          github_token: ${{ secrets.GITHUB_TOKEN }}
+          component: all
