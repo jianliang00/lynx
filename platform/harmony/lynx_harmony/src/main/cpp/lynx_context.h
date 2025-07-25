@@ -14,6 +14,7 @@
 #include <unordered_map>
 #include <utility>
 
+#include "base/include/base_export.h"
 #include "base/include/closure.h"
 #include "base/include/fml/task_runner.h"
 #include "core/base/threading/vsync_monitor.h"
@@ -256,7 +257,7 @@ class LynxContext {
   const LynxContext::NodeInfo* GetNodeInfo(const std::string& node_name);
   void RegisterNodeInfo(const std::string& node_name, NodeInfo node_info);
 
-  int32_t GetInstanceId() const;
+  BASE_EXPORT int32_t GetInstanceId() const;
   fluency::harmony::FluencyTraceHelperHarmony& GetFluencyTraceHelper();
 
   void SetEnableTextOverflow(bool enable) { enable_text_overflow_ = enable; }
