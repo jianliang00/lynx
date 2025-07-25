@@ -213,7 +213,6 @@ std::shared_ptr<Buffer> JsCacheManager::TryGetCache(
                                          true, false);
     return nullptr;
   }
-
   LOGI("bytecode enabled"
        << ", url: '" << source_url << "', template_url: '" << template_url
        << "', file_content size:" << buffer->size());
@@ -226,23 +225,24 @@ std::shared_ptr<Buffer> JsCacheManager::TryGetCache(
               });
 
   std::optional<std::string> md5_optional;
-  std::scoped_lock<std::mutex> lock(cache_lock_);
 
   // try to load cache from memory
-  if (runtime::IsKernelJs(source_url) && !cache_.empty()) {
-    auto cache_it = cache_.find(source_url);
-    if (cache_it != cache_.end()) {
-      LOGI("cache loaded from memory, size: " << cache_it->second->size()
-                                              << " bytes");
-      JsCacheTracker::OnGetBytecode(
-          runtime_id, engine_type_, source_url, true, true, true,
-          JsCacheType::MEMORY, JsCacheErrorCode::NO_ERROR,
-          base::CurrentTimeMilliseconds() - cost_start,
-          cache_it->second->size());
-      return cache_it->second;
+  if (runtime::IsKernelJs(source_url)) {
+    std::scoped_lock<std::recursive_mutex> lock(cache_lock_);
+    if (!cache_.empty()) {
+      auto cache_it = cache_.find(source_url);
+      if (cache_it != cache_.end()) {
+        LOGI("cache loaded from memory, size: " << cache_it->second->size()
+                                                << " bytes");
+        JsCacheTracker::OnGetBytecode(
+            runtime_id, engine_type_, source_url, true, true, true,
+            JsCacheType::MEMORY, JsCacheErrorCode::NO_ERROR,
+            base::CurrentTimeMilliseconds() - cost_start,
+            cache_it->second->size());
+        return cache_it->second;
+      }
     }
   }
-
   auto identifier = BuildIdentifier(source_url, template_url);
   // try get bytecode from external
   if (bytecode_getter) {
@@ -257,11 +257,10 @@ std::shared_ptr<Buffer> JsCacheManager::TryGetCache(
     }
   }
 
-  auto file_info = GetMetaData().GetFileInfo(identifier);
   JsCacheErrorCode error_code = JsCacheErrorCode::META_FILE_READ_ERROR;
-  if (file_info) {
+  {
     auto cache =
-        LoadCacheFromStorage(*file_info, EnsureMd5(buffer, md5_optional));
+        LoadCacheFromStorage(identifier, EnsureMd5(buffer, md5_optional));
     if (cache) {
       LOGI("cache loaded from storage, size: " << cache->size() << " bytes");
       if (runtime::IsKernelJs(source_url)) {
@@ -273,8 +272,6 @@ std::shared_ptr<Buffer> JsCacheManager::TryGetCache(
           JsCacheType::FILE, JsCacheErrorCode::NO_ERROR,
           base::CurrentTimeMilliseconds() - cost_start, cache->size());
       return cache;
-    } else {
-      error_code = JsCacheErrorCode::CACHE_FILE_READ_ERROR;
     }
   }
 
@@ -417,15 +414,13 @@ void JsCacheManager::RunTask(TaskInfo &task) {
   for (const auto &generator : generators) {
     auto identifier = BuildIdentifier(generator->SourceUrl(), template_key);
     if (type == TaskInfo::TaskType::GENERATE_CACHE_IF_NEEDED) {
-      if (auto info = GetMetaData().GetFileInfo(identifier)) {
-        if (auto cache = LoadCacheFromStorage(
-                *info, EnsureMd5(generator->SrcBuffer(), md5_optional))) {
-          if (callback) {
-            generator_results[GetCacheUrlFromIdentifier(identifier)] =
-                std::move(cache);
-          }
-          continue;
+      if (auto cache = LoadCacheFromStorage(
+              identifier, EnsureMd5(generator->SrcBuffer(), md5_optional))) {
+        if (callback) {
+          generator_results[GetCacheUrlFromIdentifier(identifier)] =
+              std::move(cache);
         }
+        continue;
       }
     }
     std::string file_md5 = EnsureMd5(generator->SrcBuffer(), md5_optional);
@@ -456,7 +451,6 @@ void JsCacheManager::RunTask(TaskInfo &task) {
     }
     auto generate_cost = base::CurrentTimeMilliseconds() - start;
 
-    std::scoped_lock<std::mutex> guard(cache_lock_);
     if (runtime::IsKernelJs(identifier.url)) {
       SaveCacheToMemory(identifier.url, cache_buffer);
     }
@@ -483,7 +477,13 @@ void JsCacheManager::RunTask(TaskInfo &task) {
 }
 
 std::shared_ptr<Buffer> JsCacheManager::LoadCacheFromStorage(
-    const CacheFileInfo &file_info, const std::string &file_md5) {
+    JsFileIdentifier &identifier, const std::string &file_md5) {
+  auto locked_meta_data = GetLockedMetaData();
+  auto opt_info = locked_meta_data->GetFileInfo(identifier);
+  if (!opt_info) {
+    return nullptr;
+  }
+  auto file_info = *opt_info;
   std::string cache;
   if (file_info.md5 != file_md5 || !ReadFile(MakeFilename(file_md5), cache) ||
       cache.size() != file_info.cache_size) {
@@ -496,13 +496,13 @@ std::shared_ptr<Buffer> JsCacheManager::LoadCacheFromStorage(
     }
     std::string path = MakePath(MakeFilename(file_info.md5));
     unlink(path.c_str());
-    GetMetaData().RemoveFileInfo(file_info.identifier);
     // there's no need to save metadata to storage here. it will be saved
     // in the progress of generating cache later.
+    locked_meta_data->RemoveFileInfo(identifier);
     return nullptr;
   }
 
-  UpdateLastAccessTime(file_info);
+  UpdateLastAccessTime(locked_meta_data, file_info);
   return std::make_shared<StringBuffer>(std::move(cache));
 }
 
@@ -511,8 +511,10 @@ bool JsCacheManager::SaveCacheContentToStorage(
     const std::string &file_md5, JsCacheErrorCode &error_code) {
   LOGI("SaveCacheContentToStorage template_url=' "
        << identifier.template_url << "', url='" << identifier.url << "'");
-  GetMetaData().UpdateFileInfo(identifier, file_md5, cache->size());
-  std::string json = GetMetaData().ToJson();
+
+  auto locked_meta_data = GetLockedMetaData();
+  locked_meta_data->UpdateFileInfo(identifier, file_md5, cache->size());
+  std::string json = locked_meta_data->ToJson();
   LOGV("metadata: " << json);
   if (!WriteFile(METADATA_FILE_NAME, reinterpret_cast<uint8_t *>(json.data()),
                  json.size())) {
@@ -530,18 +532,20 @@ bool JsCacheManager::SaveCacheContentToStorage(
 }
 
 // update only when (now - last_accessed) >= MIN_ACCESS_TIME_UPDATE_INTERVAL.
-bool JsCacheManager::UpdateLastAccessTime(const CacheFileInfo &info) {
+bool JsCacheManager::UpdateLastAccessTime(LockedMetaData &locked_meta_data,
+                                          const CacheFileInfo &info) {
   auto now = std::chrono::system_clock::now();
   auto last_accessed = std::chrono::time_point<std::chrono::system_clock>(
       std::chrono::seconds(info.last_accessed));
-  GetMetaData().UpdateLastAccessTimeIfExists(info.identifier);
+
+  locked_meta_data->UpdateLastAccessTimeIfExists(info.identifier);
   if (now - last_accessed < MIN_ACCESS_TIME_UPDATE_INTERVAL) {
     return true;
   }
 
   LOGI("UpdateLastAccessTime: " << info.identifier.template_url << " "
                                 << info.identifier.url);
-  std::string json = GetMetaData().ToJson();
+  std::string json = locked_meta_data->ToJson();
   LOGV("metadata: " << json);
   if (!WriteFile(METADATA_FILE_NAME, reinterpret_cast<uint8_t *>(json.data()),
                  json.size())) {
@@ -552,18 +556,17 @@ bool JsCacheManager::UpdateLastAccessTime(const CacheFileInfo &info) {
 }
 
 void JsCacheManager::ClearCache(std::string_view template_url_key) {
-  std::lock_guard<std::mutex> lock(cache_lock_);
-  // calc time spend.
   auto begin = base::CurrentTimeMilliseconds();
-  auto removed_cfi = GetMetaData().GetAllCacheFileInfo(template_url_key);
+  auto locked_meta_data = GetLockedMetaData();
+  auto removed_cfi = locked_meta_data->GetAllCacheFileInfo(template_url_key);
   size_t cleaned_size = 0;
   for (auto &info : removed_cfi) {
     cleaned_size += info.cache_size;
     auto file_name = MakeFilename(info.md5);
     unlink(MakePath(file_name).c_str());
-    GetMetaData().RemoveFileInfo(info.identifier);
+    locked_meta_data->RemoveFileInfo(info.identifier);
   }
-  std::string json = GetMetaData().ToJson();
+  std::string json = locked_meta_data->ToJson();
   LOGV("metadata: " << json);
   JsCacheErrorCode error_code = JsCacheErrorCode::NO_ERROR;
   if (!WriteFile(METADATA_FILE_NAME, reinterpret_cast<uint8_t *>(json.data()),
@@ -578,16 +581,15 @@ void JsCacheManager::ClearCache(std::string_view template_url_key) {
 }
 
 void JsCacheManager::ClearInvalidCache() {
-  std::lock_guard<std::mutex> lock(cache_lock_);
-  // calc time spend.
   auto begin = base::CurrentTimeMilliseconds();
+  auto locked_meta_data = GetLockedMetaData();
   const auto expired_time_seconds = ExpiredSeconds();
   const auto max_cache_size = MaxCacheSize();
   // for calc expired time.
   int64_t now = std::chrono::duration_cast<std::chrono::seconds>(
                     std::chrono::system_clock::now().time_since_epoch())
                     .count();
-  auto all_cache_file_info = GetMetaData().GetAllCacheFileInfo();
+  auto all_cache_file_info = locked_meta_data->GetAllCacheFileInfo();
   // record total size
   size_t total_size = 0;
   size_t cleaned_size = 0;
@@ -627,9 +629,9 @@ void JsCacheManager::ClearInvalidCache() {
   for (auto &info : removed_cfi) {
     auto file_name = MakeFilename(info.md5);
     unlink(MakePath(file_name).c_str());
-    GetMetaData().RemoveFileInfo(info.identifier);
+    locked_meta_data->RemoveFileInfo(info.identifier);
   }
-  std::string json = GetMetaData().ToJson();
+  std::string json = locked_meta_data->ToJson();
   LOGV("metadata: " << json);
   JsCacheErrorCode error_code = JsCacheErrorCode::NO_ERROR;
   if (!WriteFile(METADATA_FILE_NAME, reinterpret_cast<uint8_t *>(json.data()),
@@ -646,16 +648,7 @@ void JsCacheManager::ClearInvalidCache() {
 //
 // util
 //
-MetaData &JsCacheManager::GetMetaData() {
-  LoadMetadataIfNotLoaded();
-  return *meta_data_;
-}
-
-void JsCacheManager::LoadMetadataIfNotLoaded() {
-  if (meta_data_) {
-    return;
-  }
-
+void JsCacheManager::InitMetaData() {
   auto bytecode_generate_generate_version = GetBytecodeGenerateEngineVersion();
   LOGI("bytecode_generate_generate_version: "
        << bytecode_generate_generate_version);
@@ -676,6 +669,11 @@ void JsCacheManager::LoadMetadataIfNotLoaded() {
   LOGI("Creating new Metadata");
   meta_data_ = std::make_unique<MetaData>(LYNX_VERSION.ToString(),
                                           bytecode_generate_generate_version);
+}
+
+JsCacheManager::LockedMetaData JsCacheManager::GetLockedMetaData() {
+  std::call_once(meta_data_init_flag_, &JsCacheManager::InitMetaData, this);
+  return LockedMetaData(cache_lock_, meta_data_);
 }
 
 #ifdef OS_WIN

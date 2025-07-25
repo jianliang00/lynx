@@ -548,9 +548,8 @@ TEST_F(JsCacheManagerTest, SaveCacheContentToStorageSuccess) {
       std::make_shared<StringBuffer>("SaveCacheContentToStorageSuccess"),
       "md5_SaveCacheContentToStorageSuccess", error_code);
 
-  auto info = instance.GetMetaData().GetFileInfo(identifier);
   std::shared_ptr<Buffer> cache = instance.LoadCacheFromStorage(
-      info.value(), "md5_SaveCacheContentToStorageSuccess");
+      identifier, "md5_SaveCacheContentToStorageSuccess");
   EXPECT_EQ(std::string((char *)cache->data()),
             std::string("SaveCacheContentToStorageSuccess"));
 }
@@ -568,9 +567,8 @@ TEST_F(JsCacheManagerTest, SaveCacheContentToStorageSuccess2) {
       std::make_shared<StringBuffer>("SaveCacheContentToStorageSuccess2"),
       "md5_SaveCacheContentToStorageSuccess2", error_code);
 
-  auto info = instance.GetMetaData().GetFileInfo(identifier);
   std::shared_ptr<Buffer> cache = instance.LoadCacheFromStorage(
-      info.value(), "md5_SaveCacheContentToStorageSuccess2");
+      identifier, "md5_SaveCacheContentToStorageSuccess2");
   EXPECT_EQ(std::string((char *)cache->data()),
             std::string("SaveCacheContentToStorageSuccess2"));
 }
@@ -588,12 +586,11 @@ TEST_F(JsCacheManagerTest, SaveCacheContentToStorageSuccess3) {
       std::make_shared<StringBuffer>("SaveCacheContentToStorageSuccess3"),
       "md5_SaveCacheContentToStorageSuccess3", error_code);
 
-  auto info = instance.GetMetaData().GetFileInfo(identifier);
   std::shared_ptr<Buffer> cache = instance.LoadCacheFromStorage(
-      info.value(), "md5_SaveCacheContentToStorageSuccess3");
+      identifier, "md5_SaveCacheContentToStorageSuccess3");
   EXPECT_EQ(std::string((char *)cache->data()),
             std::string("SaveCacheContentToStorageSuccess3"));
-  std::cout << instance.GetMetaData().ToJson() << std::endl;
+  std::cout << instance.GetLockedMetaData()->ToJson() << std::endl;
 }
 
 TEST_F(JsCacheManagerTest, SaveCacheContentToStorageFailure) {
@@ -611,9 +608,8 @@ TEST_F(JsCacheManagerTest, SaveCacheContentToStorageFailure) {
       "md5_SaveCacheContentToStorageFailure", error_code);
   EXPECT_FALSE(success);
 
-  auto info = instance.GetMetaData().GetFileInfo(identifier);
   std::shared_ptr<Buffer> cache = instance.LoadCacheFromStorage(
-      info.value(), "md5_SaveCacheContentToStorageFailure");
+      identifier, "md5_SaveCacheContentToStorageFailure");
   EXPECT_EQ(cache, nullptr);
 }
 
@@ -625,7 +621,7 @@ TEST_F(JsCacheManagerTest,
   identifier.category = MetaData::PACKAGED;
   identifier.url = "/packaged.js";
   identifier.template_url = "template_HDFfhi348ht9lw4f";
-  auto info = instance.GetMetaData().GetFileInfo(identifier);
+  auto info = instance.GetLockedMetaData()->GetFileInfo(identifier);
   EXPECT_FALSE(info.has_value());
 }
 
@@ -636,11 +632,10 @@ TEST_F(JsCacheManagerTest, LoadCacheFromStorageWithGetCacheDirFailure) {
   identifier.category = MetaData::CORE_JS;
   identifier.url = "/lynx_core.js";
   identifier.template_url = "template_IZWevh93awfhilsudgbf";
-  instance.GetMetaData().UpdateFileInfo(identifier, "fsdh94w8hfoshf93lwhfg9",
-                                        128);
-  auto info = instance.GetMetaData().GetFileInfo(identifier);
+  instance.GetLockedMetaData()->UpdateFileInfo(identifier,
+                                               "fsdh94w8hfoshf93lwhfg9", 128);
   auto cache =
-      instance.LoadCacheFromStorage(info.value(), "fsdh94w8hfoshf93lwhfg9");
+      instance.LoadCacheFromStorage(identifier, "fsdh94w8hfoshf93lwhfg9");
   EXPECT_EQ(cache, nullptr);
 }
 
@@ -656,9 +651,12 @@ TEST_F(JsCacheManagerTest, DifferentEngineVersion) {
       return "different_version";
     }
   };
-  auto &meta1 = QuickjsCacheManagerForTesting::GetInstance().GetMetaData();
-  EXPECT_EQ(meta1.GetBytecodeGenerateEngineVersion(),
-            std::to_string(LEPUS_GetPrimjsVersion()));
+  {
+    auto meta1 =
+        QuickjsCacheManagerForTesting::GetInstance().GetLockedMetaData();
+    EXPECT_EQ(meta1->GetBytecodeGenerateEngineVersion(),
+              std::to_string(LEPUS_GetPrimjsVersion()));
+  }
   auto buffer = QuickjsCacheManagerForTesting::GetInstance().TryGetCache(
       k_source_url, k_template_url, 0, std::make_shared<StringBuffer>(js_file),
       std::make_unique<TestingCacheGenerator>(
@@ -675,8 +673,10 @@ TEST_F(JsCacheManagerTest, DifferentEngineVersion) {
           k_source_url, std::make_shared<StringBuffer>(js_file), js_file));
 
   EXPECT_EQ(buffer, nullptr);
-  auto &meta2 = DifferentEngineVersion::GetInstance().GetMetaData();
-  EXPECT_EQ(meta2.GetBytecodeGenerateEngineVersion(), "different_version");
+  {
+    auto meta2 = DifferentEngineVersion::GetInstance().GetLockedMetaData();
+    EXPECT_EQ(meta2->GetBytecodeGenerateEngineVersion(), "different_version");
+  }
 }
 
 // ClearCacheDir
@@ -837,7 +837,7 @@ TEST_F(JsCacheManagerTest, ClearInvalidCache) {
     std::this_thread::sleep_for(std::chrono::milliseconds(1));
   }
   auto before_clean_file_info =
-      quickjs_instance.GetMetaData().GetAllCacheFileInfo();
+      quickjs_instance.GetLockedMetaData()->GetAllCacheFileInfo();
   EXPECT_EQ(before_clean_file_info.size(), count);
   quickjs_instance.ClearInvalidCache();
   MoveOnlyEvent event;
@@ -848,7 +848,7 @@ TEST_F(JsCacheManagerTest, ClearInvalidCache) {
                     std::move(event));
   // Check if removed file is oldest.
   auto after_clean_file_info =
-      quickjs_instance.GetMetaData().GetAllCacheFileInfo();
+      quickjs_instance.GetLockedMetaData()->GetAllCacheFileInfo();
   EXPECT_EQ(after_clean_file_info.size(), count - 2);
   std::vector<CacheFileInfo> moved_cache_file_info;
   for (auto &before_it : before_clean_file_info) {
@@ -931,11 +931,11 @@ TEST_F(JsCacheManagerTest, ClearCache) {
                                               std::move(generators2), true);
     }
   }
-  auto vec = quickjs_instance.GetMetaData().GetAllCacheFileInfo(clear_url);
+  auto vec =
+      quickjs_instance.GetLockedMetaData()->GetAllCacheFileInfo(clear_url);
   EXPECT_EQ(vec.size(), 2);
-  LOGE("LYbB321:" << quickjs_instance.GetMetaData().ToJson());
   quickjs_instance.ClearCache(clear_url);
-  vec = quickjs_instance.GetMetaData().GetAllCacheFileInfo(clear_url);
+  vec = quickjs_instance.GetLockedMetaData()->GetAllCacheFileInfo(clear_url);
   EXPECT_EQ(vec.size(), 0);
   MoveOnlyEvent event;
   if (s_current_builder) {

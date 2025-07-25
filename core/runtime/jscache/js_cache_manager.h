@@ -125,9 +125,27 @@ class JsCacheManager {
 
   // clang-format off
 UNITTEST_PUBLIC:
+
       // clang-format on
-      bool
-      ReadFile(const std::string &filename, std::string &contents);
+      class LockedMetaData {
+   public:
+    LockedMetaData(std::recursive_mutex &lock,
+                   std::unique_ptr<MetaData> &meta_data)
+        : guard_(lock), meta_data_(meta_data) {}
+    MetaData *operator->() { return meta_data_.get(); }
+    const MetaData *operator->() const { return meta_data_.get(); }
+    MetaData &operator*() { return *meta_data_; }
+    const MetaData &operator*() const { return *meta_data_; }
+
+   private:
+    std::lock_guard<std::recursive_mutex> guard_;
+    std::unique_ptr<MetaData> &meta_data_;
+  };
+
+  void InitMetaData();
+  LockedMetaData GetLockedMetaData();
+
+  bool ReadFile(const std::string &filename, std::string &contents);
   UNITTEST_VIRTUAL bool WriteFile(const std::string &filename, uint8_t *out_buf,
                                   size_t out_buf_len);
   std::string MakePath(const std::string &filename);
@@ -168,11 +186,11 @@ UNITTEST_PUBLIC:
 
   /**
    * Try to load cache file from storage.
-   * @param info The info of the original js file.
+   * @param identifier The identifier of the original js file.
    * @param file_md5 The md5 of the js file.
    * @return Cache buffer; or nullptr if no matching cache exists.
    */
-  std::shared_ptr<Buffer> LoadCacheFromStorage(const CacheFileInfo &info,
+  std::shared_ptr<Buffer> LoadCacheFromStorage(JsFileIdentifier &identifier,
                                                const std::string &file_md5);
 
   /**
@@ -201,25 +219,13 @@ UNITTEST_PUBLIC:
    * Update last access time. Metadata will be updated in memory in all cases,
    * but will be written to storage only when (now - last_accessed) >=
    * MIN_ACCESS_TIME_UPDATE_INTERVAL.
+   * @param locked_meta_data the meta file of cache
    * @param info Info containing the time when this file was
    * accessed.
    * @return If this operation succeed.
    */
-  bool UpdateLastAccessTime(const CacheFileInfo &info);
-
-  /**
-   * Get metadata from memory.
-   * Load it from file or create a new one if it does not exist.
-   * @return MetaData
-   */
-  MetaData &GetMetaData();
-
-  /**
-   * Load metadata from storage if not loaded.
-   * If metadata doesn't exist on storage, clear cache dir first, and then
-   * create a new metadata in memory.
-   */
-  void LoadMetadataIfNotLoaded();
+  bool UpdateLastAccessTime(LockedMetaData &locked_meta_data,
+                            const CacheFileInfo &info);
 
   /**
    * enumerate files in cache directory.
@@ -247,6 +253,7 @@ UNITTEST_PUBLIC:
    */
   void SaveCacheToMemory(const std::string &source_url,
                          std::shared_ptr<Buffer> cache) {
+    std::scoped_lock<std::recursive_mutex> guard(cache_lock_);
     cache_[source_url] = std::move(cache);
   }
 
@@ -266,7 +273,8 @@ UNITTEST_PUBLIC:
   std::mutex task_lock_;  // lock for task_list_
   bool background_thread_working_ = false;
   std::unordered_map<std::string, std::shared_ptr<Buffer>> cache_;
-  std::mutex cache_lock_;
+  std::recursive_mutex cache_lock_;
+  std::once_flag meta_data_init_flag_;
   std::unique_ptr<MetaData> meta_data_;
   std::string cache_path_;
   bool can_create_cache_ = true;
