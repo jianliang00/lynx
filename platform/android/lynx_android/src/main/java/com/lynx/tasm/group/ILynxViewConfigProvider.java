@@ -11,6 +11,7 @@ import com.lynx.tasm.behavior.BehaviorRegistry;
 import com.lynx.tasm.resourceprovider.generic.LynxGenericResourceFetcher;
 import com.lynx.tasm.resourceprovider.media.LynxMediaResourceFetcher;
 import com.lynx.tasm.resourceprovider.template.LynxTemplateResourceFetcher;
+import java.util.HashMap;
 import java.util.Map;
 
 /**
@@ -52,7 +53,7 @@ public interface ILynxViewConfigProvider {
   /**
    * @return ContextData passed In.
    */
-  Map<String, Object> getContextData();
+  HashMap getContextData();
 
   /**
    * Returns the associated lynxRuntimeOptions

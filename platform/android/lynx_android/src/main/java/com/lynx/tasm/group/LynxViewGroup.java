@@ -15,6 +15,7 @@ import com.lynx.tasm.behavior.BehaviorRegistry;
 import com.lynx.tasm.resourceprovider.generic.LynxGenericResourceFetcher;
 import com.lynx.tasm.resourceprovider.media.LynxMediaResourceFetcher;
 import com.lynx.tasm.resourceprovider.template.LynxTemplateResourceFetcher;
+import java.util.HashMap;
 import java.util.Map;
 
 /**
@@ -31,7 +32,7 @@ class LynxViewGroup implements ILynxViewGroup, ILynxViewRuntimeCacheManager {
 
   private BehaviorRegistry behaviorRegistry;
   private LynxBackgroundRuntimeOptions lynxRuntimeOptions;
-  private Map<String, Object> contextData;
+  private HashMap contextData;
   private ThreadStrategyForRendering threadStrategy = ThreadStrategyForRendering.ALL_ON_UI;
   private boolean enableAutoExpose;
   private boolean enableLayoutSafepoint;
@@ -64,16 +65,15 @@ class LynxViewGroup implements ILynxViewGroup, ILynxViewRuntimeCacheManager {
   }
 
   LynxViewGroup(String url, TemplateBundle bundle, TemplateData globalProps,
-      BehaviorRegistry registry, LynxBackgroundRuntimeOptions runtimeOptions,
-      Map<String, Object> contextData, ThreadStrategyForRendering threadStrategy,
-      boolean enableAutoExpose, boolean enableLayoutSafepoint, boolean enableUnifiedPipeline,
-      boolean forceDarkAllowed, Float density, int screenWidth, int screenHeight,
-      boolean enableMultiAsyncThread, boolean enableSyncFlush, boolean enablePendingJsTask,
-      boolean enableAsyncHydration, boolean enableAutoConcurrency,
-      boolean enableVSyncAlignedMessageLoop, boolean enableJSRuntime, boolean enableAirStrictMode,
-      boolean debuggable, int presetWidthMeasureSpec, int presetHeightMeasureSpec, float fontScale,
-      boolean enablePreUpdateData, IUIRendererCreator uiRendererCreator, int embeddedMode,
-      boolean hasPresetMeasureSpec) {
+      BehaviorRegistry registry, LynxBackgroundRuntimeOptions runtimeOptions, HashMap contextData,
+      ThreadStrategyForRendering threadStrategy, boolean enableAutoExpose,
+      boolean enableLayoutSafepoint, boolean enableUnifiedPipeline, boolean forceDarkAllowed,
+      Float density, int screenWidth, int screenHeight, boolean enableMultiAsyncThread,
+      boolean enableSyncFlush, boolean enablePendingJsTask, boolean enableAsyncHydration,
+      boolean enableAutoConcurrency, boolean enableVSyncAlignedMessageLoop, boolean enableJSRuntime,
+      boolean enableAirStrictMode, boolean debuggable, int presetWidthMeasureSpec,
+      int presetHeightMeasureSpec, float fontScale, boolean enablePreUpdateData,
+      IUIRendererCreator uiRendererCreator, int embeddedMode, boolean hasPresetMeasureSpec) {
     this.url = url;
     this.templateBundle = bundle;
     this.globalProps = globalProps;
@@ -137,7 +137,7 @@ class LynxViewGroup implements ILynxViewGroup, ILynxViewRuntimeCacheManager {
   }
 
   @Override
-  public Map<String, Object> getContextData() {
+  public HashMap getContextData() {
     return this.contextData;
   }
 

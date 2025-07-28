@@ -1288,7 +1288,7 @@ public abstract class LynxContext extends LynxBaseContext implements ExceptionHa
     return null;
   }
 
-  public void setContextData(Map<String, Object> contextData) {
+  public void setContextData(HashMap<String, Object> contextData) {
     this.mContextData = contextData;
   }
 

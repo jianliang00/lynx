@@ -240,9 +240,8 @@ public class LynxBaseConfigurator<T extends LynxBaseConfigurator<T>> {
    * @param name   Module's name, will be used in JS code.
    * @param module module class.
    */
-  public T registerModule(String name, Class<? extends LynxModule> module) {
+  public void registerModule(String name, Class<? extends LynxModule> module) {
     registerModule(name, module, null);
-    return (T) this;
   }
 
   /**
@@ -253,9 +252,8 @@ public class LynxBaseConfigurator<T extends LynxBaseConfigurator<T>> {
    * @param param  the param will be provided to the module class's constructor
    *               when creating the module object.
    */
-  public T registerModule(String name, Class<? extends LynxModule> module, Object param) {
+  public void registerModule(String name, Class<? extends LynxModule> module, Object param) {
     lynxRuntimeOptions.registerModule(name, module, param);
-    return (T) this;
   }
 
   /**

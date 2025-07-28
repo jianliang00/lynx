@@ -8,8 +8,10 @@ import android.net.Uri;
 import androidx.annotation.NonNull;
 import androidx.annotation.Nullable;
 import androidx.annotation.RestrictTo;
+import com.lynx.jsbridge.LynxModule;
 import com.lynx.tasm.base.TraceEvent;
 import com.lynx.tasm.base.trace.TraceEventDef;
+import com.lynx.tasm.behavior.Behavior;
 import com.lynx.tasm.behavior.BehaviorRegistry;
 import com.lynx.tasm.behavior.ILynxUIRenderer;
 import com.lynx.tasm.component.DynamicComponentFetcher;
@@ -20,12 +22,14 @@ import com.lynx.tasm.image.model.LynxImageFetcher;
 import com.lynx.tasm.loader.LynxFontFaceLoader;
 import com.lynx.tasm.provider.AbsTemplateProvider;
 import com.lynx.tasm.provider.LynxResourceFetcher;
+import com.lynx.tasm.provider.LynxResourceProvider;
 import com.lynx.tasm.resourceprovider.generic.LynxGenericResourceFetcher;
 import com.lynx.tasm.resourceprovider.media.LynxMediaResourceFetcher;
 import com.lynx.tasm.resourceprovider.template.LynxTemplateResourceFetcher;
 import com.lynx.tasm.service.ILynxTrailService;
 import com.lynx.tasm.service.LynxServiceCenter;
 import java.util.HashMap;
+import java.util.List;
 import java.util.Map;
 
 public class LynxViewBuilder
@@ -158,6 +162,106 @@ public class LynxViewBuilder
     return this;
   }
 
+  @Override
+  public LynxViewBuilder addBehaviors(@NonNull List<Behavior> behaviorList) {
+    return super.addBehaviors(behaviorList);
+  }
+
+  @Override
+  public LynxViewBuilder addBehavior(@NonNull Behavior behavior) {
+    return super.addBehavior(behavior);
+  }
+
+  @Override
+  public LynxViewBuilder setLynxGroup(@Nullable LynxGroup group) {
+    return super.setLynxGroup(group);
+  }
+
+  @Override
+  public LynxViewBuilder setEnableLayoutSafepoint(boolean enable) {
+    return super.setEnableLayoutSafepoint(enable);
+  }
+
+  @Override
+  public LynxViewBuilder setThreadStrategyForRendering(ThreadStrategyForRendering strategy) {
+    return super.setThreadStrategyForRendering(strategy);
+  }
+
+  @Override
+  public LynxViewBuilder setPresetMeasuredSpec(int widthMeasureSpec, int heightMeasureSpec) {
+    return super.setPresetMeasuredSpec(widthMeasureSpec, heightMeasureSpec);
+  }
+
+  @Override
+  public LynxViewBuilder setResourceProvider(String key, LynxResourceProvider provider) {
+    return super.setResourceProvider(key, provider);
+  }
+
+  @Override
+  public void registerModule(String name, Class<? extends LynxModule> module) {
+    super.registerModule(name, module);
+  }
+
+  @Override
+  public void registerModule(String name, Class<? extends LynxModule> module, Object param) {
+    super.registerModule(name, module, param);
+  }
+
+  @Override
+  public LynxViewBuilder setEnableUserCodeCache(boolean enableUserBytecode) {
+    return super.setEnableUserCodeCache(enableUserBytecode);
+  }
+
+  @Override
+  public LynxViewBuilder setCodeCacheSourceUrl(String url) {
+    return super.setCodeCacheSourceUrl(url);
+  }
+
+  @Override
+  public LynxViewBuilder setFontScale(float scale) {
+    return super.setFontScale(scale);
+  }
+
+  @Override
+  public LynxViewBuilder setScreenSize(int width, int height) {
+    return super.setScreenSize(width, height);
+  }
+
+  @Override
+  public LynxViewBuilder setEnablePendingJsTask(boolean enablePendingJsTask) {
+    return super.setEnablePendingJsTask(enablePendingJsTask);
+  }
+
+  @Override
+  public LynxViewBuilder setEnableJSRuntime(boolean enable) {
+    return super.setEnableJSRuntime(enable);
+  }
+
+  @Override
+  public LynxViewBuilder enableAutoExpose(boolean enableAutoExpose) {
+    return super.enableAutoExpose(enableAutoExpose);
+  }
+
+  @Override
+  public LynxViewBuilder setEnableVSyncAlignedMessageLoop(boolean enable) {
+    return super.setEnableVSyncAlignedMessageLoop(enable);
+  }
+
+  @Override
+  public LynxViewBuilder setEnableAirStrictMode(boolean enable) {
+    return super.setEnableAirStrictMode(enable);
+  }
+
+  @Override
+  public LynxViewBuilder setEnableMultiAsyncThread(boolean enableMultiAsyncThread) {
+    return super.setEnableMultiAsyncThread(enableMultiAsyncThread);
+  }
+
+  @Override
+  public LynxViewBuilder setEnableSyncFlush(boolean enable) {
+    return super.setEnableSyncFlush(enable);
+  }
+
   /**
    * Supports passing custom parameters to image network requests,
    * currently only used in image compliance scenarios.
@@ -253,7 +357,7 @@ public class LynxViewBuilder
   }
 
   @Override
-  public Map<String, Object> getContextData() {
+  public HashMap getContextData() {
     if (lynxViewGroup != null) {
       return lynxViewGroup.getContextData();
     }
