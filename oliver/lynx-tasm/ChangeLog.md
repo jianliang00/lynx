@@ -1,3 +1,6 @@
+# 0.0.13
+* Support encode keyframe information in style objects into template for simple styling.
+
 # 0.0.12
 * Fix the issue that `StyleObjects` are not encoded as parsed `CSSValues` when `enableParallelElement` is false.
 
