@@ -32,9 +32,7 @@ class ListContainerImpl : public ListContainer::Delegate,
   ~ListContainerImpl();
 
   // ItemHolder::AnimationDelegate
-  list::ListContainerAnimationType AnimationType() const override;
-  void RecycleItemHolder(ItemHolder* holder) override;
-  void DeferredDestroyItemHolder(ItemHolder* holder) override;
+  bool InAnimationProcess() const override;
 
   bool ResolveAttribute(const base::String& key,
                         const lepus::Value& value) override;
@@ -185,8 +183,8 @@ class ListContainerImpl : public ListContainer::Delegate,
 
   // list animation.
   bool update_animation_{false};
-  list::ListContainerAnimationType animation_type_{
-      list::ListContainerAnimationType::kNone};
+  ListContainer::AnimationType animation_type_{
+      ListContainer::AnimationType::kNone};
   std::shared_ptr<animation::basic::LynxBasicAnimator> animator_;
 
   fml::WeakPtrFactory<ListContainerImpl> weak_factory_;
