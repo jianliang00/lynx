@@ -25,10 +25,6 @@ class ScrollElement : public FiberElement {
 
   bool is_scroll_view() const override { return true; }
 
-  virtual const base::String& GetPlatformNodeTag() const override {
-    return platform_node_tag_;
-  }
-
  protected:
   void OnNodeAdded(FiberElement* child) override;
   void SetAttributeInternal(const base::String& key,
@@ -39,7 +35,6 @@ class ScrollElement : public FiberElement {
 
  private:
   void HandleLayoutNodeAttributeUpdate();
-  base::String platform_node_tag_{BASE_STATIC_STRING(kElementScrollViewTag)};
 };
 
 }  // namespace tasm
