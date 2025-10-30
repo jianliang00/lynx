@@ -162,6 +162,7 @@ public class LynxEnv {
   protected boolean mEnableImageRequestOptimize = false;
 
   protected boolean mEnableFlattenImageFlickerFix = false;
+  protected boolean mEnableDataListFix = false;
 
   protected boolean mEnableImageEventReport = false;
 
@@ -193,7 +194,6 @@ public class LynxEnv {
   private boolean mEnableLazyInitA11y = true;
 
   private boolean mEnableTextLayoutCache = true;
-  private boolean mEnableRecycleRenderDataListWhileReload = false;
 
   protected LynxEnv() {}
 
@@ -321,7 +321,7 @@ public class LynxEnv {
     initEnableCheckAccessFromNonUiThread();
     initEnableLazyInitA11y();
     initEnableTextLayoutCache();
-    initEnableRecycleRenderDataListWhileReload();
+    initEnableDataListFix();
 
     ICURegister.loadLibrary(mLibraryLoader);
     // notify LynxEnv prepared
@@ -1383,17 +1383,12 @@ public class LynxEnv {
     mEnableLazyInitA11y = getBooleanFromExternalEnv(LynxEnvKey.ENABLE_LAZY_INIT_A11Y, true);
   }
 
-  /**
-   * @brief Get whether to enable recycle render data list while reload
-   * @return enable
-   */
-  protected boolean enableEnableRecycleRenderDataListWhileReload() {
-    return mEnableRecycleRenderDataListWhileReload;
+  boolean enableDataListFix() {
+    return mEnableDataListFix;
   }
 
-  private void initEnableRecycleRenderDataListWhileReload() {
-    mEnableRecycleRenderDataListWhileReload =
-        getBooleanFromExternalEnv(LynxEnvKey.ENABLE_RECYCLE_RENDER_DATA_LIST_WHILE_RELOAD, false);
+  private void initEnableDataListFix() {
+    mEnableDataListFix = getBooleanFromExternalEnv(LynxEnvKey.ENABLE_DATA_LIST_FIX, false);
   }
 
   private void initBase(INativeLibraryLoader nativeLibraryLoader) {
