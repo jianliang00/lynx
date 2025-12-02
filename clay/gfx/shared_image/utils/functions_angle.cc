@@ -135,8 +135,12 @@ void FunctionsAngle::glFramebufferTexture2D(GLenum target, GLenum attachment,
   glFramebufferTexture2DProc(target, attachment, textarget, texture, level);
 }
 GLenum FunctionsAngle::glCheckFramebufferStatus(GLenum target) const {
+#ifndef NDEBUG
   CHECK_PROC(glCheckFramebufferStatusProc, 0)
   return glCheckFramebufferStatusProc(target);
+#else
+  return GL_FRAMEBUFFER_COMPLETE;
+#endif
 }
 void FunctionsAngle::glDeleteFramebuffers(GLsizei n,
                                           const GLuint* framebuffers) const {

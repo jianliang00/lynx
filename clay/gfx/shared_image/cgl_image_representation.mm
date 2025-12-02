@@ -180,7 +180,11 @@ std::optional<GLImageRepresentation::FramebufferInfo> CGLImageRepresentation::Bi
 
     glFramebufferTexture2D(GL_FRAMEBUFFER, GL_COLOR_ATTACHMENT0, GL_TEXTURE_RECTANGLE,
                            texture_info->name, 0);
+#ifndef NDEBUG
     GLenum framebuffer_status = glCheckFramebufferStatus(GL_FRAMEBUFFER);
+#else
+    GLenum framebuffer_status = GL_FRAMEBUFFER_COMPLETE;
+#endif
 
     if (framebuffer_status != GL_FRAMEBUFFER_COMPLETE) {
       FML_LOG(ERROR) << "Failed to create frame buffer";

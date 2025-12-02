@@ -248,7 +248,11 @@ NativeBufferEGLImageRepresentation::BindFrameBuffer() {
                               GL_RENDERBUFFER, depth_stencil_id_);
     glBindRenderbuffer(GL_RENDERBUFFER, old_rbo);
 
+#ifndef NDEBUG
     GLenum status = glCheckFramebufferStatus(GL_FRAMEBUFFER);
+#else
+    GLenum status = GL_FRAMEBUFFER_COMPLETE;
+#endif
     if (status != GL_FRAMEBUFFER_COMPLETE) {
       FML_LOG(ERROR) << "Failed to create FBO, error: " << status;
       glDeleteFramebuffers(1, &fbo_id);
