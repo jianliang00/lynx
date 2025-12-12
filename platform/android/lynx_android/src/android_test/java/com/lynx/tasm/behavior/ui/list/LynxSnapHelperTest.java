@@ -36,9 +36,7 @@ public class LynxSnapHelperTest {
     scrollView.addView(linearLayout,
         new FrameLayout.LayoutParams(
             FrameLayout.LayoutParams.MATCH_PARENT, FrameLayout.LayoutParams.WRAP_CONTENT));
-    int uiCount = 10;
-    int contentSize = 0;
-    for (int i = 0; i < uiCount; i++) {
+    for (int i = 0; i < 10; i++) {
       AndroidView view = new AndroidView(lynxContext);
       UIView ui = new UIView(lynxContext);
       view.bindDrawChildHook(ui);
@@ -46,12 +44,10 @@ public class LynxSnapHelperTest {
       ui.setHeight(500);
       view.setLayoutParams(new ViewGroup.LayoutParams(300, 500));
       linearLayout.addView(view);
-      if (i == uiCount - 1) {
-        contentSize = ui.getTop() + ui.getHeight();
-      }
     }
+
     double snapAlignmentMillisecondsPerPx = 100f / lynxContext.getScreenMetrics().densityDpi;
-    final Integer finalContentSize = contentSize;
+
     LynxSnapHelper snapHelper = new LynxSnapHelper(
         0, 20, snapAlignmentMillisecondsPerPx, new LynxSnapHelper.LynxSnapHooks() {
           @Override
@@ -72,16 +68,6 @@ public class LynxSnapHelperTest {
           @Override
           public int getScrollWidth() {
             return scrollView.getWidth();
-          }
-
-          @Override
-          public int getContentHeight() {
-            return finalContentSize;
-          }
-
-          @Override
-          public int getContentWidth() {
-            return 300;
           }
 
           @Override

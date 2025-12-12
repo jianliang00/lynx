@@ -114,7 +114,6 @@ class UIList : public BaseScrollContainer,
   void SendScrollEndEvent();
   float GetScrollRange();
   void UpdateStickyView();
-  float GetListItemSnapScrollOffset(UIComponent* list_item) const;
 
  private:
   ArkUI_NodeHandle container_layout_{nullptr};
@@ -156,6 +155,9 @@ class UIList : public BaseScrollContainer,
   std::pair<float, float> CalculateOffsets(UIComponent* item);
   std::tuple<int32_t, float, float> CalcSnapScroll(bool forward,
                                                    bool has_velocity);
+  float DistanceToItem(UIComponent* list_item, bool vertical, float factor,
+                       float offset, float viewport_width,
+                       float viewport_height, float scroll_x, float scroll_y);
   bool IsListItem(UIBase* list_item) const;
 
   std::shared_ptr<animation::basic::LynxBasicAnimator>
