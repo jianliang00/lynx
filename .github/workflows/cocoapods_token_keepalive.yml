@@ -1,0 +1,33 @@
+name: CocoaPods Token Keepalive
+
+on:
+  schedule:
+    - cron: '0 4 * * *'
+  workflow_dispatch:
+jobs:
+  token-keepalive:
+    runs-on: lynx-darwin-14-medium
+    env:
+      COCOAPODS_TRUNK_TOKEN: ${{ secrets.COCOAPODS_TRUNK_TOKEN }}
+    steps:
+      - name: Download Source
+        uses: actions/checkout@v4.2.2
+        with:
+          path: lynx
+      - name: Python Setup
+        uses: actions/setup-python@v5
+        with:
+          python-version: '3.13'
+      - name: Set up Ruby + specify Bundler version
+        uses: ruby/setup-ruby@v1
+        with:
+          ruby-version: '2.6.10'
+      - name: Setup Ruby Cache
+        uses: ./lynx/.github/actions/ios-common-deps
+        with:
+          cache-backend: 'github'
+      - name: Keep CocoaPods Token alive
+        run: |
+          cd $GITHUB_WORKSPACE/lynx
+          SDKROOT=/Library/Developer/CommandLineTools/SDKs/MacOSX.sdk bundle install --path .bundle
+          bundle exec pod trunk me --silent
