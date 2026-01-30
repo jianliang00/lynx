@@ -155,7 +155,7 @@ targets({
         "coverage": True,
         "enable_parallel":True,
     },
-    "runtime_tests_exec":{
+    "jsbridge_tests_exec":{
         "cwd": ".",
         "owners":["ZhaoSongGOO"],
         "coverage": True,
