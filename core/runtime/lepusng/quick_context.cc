@@ -21,7 +21,6 @@
 #include "core/runtime/lepus/exception.h"
 #include "core/runtime/lepus/js_object.h"
 #include "core/runtime/lepus/lepus_error_helper.h"
-#include "core/runtime/lepus/tasks/lepus_callback_manager.h"
 #include "core/runtime/lepusng/jsvalue_helper.h"
 #include "core/runtime/lepusng/qjs_callback.h"
 #include "core/runtime/profile/runtime_profiler_manager.h"
@@ -730,7 +729,7 @@ bool QuickContext::ExecuteBinaryInternal(Value* ret_val) {
     ReportErrorWithMsg(log, err_code);
   }
   HandleScope func_scope(context(), &ret, HANDLE_TYPE_LEPUS_VALUE);
-  EvalLepusPendingTask(true);
+  EvalLepusPendingTask();
 
   if (!gc_flag_) LEPUS_FreeValue(context(), global);
   if (ret_val) {
@@ -1229,24 +1228,12 @@ bool QuickContext::EvalBuf(const char* buf, uint64_t size, Value& ret,
     LOGE("QuickContext EvalBuf error: " << msg);
     return false;
   }
-  EvalLepusPendingTask(true);
+  EvalLepusPendingTask();
   ret = MK_JS_LEPUS_VALUE(lepus_context_, val);
   return true;
 }
 
-void QuickContext::EvalLepusPendingTask(bool async) {
-  // When async is true and the switch is enabled, post pending job execution
-  // to a separate task to allow promise reject handlers (.catch()) to be
-  // registered first.
-  if (async && tasm::LynxEnv::GetInstance().EnableAsyncEvalLepusPendingTask()) {
-    // Use LepusCallbackManager to post the task. This ensures proper lifecycle
-    // management - when QuickContext is destroyed, the callback_manager_ will
-    // be destroyed first, which cancels all pending tasks via TimedTaskManager.
-    GetCallbackManager()->PostTask(this,
-                                   [this]() { EvalLepusPendingTask(false); });
-    return;
-  }
-
+void QuickContext::EvalLepusPendingTask() {
   LEPUSContext* ctx = nullptr;
   int result = 0;
   while ((result = LEPUS_ExecutePendingJob(runtime_, &ctx))) {
@@ -1283,9 +1270,27 @@ LEPUSValue QuickContext::InternalCall(LEPUSValue caller, LEPUSValue* args,
     ReportErrorWithMsg(log, err_code);
     return LEPUS_UNDEFINED;
   }
-  // Pass async=true to allow promise reject handlers (.catch()) to be
-  // registered first when the switch is enabled.
-  EvalLepusPendingTask(true);
+  LEPUSContext* ctx = nullptr;
+  int result = 0;
+  while ((result = LEPUS_ExecutePendingJob(runtime_, &ctx))) {
+    if (unlikely(ctx != context())) {
+      continue;
+    }
+    if (result < 0) {
+      const std::string log = GetExceptionMessage();
+      LOGE(" Call exception: " << log);
+      ReportErrorWithMsg(log, error::E_MTS_RUNTIME_ERROR);
+      return LEPUS_UNDEFINED;
+    }
+  }
+  while (LEPUS_MoveUnhandledRejectionToException(context())) {
+    std::string log = GetExceptionMessage();
+    LOGE("unhandled rejection:" << log);
+    ReportErrorWithMsg(log, error::E_MTS_RUNTIME_ERROR);
+    // If we caught unhandled rejections, we should still return the
+    // real return value of the call instead of undefined.
+    // Explicitly fallthrough here.
+  }
   return ret;
 }
 
