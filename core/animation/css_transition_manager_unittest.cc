@@ -65,10 +65,10 @@ class CSSTransitionManagerTest : public ::testing::Test {
       starlight::AnimationPropertyType type, long duration, long delay,
       starlight::TimingFunctionData timing_func) {
     starlight::TransitionData data;
-    data.properties.push_back(type);
-    data.durations.push_back(duration);
-    data.delays.push_back(delay);
-    data.timing_funcs.push_back(timing_func);
+    data.property = type;
+    data.duration = duration;
+    data.delay = delay;
+    data.timing_func = timing_func;
     return data;
   }
 
@@ -82,9 +82,10 @@ class CSSTransitionManagerTest : public ::testing::Test {
 TEST_F(CSSTransitionManagerTest, setTransitionData) {
   auto test_element = InitElement();
   auto test_manager = InitTestTransitionManager(test_element.get());
-  starlight::TransitionData transition_data =
+  base::Vector<starlight::TransitionData> transition_data;
+  transition_data.emplace_back(
       InitTransitionData(starlight::AnimationPropertyType::kOpacity, 2000, 100,
-                         starlight::TimingFunctionData());
+                         starlight::TimingFunctionData()));
   test_manager->setTransitionData(transition_data);
   // animation data check
   EXPECT_TRUE(test_manager->animation_data().size() == 0);
@@ -98,9 +99,9 @@ TEST_F(CSSTransitionManagerTest, setTransitionData) {
               test_manager->property_types().end());
 
   // Transition ALL Check
-  transition_data =
+  transition_data.emplace_back(
       InitTransitionData(starlight::AnimationPropertyType::kAll, 3000, 500,
-                         starlight::TimingFunctionData());
+                         starlight::TimingFunctionData()));
   test_manager->setTransitionData(transition_data);
   // animation data check
   EXPECT_TRUE(test_manager->animation_data().size() == 0);
@@ -130,9 +131,10 @@ TEST_F(CSSTransitionManagerTest, setTransitionData) {
 TEST_F(CSSTransitionManagerTest, NoNeedUpdateExistingAnimator) {
   auto test_element = InitElement();
   auto test_manager = InitTestTransitionManager(test_element.get());
-  starlight::TransitionData transition_data =
+  base::Vector<starlight::TransitionData> transition_data;
+  transition_data.emplace_back(
       InitTransitionData(starlight::AnimationPropertyType::kOpacity, 2000, 0,
-                         starlight::TimingFunctionData());
+                         starlight::TimingFunctionData()));
   test_manager->setTransitionData(transition_data);
   test_manager->element()->RecordElementPreviousStyle(
       tasm::kPropertyIDOpacity, tasm::CSSValue(0.5, CSSValuePattern::NUMBER));
@@ -148,9 +150,10 @@ TEST_F(CSSTransitionManagerTest, NoNeedUpdateExistingAnimator) {
   EXPECT_TRUE(opacity_animation_data.delay == 0);
 
   // Transition ALL Check
-  transition_data =
+  transition_data.clear();
+  transition_data.emplace_back(
       InitTransitionData(starlight::AnimationPropertyType::kAll, 3000, 0,
-                         starlight::TimingFunctionData());
+                         starlight::TimingFunctionData()));
   test_manager->setTransitionData(transition_data);
   // Animation map check
   EXPECT_TRUE(test_manager->animations_map().count(base::String("opacity")));
@@ -165,21 +168,13 @@ TEST_F(CSSTransitionManagerTest, NoNeedUpdateExistingAnimator) {
 TEST_F(CSSTransitionManagerTest, HasTwoSameAnimation) {
   auto test_element = InitElement();
   auto test_manager = InitTestTransitionManager(test_element.get());
-  // Create transition data with two opacity entries
-  starlight::TransitionData transition_data;
-  transition_data.properties.push_back(
-      starlight::AnimationPropertyType::kOpacity);
-  transition_data.durations.push_back(2000);
-  transition_data.delays.push_back(0);
-  transition_data.timing_funcs.emplace_back();
-
-  // Second entry with same property
-  transition_data.properties.push_back(
-      starlight::AnimationPropertyType::kOpacity);
-  transition_data.durations.push_back(3000);
-  transition_data.delays.push_back(100);
-  transition_data.timing_funcs.emplace_back();
-
+  base::Vector<starlight::TransitionData> transition_data;
+  transition_data.emplace_back(
+      InitTransitionData(starlight::AnimationPropertyType::kOpacity, 2000, 0,
+                         starlight::TimingFunctionData()));
+  transition_data.emplace_back(
+      InitTransitionData(starlight::AnimationPropertyType::kOpacity, 3000, 100,
+                         starlight::TimingFunctionData()));
   test_manager->setTransitionData(transition_data);
   test_manager->element()->RecordElementPreviousStyle(
       tasm::kPropertyIDOpacity, tasm::CSSValue(0.5, CSSValuePattern::NUMBER));
@@ -191,7 +186,6 @@ TEST_F(CSSTransitionManagerTest, HasTwoSameAnimation) {
       test_manager->animations_map()[base::String("opacity")]
           ->get_animation_data();
   EXPECT_TRUE(opacity_animation_data.name.IsEqual("opacity"));
-  // Second entry wins
   EXPECT_TRUE(opacity_animation_data.duration == 3000);
   EXPECT_TRUE(opacity_animation_data.delay == 100);
   // transition data check
@@ -210,16 +204,17 @@ TEST_F(CSSTransitionManagerTest, ClearEffect) {
     // #1
     auto test_element = InitElement();
     auto test_manager = InitTestTransitionManager(test_element.get());
-    starlight::TransitionData transition_data =
+    base::Vector<starlight::TransitionData> transition_data;
+    transition_data.emplace_back(
         InitTransitionData(starlight::AnimationPropertyType::kOpacity, 2000, 0,
-                           starlight::TimingFunctionData());
+                           starlight::TimingFunctionData()));
     test_manager->setTransitionData(transition_data);
     test_manager->element()->RecordElementPreviousStyle(
         tasm::kPropertyIDOpacity, tasm::CSSValue(0.5, CSSValuePattern::NUMBER));
     test_manager->ConsumeCSSProperty(
         tasm::kPropertyIDOpacity, tasm::CSSValue(1, CSSValuePattern::NUMBER));
     EXPECT_TRUE(test_manager->animations_map().count(base::String("opacity")));
-    transition_data = starlight::TransitionData();
+    transition_data.clear();
     test_manager->setTransitionData(transition_data);
     EXPECT_TRUE(test_manager->GetClearEffectAnimationName() == "opacity");
   }
@@ -228,9 +223,10 @@ TEST_F(CSSTransitionManagerTest, ClearEffect) {
     // #2
     auto test_element = InitElement();
     auto test_manager = InitTestTransitionManager(test_element.get());
-    starlight::TransitionData transition_data =
+    base::Vector<starlight::TransitionData> transition_data;
+    transition_data.emplace_back(
         InitTransitionData(starlight::AnimationPropertyType::kOpacity, 2000, 0,
-                           starlight::TimingFunctionData());
+                           starlight::TimingFunctionData()));
     test_manager->setTransitionData(transition_data);
     test_manager->element()->RecordElementPreviousStyle(
         tasm::kPropertyIDOpacity, tasm::CSSValue(0.5, CSSValuePattern::NUMBER));
@@ -250,9 +246,10 @@ TEST_F(CSSTransitionManagerTest, ClearEffect) {
     // #3
     auto test_element = InitElement();
     auto test_manager = InitTestTransitionManager(test_element.get());
-    starlight::TransitionData transition_data =
+    base::Vector<starlight::TransitionData> transition_data;
+    transition_data.emplace_back(
         InitTransitionData(starlight::AnimationPropertyType::kLeft, 2000, 0,
-                           starlight::TimingFunctionData());
+                           starlight::TimingFunctionData()));
     test_manager->setTransitionData(transition_data);
     test_manager->element()->RecordElementPreviousStyle(
         tasm::kPropertyIDLeft, tasm::CSSValue(0, CSSValuePattern::NUMBER));
