@@ -104,6 +104,29 @@ When you’re ready to make a code change, please create a Pull Request:
    > The CI workflow will reject any PR that contains more than one commit.
 6. Make sure that your Pull Request adheres to the style guide and is properly documented.
 
+### AI-Assisted Contributions
+
+Lynx welcomes AI-assisted contributions. AI tools can help more people participate in open source, but every
+contribution must meet the same quality bar regardless of how it was produced.
+
+If an AI tool played a substantial role in producing the content you submit, please disclose it in the Pull Request
+description and add an `Assisted-by: <tool name>` trailer to the relevant commit message. For example:
+`Assisted-by: GitHub Copilot`.
+
+You remain responsible for everything you submit. Before opening a Pull Request, make sure you can explain the change,
+why it is correct, how it fits the project, and what testing you performed. Review discussion should be based on your
+own understanding of the change. If reviewers ask questions, answer from that understanding rather than by re-prompting
+an AI tool.
+
+By submitting a contribution, you confirm that you have the right to license it under the project's license. This is
+true whether the work was written by hand or with AI assistance. Please review AI-assisted code for licensing,
+copyright, attribution, and security issues, just as you would review code from any unfamiliar source. Do not submit
+AI-generated output if you are unsure that you have the rights needed to contribute it.
+
+Maintainers will review AI-assisted contributions by the same standards as other contributions. They may close Pull
+Requests that are not adequately tested, are difficult for the submitter to explain, or require maintainers to rewrite
+the change before it can be reviewed.
+
 ## Verifying and Reviewing Pull Requests
 
 A Pull Request needs to be verified by the CI workflows and reviewed by the Lynx authors before being merged.
