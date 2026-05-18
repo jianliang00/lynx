@@ -2145,7 +2145,6 @@ ParallelFlushReturn FiberElement::PrepareForCreateOrUpdate() {
     return CreateParallelTaskHandler();
   }
 
-  FlushPendingInvokeTasks();
   VerifyKeyframePropsChangedHandling();
 
   return []() {};
@@ -3168,7 +3167,6 @@ ParallelFlushReturn FiberElement::CreateParallelTaskHandler() {
     // need to consume newly created prop_bundle_
     PerformElementContainerCreateOrUpdate(
         prop_bundle_ != nullptr || computed_css_style()->IsDirty(), true);
-    FlushPendingInvokeTasks();
 
     this->UpdateResolveStatus(AsyncResolveStatus::kUpdated);
     VerifyKeyframePropsChangedHandling();
