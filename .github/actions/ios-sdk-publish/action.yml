@@ -21,6 +21,19 @@ inputs:
   github_token:
     description: The github token
     type: string
+  source_type:
+    required: false
+    description: The podspec source type.
+    type: string
+    default: 'zip'
+  git_source_ref:
+    required: false
+    description: The git ref value used when source_type is git.
+    type: string
+  git_source_ref_type:
+    required: false
+    description: The git ref field used when source_type is git.
+    type: string
 
 runs:
   using: composite
@@ -30,8 +43,17 @@ runs:
       run: |-
         cd $GITHUB_WORKSPACE/lynx
         source tools/envsetup.sh
-        python3 tools/ios_tools/cocoapods_publish_helper.py --prepare-source --tag ${{ inputs.tag }} --version ${{ inputs.version }} --component ${{ inputs.component }}
+        python3 tools/ios_tools/cocoapods_publish_helper.py \
+          --prepare-source \
+          --tag "${{ inputs.tag }}" \
+          --version "${{ inputs.version }}" \
+          --component "${{ inputs.component }}" \
+          --source-type "${{ inputs.source_type }}" \
+          --git-source-url "${{ github.server_url }}/${{ github.repository }}.git" \
+          --git-source-ref-type "${{ inputs.git_source_ref_type }}" \
+          --git-source-ref "${{ inputs.git_source_ref }}"
     - name: Push iOS SDK to release
+      if: ${{ inputs.source_type == 'zip' }}
       uses: ncipollo/release-action@v1
       with:
         tag: ${{ inputs.tag }}
