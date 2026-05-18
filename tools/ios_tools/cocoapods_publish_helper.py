@@ -8,7 +8,12 @@ import os
 import shutil
 import subprocess
 import json
+import shlex
 from skip_pod_lint import skip_pod_lint
+
+SOURCE_TYPE_ZIP = 'zip'
+SOURCE_TYPE_GIT = 'git'
+GIT_SOURCE_REF_TYPES = ('commit', 'tag', 'branch')
 
 def run_command(command, check=True):
     # When the "command" is a multi-line command, only the status of the last line of the command is checked.
@@ -49,6 +54,47 @@ def generate_zip_file(src_dir, tag, component):
                 print(f'Generating zip file for {podspec_name}')
                 run_command(f'export PACKAGE_ENV=prod && geniospkg --output_type both --repo {podspec_name} --tag {tag} --cache_path .')
 
+def validate_git_source_options(git_source_ref_type, git_source_ref):
+    if not git_source_ref_type:
+        raise ValueError('--git-source-ref-type is required when --source-type=git')
+    if not git_source_ref:
+        raise ValueError('--git-source-ref is required when --source-type=git')
+    if git_source_ref_type not in GIT_SOURCE_REF_TYPES:
+        raise ValueError(f'--git-source-ref-type must be one of: {", ".join(GIT_SOURCE_REF_TYPES)}')
+
+def validate_source_type_options(source_type, git_source_url, git_source_ref_type, git_source_ref):
+    if source_type == SOURCE_TYPE_GIT:
+        if not git_source_url:
+            raise ValueError('--git-source-url is required when --source-type=git')
+        validate_git_source_options(git_source_ref_type, git_source_ref)
+    elif source_type != SOURCE_TYPE_ZIP:
+        raise ValueError(f'Unsupported source type: {source_type}')
+
+def use_git_pod_source(component, git_source_url, git_source_ref_type, git_source_ref):
+    with open(f"{component}.podspec.json", 'r', encoding='utf8') as f:
+        content = json.load(f)
+
+    content["source"] = {
+        "git": git_source_url,
+        git_source_ref_type: git_source_ref,
+    }
+
+    with open(f"{component}.podspec.json", "w", encoding='utf8') as f:
+        json.dump(content, f, indent=4)
+
+def generate_git_source_podspec_files(src_dir, component, git_source_url, git_source_ref_type, git_source_ref):
+    run_command('SDKROOT=/Library/Developer/CommandLineTools/SDKs/MacOSX.sdk bundle install --path .')
+
+    for filename in os.listdir(src_dir):
+        if filename.endswith('.podspec'):
+            podspec_name = filename.split('.')[0]
+            if component == podspec_name or component == 'all':
+                print(f'Generating git source podspec for {podspec_name}')
+                podspec_file = shlex.quote(f'{podspec_name}.podspec')
+                podspec_json_file = shlex.quote(f'{podspec_name}.podspec.json')
+                run_command(f'bundle exec pod ipc spec {podspec_file} > {podspec_json_file}')
+                use_git_pod_source(podspec_name, git_source_url, git_source_ref_type, git_source_ref)
+
 def get_enable_trace_param(version: str) -> str:
     """
     Returns '--enable-trace' if the version ends with '-dev', otherwise returns an empty string.
@@ -61,7 +107,16 @@ def get_enable_trace_param(version: str) -> str:
         return '--enable-trace'
     return ''
 
-def prepare_cocoapods_publish_source(version, tag, component):
+def prepare_cocoapods_publish_source(
+        version,
+        tag,
+        component,
+        source_type=SOURCE_TYPE_ZIP,
+        git_source_url=None,
+        git_source_ref_type=None,
+        git_source_ref=None):
+    validate_source_type_options(source_type, git_source_url, git_source_ref_type, git_source_ref)
+
     root_path = os.path.dirname(os.path.dirname(os.path.dirname(os.path.abspath(__file__))))
 
     # change to root path
@@ -73,6 +128,11 @@ def prepare_cocoapods_publish_source(version, tag, component):
 
     print('2. Generate podspec files')
     run_command(f'python3 tools/ios_tools/generate_podspec_scripts_by_gn.py --root {root_path} {get_enable_trace_param(version)}')
+
+    if source_type == SOURCE_TYPE_GIT:
+        print('3. Generate git source podspec files')
+        generate_git_source_podspec_files(root_path, component, git_source_url, git_source_ref_type, git_source_ref)
+        return
 
     print('3. Generate lynx_core.js')
     run_command(f'python3 tools/js_tools/build.py --platform ios --release_output platform/darwin/ios/JSAssets/release/lynx_core.js --dev_output platform/darwin/ios/lynx_devtool/assets/lynx_core_dev.js --version {version}')
@@ -184,10 +244,25 @@ def main():
     parser.add_argument('--sources', type=str, help='the cocoapods sources', required=False)
     parser.add_argument('--pod_lint', action="store_true", help='Run pod lint')
     parser.add_argument('--publish_local', type=str, help='Publish pod to local source')
+    parser.add_argument('--source-type', default=SOURCE_TYPE_ZIP, help='The podspec source type used by --prepare-source')
+    parser.add_argument('--git-source-url', type=str, help='The git repository URL used when --source-type=git', required=False)
+    parser.add_argument('--git-source-ref-type', help='The git ref field used when --source-type=git')
+    parser.add_argument('--git-source-ref', type=str, help='The git ref value used when --source-type=git', required=False)
 
     args = parser.parse_args()
     if args.prepare_source:
-        prepare_cocoapods_publish_source(args.version, args.tag, args.component)
+        try:
+            prepare_cocoapods_publish_source(
+                args.version,
+                args.tag,
+                args.component,
+                args.source_type,
+                args.git_source_url,
+                args.git_source_ref_type,
+                args.git_source_ref,
+            )
+        except ValueError as error:
+            parser.error(str(error))
     elif args.publish:
         publish_to_cocoapods(args.component, args.sources)
     elif args.pod_lint:
