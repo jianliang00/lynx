@@ -11,8 +11,14 @@ on:
         required: false
         type: string
 
+  schedule:
+    - cron: '0 22 * * *'
+
   release:
     types: [published]
+
+env:
+  NIGHTLY_BASE_VERSION: '4.0.0'
 
 jobs:
   get-version:
@@ -20,20 +26,39 @@ jobs:
     timeout-minutes: 60
     outputs:
       version: ${{ steps.get_version.outputs.VERSION }}
+      ios_source_type: ${{ steps.get_version.outputs.IOS_SOURCE_TYPE }}
+      checkout_ref: ${{ steps.get_version.outputs.CHECKOUT_REF }}
     steps:
       - name: Get Version
         id: get_version
         run: |-
-          if [ ${{ github.event_name }} == 'workflow_dispatch' ]; then
-            version=${{ github.event.inputs.tag }}
+          if [ "${{ github.event_name }}" = "workflow_dispatch" ]; then
+            version="${{ github.event.inputs.tag }}"
+          elif [ "${{ github.event_name }}" = "schedule" ]; then
+            commit_short="${GITHUB_SHA:0:8}"
+            version="${NIGHTLY_BASE_VERSION}-nightly.$(TZ=Asia/Shanghai date +'%Y%m%d%H%M').${GITHUB_RUN_NUMBER}.g${commit_short}"
           else
-            version=$(echo ${{ github.ref }} | awk -F "/" '{print $3}')
+            version=$(echo "${{ github.ref }}" | awk -F "/" '{print $3}')
+          fi
+          if [ "${{ github.event_name }}" = "workflow_dispatch" ] && [ -n "${{ github.event.inputs.commitId }}" ]; then
+            checkout_ref="${{ github.event.inputs.commitId }}"
+          elif [ "${{ github.event_name }}" = "schedule" ]; then
+            checkout_ref="${{ github.sha }}"
+          else
+            checkout_ref="${{ github.ref }}"
           fi
           if [[ $version =~ ^[0-9]+\.[0-9]+\.[0-9]+$ || \
                 $version =~ ^[0-9]+\.[0-9]+\.[0-9]+-rc\.[0-9]+$ || \
-                $version =~ ^[0-9]+\.[0-9]+\.[0-9]+-alpha\.[0-9]+$ ]]; then
+                $version =~ ^[0-9]+\.[0-9]+\.[0-9]+-alpha\.[0-9]+$ || \
+                $version =~ ^[0-9]+\.[0-9]+\.[0-9]+-nightly\.[0-9]{12}\.[0-9]+\.g[0-9a-f]+$ ]]; then
             echo "Version is valid"
-            echo "VERSION=$version" >> $GITHUB_OUTPUT;
+            echo "VERSION=$version" >> "$GITHUB_OUTPUT"
+            echo "CHECKOUT_REF=$checkout_ref" >> "$GITHUB_OUTPUT"
+            if [[ $version =~ -nightly\. ]]; then
+              echo "IOS_SOURCE_TYPE=git" >> "$GITHUB_OUTPUT"
+            else
+              echo "IOS_SOURCE_TYPE=zip" >> "$GITHUB_OUTPUT"
+            fi
           else
             echo "Version is invalid"
             exit 1
@@ -43,12 +68,13 @@ jobs:
     timeout-minutes: 60
     runs-on: lynx-ubuntu-22.04-large
     needs: get-version
+    if: ${{ !contains(needs.get-version.outputs.version, '-nightly.') }}
     steps:
       - name: Download Source
         uses: actions/checkout@v4.2.2
         with:
           path: lynx
-          ref: ${{ github.event.inputs.commitId || github.ref }}
+          ref: ${{ needs.get-version.outputs.checkout_ref }}
           fetch-depth: 0
       - name: Build Explorer App
         uses: ./lynx/.github/actions/android-explorer-build
@@ -67,6 +93,7 @@ jobs:
     timeout-minutes: 60
     runs-on: lynx-darwin-14-medium
     needs: get-version
+    if: ${{ !contains(needs.get-version.outputs.version, '-nightly.') }}
     strategy:
       matrix:
         arch: [arm64, x86_64]
@@ -75,7 +102,7 @@ jobs:
         uses: actions/checkout@v4.2.2
         with:
           path: lynx
-          ref: ${{ github.event.inputs.commitId || github.ref }}
+          ref: ${{ needs.get-version.outputs.checkout_ref }}
           fetch-depth: 0
       - name: Build Explorer App
         uses: ./lynx/.github/actions/ios-explorer-build
@@ -98,6 +125,7 @@ jobs:
         username: lynx-family
         password: ${{ secrets.GITHUB_TOKEN }}
     needs: get-version
+    if: ${{ !contains(needs.get-version.outputs.version, '-nightly.') }}
     defaults:
       run:
         working-directory: ${{ github.workspace }}
@@ -107,7 +135,7 @@ jobs:
         uses: actions/checkout@v4.2.2
         with:
           path: lynx
-          ref: ${{ github.event.inputs.commitId || github.ref }}
+          ref: ${{ needs.get-version.outputs.checkout_ref }}
           fetch-depth: 0
       - name: Build Explorer App
         uses: ./lynx/.github/actions/harmony-explorer-build
@@ -129,7 +157,7 @@ jobs:
         uses: actions/checkout@v4.2.2
         with:
           path: lynx
-          ref: ${{ github.event.inputs.commitId || github.ref }}
+          ref: ${{ needs.get-version.outputs.checkout_ref }}
           fetch-depth: 0
       - name: Free up disk space
         uses: ./lynx/.github/actions/free-android-disk
@@ -176,7 +204,7 @@ jobs:
       - name: Download Source
         uses: actions/checkout@v4.2.2
         with:
-          ref: ${{ github.event.inputs.commitId || github.ref }}
+          ref: ${{ needs.get-version.outputs.checkout_ref }}
           fetch-depth: 0
           path: lynx
       - name: Python Setup
@@ -195,11 +223,19 @@ jobs:
         uses: ./lynx/.github/actions/ios-common-deps
         with:
           cache-backend: 'github'
+      - name: Resolve iOS SDK git source ref
+        id: ios_source
+        run: |-
+          cd $GITHUB_WORKSPACE/lynx
+          echo "git_source_ref=$(git rev-parse HEAD)" >> "$GITHUB_OUTPUT"
       - name: Publish iOS SDK
         uses: ./lynx/.github/actions/ios-sdk-publish
         with:
           version: ${{ needs.get-version.outputs.version }}
           tag: ${{ needs.get-version.outputs.version }}
+          source_type: ${{ needs.get-version.outputs.ios_source_type }}
+          git_source_ref_type: commit
+          git_source_ref: ${{ steps.ios_source.outputs.git_source_ref }}
           cocoapods_trunk_token: ${{ secrets.COCOAPODS_TRUNK_TOKEN }}
           github_token: ${{ secrets.GITHUB_TOKEN }}
           component: all
@@ -210,6 +246,9 @@ jobs:
         with:
           version: ${{ needs.get-version.outputs.version }}-dev
           tag: ${{ needs.get-version.outputs.version }}
+          source_type: ${{ needs.get-version.outputs.ios_source_type }}
+          git_source_ref_type: commit
+          git_source_ref: ${{ steps.ios_source.outputs.git_source_ref }}
           cocoapods_trunk_token: ${{ secrets.COCOAPODS_TRUNK_TOKEN }}
           github_token: ${{ secrets.GITHUB_TOKEN }}
           component: all
@@ -225,7 +264,7 @@ jobs:
       - name: Download Source
         uses: actions/checkout@v4.2.2
         with:
-          ref: ${{ github.event.inputs.commitId || github.ref }}
+          ref: ${{ needs.get-version.outputs.checkout_ref }}
           fetch-depth: 0
           path: lynx
       - name: Set up Ruby
@@ -329,7 +368,7 @@ jobs:
           path: lynx
           fetch-depth: 0
           fetch-tags: true
-          ref: ${{ github.event.inputs.commitId || github.ref }}
+          ref: ${{ needs.get-version.outputs.checkout_ref }}
       - name: Get latest tag
         id: get-latest-tag
         uses: ./lynx/.github/actions/get-latest-tag
@@ -369,6 +408,7 @@ jobs:
     timeout-minutes: 60
     runs-on: lynx-darwin-14-medium
     needs: get-version
+    if: ${{ !contains(needs.get-version.outputs.version, '-nightly.') }}
     strategy:
       matrix:
         arch: [arm64, x64]
@@ -377,7 +417,7 @@ jobs:
         uses: actions/checkout@v4.2.2
         with:
           path: lynx
-          ref: ${{ github.event.inputs.commitId || github.ref }}
+          ref: ${{ needs.get-version.outputs.checkout_ref }}
           fetch-depth: 0
       - name: Build macOS Explorer
         uses: ./lynx/.github/actions/macos-explorer-build
@@ -396,6 +436,7 @@ jobs:
     timeout-minutes: 60
     runs-on: lynx-windows-2022-large
     needs: get-version
+    if: ${{ !contains(needs.get-version.outputs.version, '-nightly.') }}
     strategy:
       matrix:
         arch: [x86, x64]
@@ -411,7 +452,7 @@ jobs:
         uses: actions/checkout@v4.2.2
         with:
           path: lynx
-          ref: ${{ github.event.inputs.commitId || github.ref }}
+          ref: ${{ needs.get-version.outputs.checkout_ref }}
           fetch-depth: 0
       - name: Python Setup
         uses: actions/setup-python@v5
