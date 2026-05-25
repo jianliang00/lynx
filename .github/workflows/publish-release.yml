@@ -105,6 +105,7 @@ jobs:
         env:
           RELEASE_MODE: ${{ steps.resolve_release_mode.outputs.RELEASE_MODE }}
           COMMIT_SHORT: ${{ steps.resolve_checkout_ref.outputs.COMMIT_SHORT }}
+          CHECKOUT_REF: ${{ steps.resolve_checkout_ref.outputs.CHECKOUT_REF }}
         run: |-
           case "$RELEASE_MODE" in
             nightly)
@@ -132,8 +133,22 @@ jobs:
           fi
 
           echo "Version is valid"
+          echo "Resolved version: $version"
+          echo "Release mode: $RELEASE_MODE"
+          echo "Checkout ref: $CHECKOUT_REF"
+          echo "iOS source type: $source_type"
           echo "VERSION=$version" >> "$GITHUB_OUTPUT"
           echo "IOS_SOURCE_TYPE=$source_type" >> "$GITHUB_OUTPUT"
+          {
+            echo "### Release version"
+            echo
+            echo "| Field | Value |"
+            echo "| --- | --- |"
+            printf '| Release mode | `%s` |\n' "$RELEASE_MODE"
+            printf '| Version | `%s` |\n' "$version"
+            printf '| Checkout ref | `%s` |\n' "$CHECKOUT_REF"
+            printf '| iOS source type | `%s` |\n' "$source_type"
+          } >> "$GITHUB_STEP_SUMMARY"
 
   android-explorer-build:
     timeout-minutes: 60
