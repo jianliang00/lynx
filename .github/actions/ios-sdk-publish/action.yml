@@ -1,6 +1,6 @@
 name: publish ios sdk
 
-description: package ios source code, upload the zip to release and publish the podspec file to cocoapods
+description: package ios source code, upload the zip source, and publish the podspec file to cocoapods
 
 inputs:
   version:
@@ -21,19 +21,11 @@ inputs:
   github_token:
     description: The github token
     type: string
-  source_type:
+  storage_type:
     required: false
-    description: The podspec source type.
+    description: The zip storage backend. Supported values are github_release and s3.
     type: string
-    default: 'zip'
-  git_source_ref:
-    required: false
-    description: The git ref value used when source_type is git.
-    type: string
-  git_source_ref_type:
-    required: false
-    description: The git ref field used when source_type is git.
-    type: string
+    default: 'github_release'
 
 runs:
   using: composite
@@ -48,12 +40,9 @@ runs:
           --tag "${{ inputs.tag }}" \
           --version "${{ inputs.version }}" \
           --component "${{ inputs.component }}" \
-          --source-type "${{ inputs.source_type }}" \
-          --git-source-url "${{ github.server_url }}/${{ github.repository }}.git" \
-          --git-source-ref-type "${{ inputs.git_source_ref_type }}" \
-          --git-source-ref "${{ inputs.git_source_ref }}"
+          --storage-type "${{ inputs.storage_type }}"
     - name: Push iOS SDK to release
-      if: ${{ inputs.source_type == 'zip' }}
+      if: ${{ inputs.storage_type == 'github_release' }}
       uses: ncipollo/release-action@v1
       with:
         tag: ${{ inputs.tag }}

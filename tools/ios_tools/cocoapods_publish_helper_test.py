@@ -49,49 +49,139 @@ class CocoapodsPublishHelperTest(unittest.TestCase):
             {'http': f'file:{os.getcwd()}/Lynx-1.2.3.zip'},
         )
 
-    def test_use_git_pod_source_writes_commit_source_and_preserves_prepare_command(self):
+    def test_upload_zip_sources_to_s3_uploads_zip_and_rewrites_source(self):
         self.write_podspec_json('Lynx', {
             'version': '1.2.3',
             'source': {'http': 'https://example.com/Lynx.zip'},
-            'prepare_command': 'python3 tools/js_tools/build.py --platform ios',
         })
+        Path('Lynx.podspec').write_text('', encoding='utf8')
+        Path('Lynx-1.2.3.zip').write_bytes(b'zip')
+        upload_domain = 'upload-host'
+        public_domain = 'public-host'
 
-        helper.use_git_pod_source(
-            'Lynx',
-            'https://github.com/lynx-family/lynx.git',
-            'commit',
-            'abcdef123456',
+        with mock.patch.dict(os.environ, {
+            helper.S3_ACCESS_KEY_ENV: 'ak',
+            helper.S3_SECRET_KEY_ENV: 'sk',
+            helper.S3_BUCKET_ENV: 'build-artifacts',
+            helper.S3_REGION_ENV: 'ap-southeast-1',
+            helper.S3_UPLOAD_DOMAIN_ENV: upload_domain,
+            helper.S3_PUBLIC_DOMAIN_ENV: public_domain,
+            helper.S3_PATH_PREFIX_ENV: 'ios-sdk',
+        }), mock.patch.object(helper, 'upload_file_to_s3') as upload:
+            helper.upload_zip_sources_to_s3(
+                os.getcwd(),
+                'Lynx',
+            )
+
+        upload.assert_called_once_with(
+            os.path.join(os.getcwd(), 'Lynx-1.2.3.zip'),
+            'build-artifacts',
+            'ap-southeast-1',
+            upload_domain,
+            'ios-sdk/1.2.3/Lynx-1.2.3.zip',
+            'ak',
+            'sk',
         )
-
         content = self.read_podspec_json('Lynx')
         self.assertEqual(content['source'], {
-            'git': 'https://github.com/lynx-family/lynx.git',
-            'commit': 'abcdef123456',
+            'http': f'https://build-artifacts.{public_domain}/ios-sdk/1.2.3/Lynx-1.2.3.zip',
         })
-        self.assertEqual(
-            content['prepare_command'],
-            'python3 tools/js_tools/build.py --platform ios',
+
+    def test_generate_zip_file_quotes_shell_arguments(self):
+        Path('Lynx.podspec').write_text('', encoding='utf8')
+
+        with mock.patch.object(helper, 'run_command') as run_command:
+            helper.generate_zip_file(os.getcwd(), '1.2.3; echo injected', 'Lynx')
+
+        run_command.assert_called_once_with(
+            "export PACKAGE_ENV=prod && "
+            "geniospkg --output_type both --repo Lynx "
+            "--tag '1.2.3; echo injected' --cache_path ."
         )
 
-    def test_missing_git_source_ref_fails_with_clear_error(self):
-        with self.assertRaisesRegex(ValueError, '--git-source-ref is required'):
-            helper.validate_git_source_options('commit', '')
+    def test_github_release_storage_type_accepts_empty_s3_environment(self):
+        with mock.patch.dict(os.environ, {}, clear=True):
+            helper.validate_storage_type_options(helper.STORAGE_TYPE_GITHUB_RELEASE)
 
-    def test_zip_source_type_accepts_empty_git_options(self):
-        helper.validate_source_type_options('zip', '', '', '')
+    def test_s3_storage_type_requires_s3_bucket(self):
+        with mock.patch.dict(os.environ, {}, clear=True), \
+                self.assertRaisesRegex(ValueError, helper.S3_BUCKET_ENV):
+            helper.validate_storage_type_options(helper.STORAGE_TYPE_S3)
 
-    def test_missing_git_source_url_fails_with_clear_error(self):
-        with self.assertRaisesRegex(ValueError, '--git-source-url is required'):
-            helper.validate_source_type_options('git', None, 'commit', 'abcdef123456')
+    def test_s3_storage_type_accepts_s3_environment(self):
+        with mock.patch.dict(os.environ, {
+            helper.S3_ACCESS_KEY_ENV: 'ak',
+            helper.S3_SECRET_KEY_ENV: 'sk',
+            helper.S3_BUCKET_ENV: 'build-artifacts',
+            helper.S3_REGION_ENV: 'ap-southeast-1',
+            helper.S3_UPLOAD_DOMAIN_ENV: 'upload-host',
+            helper.S3_PUBLIC_DOMAIN_ENV: 'public-host',
+        }, clear=True):
+            helper.validate_storage_type_options(helper.STORAGE_TYPE_S3)
 
-    def test_missing_git_source_ref_type_fails_with_clear_error(self):
-        with self.assertRaisesRegex(ValueError, '--git-source-ref-type is required'):
-            helper.validate_source_type_options(
-                'git',
-                'https://github.com/lynx-family/lynx.git',
-                None,
-                'abcdef123456',
+    def test_upload_file_to_s3_uses_s3_endpoint_and_sigv4_headers(self):
+        Path('Lynx-1.2.3.zip').write_bytes(b'zip')
+
+        class FakeResponse:
+            status = 200
+            reason = 'OK'
+
+            def read(self):
+                return b''
+
+        class FakeConnection:
+            instances = []
+
+            def __init__(self, host, timeout):
+                self.host = host
+                self.timeout = timeout
+                self.request_args = None
+                FakeConnection.instances.append(self)
+
+            def request(self, method, path, body=None, headers=None):
+                self.request_args = {
+                    'method': method,
+                    'path': path,
+                    'body': body.read(),
+                    'headers': headers,
+                }
+
+            def getresponse(self):
+                return FakeResponse()
+
+            def close(self):
+                pass
+
+        with mock.patch.object(helper.http.client, 'HTTPSConnection', FakeConnection):
+            helper.upload_file_to_s3(
+                'Lynx-1.2.3.zip',
+                'build-artifacts',
+                'ap-southeast-1',
+                'upload-host',
+                'ios-sdk/1.2.3/Lynx-1.2.3.zip',
+                'ak',
+                'sk',
             )
+
+        connection = FakeConnection.instances[0]
+        request = connection.request_args
+        self.assertEqual(connection.host, 'build-artifacts.upload-host')
+        self.assertEqual(connection.timeout, 120)
+        self.assertEqual(request['method'], 'PUT')
+        self.assertEqual(request['path'], '/ios-sdk/1.2.3/Lynx-1.2.3.zip')
+        self.assertEqual(request['body'], b'zip')
+        self.assertEqual(request['headers']['Host'], connection.host)
+        self.assertEqual(request['headers']['Content-Type'], 'application/zip')
+        self.assertEqual(request['headers']['Content-Length'], '3')
+        self.assertEqual(
+            request['headers']['x-amz-content-sha256'],
+            '4a70fe9aa6436e02c2dea340fbd1e352e4ef2d8ce6ca52ad25d4b95471fc8bf2',
+        )
+        self.assertIn(
+            'Credential=ak/',
+            request['headers']['Authorization'],
+        )
+        self.assertNotIn('sk', request['headers']['Authorization'])
 
     def test_publish_component_skips_existing_pod_version(self):
         self.write_podspec_json('Lynx', {'version': '1.2.3'})

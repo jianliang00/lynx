@@ -41,7 +41,7 @@ jobs:
       INPUT_COMMIT_ID: ${{ github.event.inputs.commitId || '' }}
     outputs:
       version: ${{ steps.resolve_version.outputs.VERSION }}
-      ios_source_type: ${{ steps.resolve_version.outputs.IOS_SOURCE_TYPE }}
+      ios_storage_type: ${{ steps.resolve_version.outputs.IOS_STORAGE_TYPE }}
       checkout_ref: ${{ steps.resolve_checkout_ref.outputs.CHECKOUT_REF }}
     steps:
       - name: Validate manual inputs
@@ -110,15 +110,15 @@ jobs:
           case "$RELEASE_MODE" in
             nightly)
               version="${NIGHTLY_BASE_VERSION}-nightly.$(TZ=Asia/Shanghai date +'%Y%m%d%H%M').${GITHUB_RUN_NUMBER}.g${COMMIT_SHORT}"
-              source_type="git"
+              storage_type="s3"
               ;;
             manual_release)
               version="$INPUT_TAG"
-              source_type="zip"
+              storage_type="github_release"
               ;;
             tag_release)
               version="$REF_NAME"
-              source_type="zip"
+              storage_type="github_release"
               ;;
             *)
               echo "Unsupported release mode: $RELEASE_MODE"
@@ -136,9 +136,9 @@ jobs:
           echo "Resolved version: $version"
           echo "Release mode: $RELEASE_MODE"
           echo "Checkout ref: $CHECKOUT_REF"
-          echo "iOS source type: $source_type"
+          echo "iOS storage type: $storage_type"
           echo "VERSION=$version" >> "$GITHUB_OUTPUT"
-          echo "IOS_SOURCE_TYPE=$source_type" >> "$GITHUB_OUTPUT"
+          echo "IOS_STORAGE_TYPE=$storage_type" >> "$GITHUB_OUTPUT"
           {
             echo "### Release version"
             echo
@@ -147,7 +147,7 @@ jobs:
             printf '| Release mode | `%s` |\n' "$RELEASE_MODE"
             printf '| Version | `%s` |\n' "$version"
             printf '| Checkout ref | `%s` |\n' "$CHECKOUT_REF"
-            printf '| iOS source type | `%s` |\n' "$source_type"
+            printf '| iOS storage type | `%s` |\n' "$storage_type"
           } >> "$GITHUB_STEP_SUMMARY"
 
   android-explorer-build:
@@ -286,6 +286,14 @@ jobs:
     timeout-minutes: 60
     runs-on: macos-14
     needs: get-version
+    env:
+      REPO_LYNX_ARTIFACTS_S3_AK: ${{ secrets.REPO_LYNX_ARTIFACTS_S3_AK }}
+      REPO_LYNX_ARTIFACTS_S3_SK: ${{ secrets.REPO_LYNX_ARTIFACTS_S3_SK }}
+      REPO_LYNX_ARTIFACTS_S3_BUCKET: ${{ vars.REPO_LYNX_ARTIFACTS_S3_BUCKET }}
+      REPO_LYNX_ARTIFACTS_S3_REGION: ${{ vars.REPO_LYNX_ARTIFACTS_S3_REGION }}
+      REPO_LYNX_ARTIFACTS_S3_UPLOAD_DOMAIN: ${{ vars.REPO_LYNX_ARTIFACTS_S3_UPLOAD_DOMAIN }}
+      REPO_LYNX_ARTIFACTS_S3_PUBLIC_DOMAIN: ${{ vars.REPO_LYNX_ARTIFACTS_S3_PUBLIC_DOMAIN }}
+      REPO_LYNX_ARTIFACTS_S3_PATH_PREFIX: ${{ vars.REPO_LYNX_ARTIFACTS_S3_PATH_PREFIX || 'ios-sdk' }}
     steps:
       - name: Download Source
         uses: actions/checkout@v4.2.2
@@ -309,19 +317,12 @@ jobs:
         uses: ./lynx/.github/actions/ios-common-deps
         with:
           cache-backend: 'github'
-      - name: Resolve iOS SDK git source ref
-        id: ios_source
-        run: |-
-          cd $GITHUB_WORKSPACE/lynx
-          echo "git_source_ref=$(git rev-parse HEAD)" >> "$GITHUB_OUTPUT"
       - name: Publish iOS SDK
         uses: ./lynx/.github/actions/ios-sdk-publish
         with:
           version: ${{ needs.get-version.outputs.version }}
           tag: ${{ needs.get-version.outputs.version }}
-          source_type: ${{ needs.get-version.outputs.ios_source_type }}
-          git_source_ref_type: commit
-          git_source_ref: ${{ steps.ios_source.outputs.git_source_ref }}
+          storage_type: ${{ needs.get-version.outputs.ios_storage_type }}
           cocoapods_trunk_token: ${{ secrets.COCOAPODS_TRUNK_TOKEN }}
           github_token: ${{ secrets.GITHUB_TOKEN }}
           component: all
@@ -332,9 +333,7 @@ jobs:
         with:
           version: ${{ needs.get-version.outputs.version }}-dev
           tag: ${{ needs.get-version.outputs.version }}
-          source_type: ${{ needs.get-version.outputs.ios_source_type }}
-          git_source_ref_type: commit
-          git_source_ref: ${{ steps.ios_source.outputs.git_source_ref }}
+          storage_type: ${{ needs.get-version.outputs.ios_storage_type }}
           cocoapods_trunk_token: ${{ secrets.COCOAPODS_TRUNK_TOKEN }}
           github_token: ${{ secrets.GITHUB_TOKEN }}
           component: all

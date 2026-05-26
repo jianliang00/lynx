@@ -4,6 +4,10 @@
 # LICENSE file in the root directory of this source tree.
 
 import argparse
+import datetime
+import hashlib
+import hmac
+import http.client
 import os
 import shutil
 import subprocess
@@ -15,9 +19,15 @@ from urllib.parse import quote
 from urllib.request import urlopen
 from skip_pod_lint import skip_pod_lint
 
-SOURCE_TYPE_ZIP = 'zip'
-SOURCE_TYPE_GIT = 'git'
-GIT_SOURCE_REF_TYPES = ('commit', 'tag', 'branch')
+STORAGE_TYPE_GITHUB_RELEASE = 'github_release'
+STORAGE_TYPE_S3 = 's3'
+S3_ACCESS_KEY_ENV = 'REPO_LYNX_ARTIFACTS_S3_AK'
+S3_SECRET_KEY_ENV = 'REPO_LYNX_ARTIFACTS_S3_SK'
+S3_BUCKET_ENV = 'REPO_LYNX_ARTIFACTS_S3_BUCKET'
+S3_REGION_ENV = 'REPO_LYNX_ARTIFACTS_S3_REGION'
+S3_UPLOAD_DOMAIN_ENV = 'REPO_LYNX_ARTIFACTS_S3_UPLOAD_DOMAIN'
+S3_PUBLIC_DOMAIN_ENV = 'REPO_LYNX_ARTIFACTS_S3_PUBLIC_DOMAIN'
+S3_PATH_PREFIX_ENV = 'REPO_LYNX_ARTIFACTS_S3_PATH_PREFIX'
 COCOAPODS_TRUNK_API = 'https://trunk.cocoapods.org/api/v1'
 PUBLISH_RETRY_ATTEMPTS = 3
 PUBLISH_RETRY_INITIAL_DELAY_SECONDS = 30
@@ -28,12 +38,21 @@ def run_command(command, check=True):
     command = 'set -e\n' + command
 
     print(f'run command: {command}')
-    res = subprocess.run(['bash', '-c', command], stderr=subprocess.STDOUT, check=check, text=True)
+    subprocess.run(['bash', '-c', command], stderr=subprocess.STDOUT, check=check, text=True)
 
 def get_podspec_version(component):
     with open(f"{component}.podspec.json", 'r', encoding='utf8') as f:
         content = json.load(f)
     return content['version']
+
+def get_selected_podspec_names(src_dir, component):
+    podspec_names = []
+    for filename in sorted(os.listdir(src_dir)):
+        if filename.endswith('.podspec'):
+            podspec_name = filename.split('.')[0]
+            if component == podspec_name or component == 'all':
+                podspec_names.append(podspec_name)
+    return podspec_names
 
 def is_pod_version_published(component, version):
     component_path = quote(component, safe='')
@@ -93,53 +112,153 @@ def copy_podspec(src_dir, dest_dir):
 
 
 def generate_zip_file(src_dir, tag, component):
-    for filename in os.listdir(src_dir):
-        if filename.endswith('.podspec'):
-            podspec_name = filename.split('.')[0]
-            if component == podspec_name or component == 'all':
-                print(f'Generating zip file for {podspec_name}')
-                run_command(f'export PACKAGE_ENV=prod && geniospkg --output_type both --repo {podspec_name} --tag {tag} --cache_path .')
+    for podspec_name in get_selected_podspec_names(src_dir, component):
+        print(f'Generating zip file for {podspec_name}')
+        quoted_podspec_name = shlex.quote(podspec_name)
+        quoted_tag = shlex.quote(tag)
+        run_command(
+            'export PACKAGE_ENV=prod && '
+            f'geniospkg --output_type both --repo {quoted_podspec_name} '
+            f'--tag {quoted_tag} --cache_path .'
+        )
 
-def validate_git_source_options(git_source_ref_type, git_source_ref):
-    if not git_source_ref_type:
-        raise ValueError('--git-source-ref-type is required when --source-type=git')
-    if not git_source_ref:
-        raise ValueError('--git-source-ref is required when --source-type=git')
-    if git_source_ref_type not in GIT_SOURCE_REF_TYPES:
-        raise ValueError(f'--git-source-ref-type must be one of: {", ".join(GIT_SOURCE_REF_TYPES)}')
+def validate_s3_storage_options():
+    if not os.environ.get(S3_BUCKET_ENV):
+        raise ValueError(f'{S3_BUCKET_ENV} is required when --storage-type=s3')
+    if not os.environ.get(S3_REGION_ENV):
+        raise ValueError(f'{S3_REGION_ENV} is required when --storage-type=s3')
+    if not os.environ.get(S3_ACCESS_KEY_ENV):
+        raise ValueError(f'{S3_ACCESS_KEY_ENV} is required when --storage-type=s3')
+    if not os.environ.get(S3_SECRET_KEY_ENV):
+        raise ValueError(f'{S3_SECRET_KEY_ENV} is required when --storage-type=s3')
+    if not os.environ.get(S3_UPLOAD_DOMAIN_ENV):
+        raise ValueError(f'{S3_UPLOAD_DOMAIN_ENV} is required when --storage-type=s3')
+    if not os.environ.get(S3_PUBLIC_DOMAIN_ENV):
+        raise ValueError(f'{S3_PUBLIC_DOMAIN_ENV} is required when --storage-type=s3')
 
-def validate_source_type_options(source_type, git_source_url, git_source_ref_type, git_source_ref):
-    if source_type == SOURCE_TYPE_GIT:
-        if not git_source_url:
-            raise ValueError('--git-source-url is required when --source-type=git')
-        validate_git_source_options(git_source_ref_type, git_source_ref)
-    elif source_type != SOURCE_TYPE_ZIP:
-        raise ValueError(f'Unsupported source type: {source_type}')
+def validate_storage_type_options(storage_type):
+    if storage_type == STORAGE_TYPE_S3:
+        validate_s3_storage_options()
+    elif storage_type != STORAGE_TYPE_GITHUB_RELEASE:
+        raise ValueError(f'Unsupported storage type: {storage_type}')
 
-def use_git_pod_source(component, git_source_url, git_source_ref_type, git_source_ref):
+def set_http_pod_source(component, source_url):
     with open(f"{component}.podspec.json", 'r', encoding='utf8') as f:
         content = json.load(f)
 
-    content["source"] = {
-        "git": git_source_url,
-        git_source_ref_type: git_source_ref,
-    }
+    content["source"] = {"http": source_url}
 
     with open(f"{component}.podspec.json", "w", encoding='utf8') as f:
         json.dump(content, f, indent=4)
 
-def generate_git_source_podspec_files(src_dir, component, git_source_url, git_source_ref_type, git_source_ref):
-    run_command('SDKROOT=/Library/Developer/CommandLineTools/SDKs/MacOSX.sdk bundle install --path .')
+def get_file_sha256(file_path):
+    digest = hashlib.sha256()
+    with open(file_path, 'rb') as f:
+        for chunk in iter(lambda: f.read(1024 * 1024), b''):
+            digest.update(chunk)
+    return digest.hexdigest()
 
-    for filename in os.listdir(src_dir):
-        if filename.endswith('.podspec'):
-            podspec_name = filename.split('.')[0]
-            if component == podspec_name or component == 'all':
-                print(f'Generating git source podspec for {podspec_name}')
-                podspec_file = shlex.quote(f'{podspec_name}.podspec')
-                podspec_json_file = shlex.quote(f'{podspec_name}.podspec.json')
-                run_command(f'bundle exec pod ipc spec {podspec_file} > {podspec_json_file}')
-                use_git_pod_source(podspec_name, git_source_url, git_source_ref_type, git_source_ref)
+def get_signature_key(secret_key, date_stamp, region, service):
+    date_key = hmac.new(
+        ('AWS4' + secret_key).encode('utf-8'),
+        date_stamp.encode('utf-8'),
+        hashlib.sha256,
+    ).digest()
+    region_key = hmac.new(date_key, region.encode('utf-8'), hashlib.sha256).digest()
+    service_key = hmac.new(region_key, service.encode('utf-8'), hashlib.sha256).digest()
+    return hmac.new(service_key, b'aws4_request', hashlib.sha256).digest()
+
+def build_s3_object_key(path_prefix, version, filename):
+    return '/'.join(part.strip('/') for part in (path_prefix, version, filename) if part and part.strip('/'))
+
+def build_s3_host(bucket, domain):
+    return f'{bucket}.{domain.strip().strip(".")}'
+
+def build_s3_public_url(bucket, public_domain, object_key):
+    escaped_key = quote(object_key, safe='/~')
+    return f'https://{build_s3_host(bucket, public_domain)}/{escaped_key}'
+
+def upload_file_to_s3(file_path, bucket, region, upload_domain, object_key, access_key, secret_key):
+    method = 'PUT'
+    service = 's3'
+    host = build_s3_host(bucket, upload_domain)
+    canonical_uri = '/' + quote(object_key, safe='/~')
+    file_size = os.path.getsize(file_path)
+    payload_hash = get_file_sha256(file_path)
+    timestamp = datetime.datetime.utcnow()
+    amz_date = timestamp.strftime('%Y%m%dT%H%M%SZ')
+    date_stamp = timestamp.strftime('%Y%m%d')
+    credential_scope = f'{date_stamp}/{region}/{service}/aws4_request'
+    signed_headers = 'content-length;content-type;host;x-amz-content-sha256;x-amz-date'
+    headers = {
+        'Content-Length': str(file_size),
+        'Content-Type': 'application/zip',
+        'Host': host,
+        'x-amz-content-sha256': payload_hash,
+        'x-amz-date': amz_date,
+    }
+    canonical_headers = ''.join(
+        f'{name.lower()}:{headers[name]}\n'
+        for name in sorted(headers, key=str.lower)
+    )
+    canonical_request = '\n'.join([
+        method,
+        canonical_uri,
+        '',
+        canonical_headers,
+        signed_headers,
+        payload_hash,
+    ])
+    string_to_sign = '\n'.join([
+        'AWS4-HMAC-SHA256',
+        amz_date,
+        credential_scope,
+        hashlib.sha256(canonical_request.encode('utf-8')).hexdigest(),
+    ])
+    signing_key = get_signature_key(secret_key, date_stamp, region, service)
+    signature = hmac.new(signing_key, string_to_sign.encode('utf-8'), hashlib.sha256).hexdigest()
+    headers['Authorization'] = (
+        f'AWS4-HMAC-SHA256 Credential={access_key}/{credential_scope}, '
+        f'SignedHeaders={signed_headers}, Signature={signature}'
+    )
+
+    connection = http.client.HTTPSConnection(host, timeout=120)
+    try:
+        with open(file_path, 'rb') as body:
+            connection.request(method, canonical_uri, body=body, headers=headers)
+        response = connection.getresponse()
+        response_body = response.read().decode('utf-8', errors='replace')
+        if response.status not in (200, 201, 204):
+            raise RuntimeError(
+                f'Failed to upload {file_path} to S3-compatible storage: '
+                f'HTTP {response.status} {response.reason}\n{response_body}'
+            )
+    finally:
+        connection.close()
+
+def upload_zip_sources_to_s3(src_dir, component):
+    access_key = os.environ[S3_ACCESS_KEY_ENV]
+    secret_key = os.environ[S3_SECRET_KEY_ENV]
+    bucket = os.environ[S3_BUCKET_ENV]
+    region = os.environ[S3_REGION_ENV]
+    upload_domain = os.environ[S3_UPLOAD_DOMAIN_ENV]
+    public_domain = os.environ[S3_PUBLIC_DOMAIN_ENV]
+    path_prefix = os.environ.get(S3_PATH_PREFIX_ENV, '')
+
+    for podspec_name in get_selected_podspec_names(src_dir, component):
+        version = get_podspec_version(podspec_name)
+        zip_filename = f'{podspec_name}-{version}.zip'
+        zip_path = os.path.join(src_dir, zip_filename)
+        if not os.path.exists(zip_path):
+            raise FileNotFoundError(f'Expected zip file does not exist: {zip_path}')
+
+        object_key = build_s3_object_key(path_prefix, version, zip_filename)
+        source_url = build_s3_public_url(bucket, public_domain, object_key)
+        # CocoaPods trunk downloads source URLs without workflow credentials.
+        # Keep this bucket or prefix publicly readable before publishing.
+        print(f'Uploading {zip_filename} to {source_url}')
+        upload_file_to_s3(zip_path, bucket, region, upload_domain, object_key, access_key, secret_key)
+        set_http_pod_source(podspec_name, source_url)
 
 def get_enable_trace_param(version: str) -> str:
     """
@@ -157,11 +276,8 @@ def prepare_cocoapods_publish_source(
         version,
         tag,
         component,
-        source_type=SOURCE_TYPE_ZIP,
-        git_source_url=None,
-        git_source_ref_type=None,
-        git_source_ref=None):
-    validate_source_type_options(source_type, git_source_url, git_source_ref_type, git_source_ref)
+        storage_type=STORAGE_TYPE_GITHUB_RELEASE):
+    validate_storage_type_options(storage_type)
 
     root_path = os.path.dirname(os.path.dirname(os.path.dirname(os.path.abspath(__file__))))
 
@@ -175,26 +291,20 @@ def prepare_cocoapods_publish_source(
     print('2. Generate podspec files')
     run_command(f'python3 tools/ios_tools/generate_podspec_scripts_by_gn.py --root {root_path} {get_enable_trace_param(version)}')
 
-    if source_type == SOURCE_TYPE_GIT:
-        print('3. Generate git source podspec files')
-        generate_git_source_podspec_files(root_path, component, git_source_url, git_source_ref_type, git_source_ref)
-        return
-
     print('3. Generate lynx_core.js')
     run_command(f'python3 tools/js_tools/build.py --platform ios --release_output platform/darwin/ios/JSAssets/release/lynx_core.js --dev_output platform/darwin/ios/lynx_devtool/assets/lynx_core_dev.js --version {version}')
 
     print('4. Generate zip files')
     generate_zip_file(root_path, tag, component)
 
+    if storage_type == STORAGE_TYPE_S3:
+        print('5. Upload zip files to S3-compatible storage')
+        upload_zip_sources_to_s3(root_path, component)
+
 def use_local_pod_source(component):
-    with open(f"{component}.podspec.json",'r',encoding='utf8') as f:
-        content = json.load(f)
-    version = content["version"]
+    version = get_podspec_version(component)
     source_url = f"file:{os.getcwd()}/{component}-{version}.zip"
-    
-    content["source"] = {"http": source_url}
-    with open(f"{component}.podspec.json","w",encoding='utf8') as f:
-        json.dump(content, f, indent=4)
+    set_http_pod_source(component, source_url)
 
 def create_local_pod_source(local_pod_source_name):
     run_command(f'mkdir ./{local_pod_source_name}')
@@ -308,10 +418,7 @@ def main():
     parser.add_argument('--sources', type=str, help='the cocoapods sources', required=False)
     parser.add_argument('--pod_lint', action="store_true", help='Run pod lint')
     parser.add_argument('--publish_local', type=str, help='Publish pod to local source')
-    parser.add_argument('--source-type', default=SOURCE_TYPE_ZIP, help='The podspec source type used by --prepare-source')
-    parser.add_argument('--git-source-url', type=str, help='The git repository URL used when --source-type=git', required=False)
-    parser.add_argument('--git-source-ref-type', help='The git ref field used when --source-type=git')
-    parser.add_argument('--git-source-ref', type=str, help='The git ref value used when --source-type=git', required=False)
+    parser.add_argument('--storage-type', default=STORAGE_TYPE_GITHUB_RELEASE, help='The zip storage backend used by --prepare-source')
 
     args = parser.parse_args()
     if args.prepare_source:
@@ -320,10 +427,7 @@ def main():
                 args.version,
                 args.tag,
                 args.component,
-                args.source_type,
-                args.git_source_url,
-                args.git_source_ref_type,
-                args.git_source_ref,
+                args.storage_type,
             )
         except ValueError as error:
             parser.error(str(error))
