@@ -52,18 +52,22 @@ class MediaQueryEvaluator {
   bool EvalFeature(const MediaFeature& feature) const;
 
  private:
-  using ValueConverter = double (*)(const MediaFeatureValue&,
-                                    const MediaValues&);
-
-  bool EvalNumericFeature(double actual, const MediaFeature& feature,
-                          MediaFeatureOperator implicit_op,
-                          ValueConverter converter) const;
+  bool EvalWidthFeature(const MediaFeature& feature,
+                        MediaFeatureOperator implicit_op) const;
+  bool EvalHeightFeature(const MediaFeature& feature,
+                         MediaFeatureOperator implicit_op) const;
   bool EvalOrientationFeature(const MediaFeature& feature) const;
+  bool EvalResolutionFeature(const MediaFeature& feature,
+                             MediaFeatureOperator implicit_op) const;
   bool EvalAspectRatioFeature(const MediaFeature& feature,
                               MediaFeatureOperator implicit_op) const;
   bool EvalHoverFeature(const MediaFeature& feature) const;
   bool EvalPointerFeature(const MediaFeature& feature) const;
   bool EvalColorSchemeFeature(const MediaFeature& feature) const;
+  bool EvalColorFeature(const MediaFeature& feature,
+                        MediaFeatureOperator implicit_op) const;
+  bool EvalDevicePixelRatioFeature(const MediaFeature& feature,
+                                   MediaFeatureOperator implicit_op) const;
   bool EvalCustomFeature(const MediaFeature& feature) const;
 
   MediaValues values_;

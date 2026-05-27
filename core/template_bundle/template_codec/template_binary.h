@@ -86,30 +86,6 @@ enum class StyleObjectSectionType {
   SECTION_COUNT
 };
 
-enum class CSSRuleType : uint8_t {
-  kUnknown,
-  kCharset,
-  kStyle,
-  kImport,
-  kMedia,
-  kFontFace,
-  kFontFeature,
-  kProperty,
-  kKeyframes,
-  kNestedDeclarations,
-  kFunctionDeclarations,
-  kNamespace,
-  kContainer,
-  kScope,
-  kSupports,
-  kFunction,
-  kMixin,
-  kApplyMixin,
-  kContents,
-  kPositionTry,
-  kCustomMedia,
-};
-
 struct Range {
   uint32_t start;
   uint32_t end;

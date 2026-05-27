@@ -74,11 +74,12 @@ CSSRuleParser::ParseConditionRule(const rapidjson::Value &rule,
     return nullptr;
   }
   const auto &type = rule[TYPE].GetString();
-  encoder::LynxStyleRuleBase::RuleType rule_type = CSSRuleType::kUnknown;
+  encoder::LynxStyleRuleBase::RuleType rule_type =
+      encoder::LynxStyleRuleBase::kUnknown;
   if (strcmp(type, "MediaRule") == 0) {
-    rule_type = CSSRuleType::kMedia;
+    rule_type = encoder::LynxStyleRuleBase::kMedia;
   } else if (strcmp(type, "SupportsRule") == 0) {
-    rule_type = CSSRuleType::kSupports;
+    rule_type = encoder::LynxStyleRuleBase::kSupports;
   } else {
     diagnostics_.emplace_back(Diagnostic{"rule", type});
     return nullptr;

@@ -266,7 +266,7 @@ TEST_F(CSSRuleParserTest, ParseSingleStyleRule) {
   ASSERT_NE(fragment, nullptr);
   const auto& rules = fragment->rules();
   ASSERT_EQ(rules.size(), 1u);
-  EXPECT_EQ(rules[0]->type, CSSRuleType::kStyle);
+  EXPECT_EQ(rules[0]->type, encoder::LynxStyleRuleBase::kStyle);
 
   auto* style_rule = static_cast<encoder::LynxStyleRule*>(rules[0].get());
   EXPECT_GT(style_rule->flattened_size, 0u);
@@ -311,13 +311,14 @@ TEST_F(CSSRuleParserTest, ParseMediaRule) {
   ASSERT_NE(fragment, nullptr);
   const auto& rules = fragment->rules();
   ASSERT_EQ(rules.size(), 1u);
-  EXPECT_EQ(rules[0]->type, CSSRuleType::kMedia);
+  EXPECT_EQ(rules[0]->type, encoder::LynxStyleRuleBase::kMedia);
 
   auto* media_rule =
       static_cast<encoder::LynxStyleRuleCondition*>(rules[0].get());
   EXPECT_EQ(media_rule->condition, "(max-width:1250px)");
   ASSERT_EQ(media_rule->child_rules.size(), 1u);
-  EXPECT_EQ(media_rule->child_rules[0]->type, CSSRuleType::kStyle);
+  EXPECT_EQ(media_rule->child_rules[0]->type,
+            encoder::LynxStyleRuleBase::kStyle);
 
   auto* child_style =
       static_cast<encoder::LynxStyleRule*>(media_rule->child_rules[0].get());
@@ -344,7 +345,7 @@ TEST_F(CSSRuleParserTest, ParseSupportsRule) {
   ASSERT_NE(fragment, nullptr);
   const auto& rules = fragment->rules();
   ASSERT_EQ(rules.size(), 1u);
-  EXPECT_EQ(rules[0]->type, CSSRuleType::kSupports);
+  EXPECT_EQ(rules[0]->type, encoder::LynxStyleRuleBase::kSupports);
 
   auto* supports_rule =
       static_cast<encoder::LynxStyleRuleCondition*>(rules[0].get());
@@ -380,7 +381,7 @@ TEST_F(CSSRuleParserTest, ParseFontFaceRule) {
   ASSERT_NE(fragment, nullptr);
   const auto& rules = fragment->rules();
   ASSERT_EQ(rules.size(), 1u);
-  EXPECT_EQ(rules[0]->type, CSSRuleType::kFontFace);
+  EXPECT_EQ(rules[0]->type, encoder::LynxStyleRuleBase::kFontFace);
 
   auto* fontface_rule =
       static_cast<encoder::LynxStyleRuleFontFace*>(rules[0].get());
@@ -438,7 +439,7 @@ TEST_F(CSSRuleParserTest, ParseKeyframesRule) {
   ASSERT_NE(fragment, nullptr);
   const auto& rules = fragment->rules();
   ASSERT_EQ(rules.size(), 1u);
-  EXPECT_EQ(rules[0]->type, CSSRuleType::kKeyframes);
+  EXPECT_EQ(rules[0]->type, encoder::LynxStyleRuleBase::kKeyframes);
 
   auto* keyframes_rule =
       static_cast<encoder::LynxStyleRuleKeyframes*>(rules[0].get());
@@ -523,11 +524,11 @@ TEST_F(CSSRuleParserTest, ParseAllRuleTypes) {
   ASSERT_NE(fragment, nullptr);
   const auto& rules = fragment->rules();
   ASSERT_EQ(rules.size(), 5u);
-  EXPECT_EQ(rules[0]->type, CSSRuleType::kStyle);
-  EXPECT_EQ(rules[1]->type, CSSRuleType::kMedia);
-  EXPECT_EQ(rules[2]->type, CSSRuleType::kSupports);
-  EXPECT_EQ(rules[3]->type, CSSRuleType::kFontFace);
-  EXPECT_EQ(rules[4]->type, CSSRuleType::kKeyframes);
+  EXPECT_EQ(rules[0]->type, encoder::LynxStyleRuleBase::kStyle);
+  EXPECT_EQ(rules[1]->type, encoder::LynxStyleRuleBase::kMedia);
+  EXPECT_EQ(rules[2]->type, encoder::LynxStyleRuleBase::kSupports);
+  EXPECT_EQ(rules[3]->type, encoder::LynxStyleRuleBase::kFontFace);
+  EXPECT_EQ(rules[4]->type, encoder::LynxStyleRuleBase::kKeyframes);
 }
 
 TEST_F(CSSRuleParserTest, ParseEmptyRules) {
@@ -630,8 +631,10 @@ TEST_F(CSSRuleParserTest, ParseMediaRuleWithMultipleChildRules) {
       static_cast<encoder::LynxStyleRuleCondition*>(rules[0].get());
   EXPECT_EQ(media_rule->condition, "(min-width:600px)");
   ASSERT_EQ(media_rule->child_rules.size(), 2u);
-  EXPECT_EQ(media_rule->child_rules[0]->type, CSSRuleType::kStyle);
-  EXPECT_EQ(media_rule->child_rules[1]->type, CSSRuleType::kStyle);
+  EXPECT_EQ(media_rule->child_rules[0]->type,
+            encoder::LynxStyleRuleBase::kStyle);
+  EXPECT_EQ(media_rule->child_rules[1]->type,
+            encoder::LynxStyleRuleBase::kStyle);
 }
 
 TEST_F(CSSRuleParserTest, ParseFragmentIdAndDependentList) {
@@ -819,7 +822,7 @@ TEST_F(CSSRuleParserTest, ParseMediaRuleWithoutPrelude) {
   ASSERT_NE(fragment, nullptr);
   const auto& rules = fragment->rules();
   ASSERT_EQ(rules.size(), 1u);
-  EXPECT_EQ(rules[0]->type, CSSRuleType::kMedia);
+  EXPECT_EQ(rules[0]->type, encoder::LynxStyleRuleBase::kMedia);
 
   auto* media_rule =
       static_cast<encoder::LynxStyleRuleCondition*>(rules[0].get());
@@ -886,14 +889,16 @@ TEST_F(CSSRuleParserTest, ParseSupportsRuleWithChildRules) {
   ASSERT_NE(fragment, nullptr);
   const auto& rules = fragment->rules();
   ASSERT_EQ(rules.size(), 1u);
-  EXPECT_EQ(rules[0]->type, CSSRuleType::kSupports);
+  EXPECT_EQ(rules[0]->type, encoder::LynxStyleRuleBase::kSupports);
 
   auto* supports_rule =
       static_cast<encoder::LynxStyleRuleCondition*>(rules[0].get());
   EXPECT_EQ(supports_rule->condition, "(display:grid)");
   ASSERT_EQ(supports_rule->child_rules.size(), 2u);
-  EXPECT_EQ(supports_rule->child_rules[0]->type, CSSRuleType::kStyle);
-  EXPECT_EQ(supports_rule->child_rules[1]->type, CSSRuleType::kStyle);
+  EXPECT_EQ(supports_rule->child_rules[0]->type,
+            encoder::LynxStyleRuleBase::kStyle);
+  EXPECT_EQ(supports_rule->child_rules[1]->type,
+            encoder::LynxStyleRuleBase::kStyle);
 }
 
 TEST_F(CSSRuleParserTest, ParseConditionRuleChildWithoutTypeSkipped) {
@@ -1016,7 +1021,7 @@ TEST_F(CSSRuleParserTest, ParseKeyframesRuleWithSingleKeyframe) {
   ASSERT_NE(fragment, nullptr);
   const auto& rules = fragment->rules();
   ASSERT_EQ(rules.size(), 1u);
-  EXPECT_EQ(rules[0]->type, CSSRuleType::kKeyframes);
+  EXPECT_EQ(rules[0]->type, encoder::LynxStyleRuleBase::kKeyframes);
 
   auto* keyframes_rule =
       static_cast<encoder::LynxStyleRuleKeyframes*>(rules[0].get());
@@ -1043,7 +1048,7 @@ TEST_F(CSSRuleParserTest, ParseFontFaceRuleWithOnlyFamily) {
   ASSERT_NE(fragment, nullptr);
   const auto& rules = fragment->rules();
   ASSERT_EQ(rules.size(), 1u);
-  EXPECT_EQ(rules[0]->type, CSSRuleType::kFontFace);
+  EXPECT_EQ(rules[0]->type, encoder::LynxStyleRuleBase::kFontFace);
 
   auto* fontface_rule =
       static_cast<encoder::LynxStyleRuleFontFace*>(rules[0].get());
@@ -1090,8 +1095,8 @@ TEST_F(CSSRuleParserTest, ParseMixedRulesWithInvalidEntriesFiltered) {
   ASSERT_NE(fragment, nullptr);
   const auto& rules = fragment->rules();
   EXPECT_EQ(rules.size(), 2u);
-  EXPECT_EQ(rules[0]->type, CSSRuleType::kStyle);
-  EXPECT_EQ(rules[1]->type, CSSRuleType::kFontFace);
+  EXPECT_EQ(rules[0]->type, encoder::LynxStyleRuleBase::kStyle);
+  EXPECT_EQ(rules[1]->type, encoder::LynxStyleRuleBase::kFontFace);
 }
 
 }  // namespace test
